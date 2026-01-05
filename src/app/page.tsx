@@ -19,13 +19,26 @@ export default function Dashboard() {
 
   return (
     <div className="flex flex-col gap-8">
-      <header>
-        <h1 className="text-4xl font-headline font-bold tracking-tight">
-          Department of Pharmacology
-        </h1>
-        <p className="text-muted-foreground mt-1">
-          AIIMS CAPFIMS
-        </p>
+      <header className="flex items-center gap-4">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 100 100"
+          className="h-16 w-16 text-primary"
+          fill="currentColor"
+        >
+          <path d="M50,10A40,40,0,1,0,90,50,40,40,0,0,0,50,10Zm0,75A35,35,0,1,1,85,50,35,35,0,0,1,50,85Z" />
+          <path d="M50,25a5,5,0,0,0-5,5V45H35a5,5,0,0,0,0,10H45V70a5,5,0,0,0,10,0V55H65a5,5,0,0,0,0-10H55V30A5,5,0,0,0,50,25Z" />
+          <path d="M35,35a5,5,0,1,0,5,5A5,5,0,0,0,35,35Z" />
+          <path d="M60,35a5,5,0,1,0,5,5A5,5,0,0,0,60,35Z" />
+          <path d="M35,60a5,5,0,1,0,5,5A5,5,0,0,0,35,60Z" />
+          <path d="M60,60a5,5,0,1,0,5,5A5,5,0,0,0,60,60Z" />
+        </svg>
+        <div>
+          <h1 className="text-4xl font-headline font-bold tracking-tight">
+            Department of Pharmacology
+          </h1>
+          <p className="text-muted-foreground mt-1">AIIMS CAPFIMS</p>
+        </div>
       </header>
       <main className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
@@ -71,7 +84,12 @@ export default function Dashboard() {
           </CardContent>
         </Card>
         <Card className="bg-primary/10 border-primary/40 hover:bg-primary/20 transition-colors">
-           <Link href="https://pharmacology.vercel.app" target="_blank" rel="noopener noreferrer" className="block h-full">
+          <Link
+            href="https://pharmacology.vercel.app"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block h-full"
+          >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Today's Highlight
@@ -79,7 +97,9 @@ export default function Dashboard() {
               <Sparkles className="h-4 w-4 text-primary" />
             </CardHeader>
             <CardContent>
-              <div className="text-lg font-bold text-primary">Daily Drug Highlight</div>
+              <div className="text-lg font-bold text-primary">
+                Daily Drug Highlight
+              </div>
               <p className="text-xs text-muted-foreground">
                 Click to view on pharmacology.vercel.app
               </p>
