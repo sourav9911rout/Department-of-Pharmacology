@@ -22,10 +22,12 @@ import {
   Lock,
   Unlock,
   Building2,
+  PanelLeftClose,
 } from "lucide-react";
 import AdminPinDialog from "./admin-pin-dialog";
 import { useAdminAuth } from "@/hooks/use-admin-auth";
 import { Button } from "./ui/button";
+import { useSidebar } from "@/components/ui/sidebar";
 
 const navItems = [
   { href: "/", label: "Home", icon: Home },
@@ -38,6 +40,7 @@ const navItems = [
 export default function AppSidebar() {
   const pathname = usePathname();
   const { isAdmin } = useAdminAuth();
+  const { toggleSidebar, state } = useSidebar();
 
   return (
     <>
@@ -46,7 +49,7 @@ export default function AppSidebar() {
         <h1 className="text-lg font-headline font-semibold ml-4">Departmental Hub</h1>
       </div>
       <Sidebar collapsible="offcanvas" variant="sidebar">
-        <SidebarHeader className="p-4">
+        <SidebarHeader className="p-4 flex justify-between items-center">
           <div className="flex items-center gap-3">
              <div className="p-2 bg-primary/20 rounded-lg">
                 <Building2 className="w-6 h-6 text-primary" />
@@ -56,6 +59,9 @@ export default function AppSidebar() {
               <p className="text-xs text-muted-foreground">Centralized Portal</p>
             </div>
           </div>
+           <Button variant="ghost" size="icon" className="h-8 w-8 hidden md:flex" onClick={() => toggleSidebar()}>
+              <PanelLeftClose className="w-5 h-5" />
+            </Button>
         </SidebarHeader>
         <SidebarContent className="p-2">
           <SidebarMenu>
