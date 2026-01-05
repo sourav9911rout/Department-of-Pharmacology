@@ -18,8 +18,8 @@ export default function Dashboard() {
   ).length;
 
   return (
-    <div className="flex flex-col">
-      <header className="mb-8">
+    <div className="flex flex-col gap-8">
+      <header>
         <h1 className="text-4xl font-headline font-bold tracking-tight">
           Home Dashboard
         </h1>

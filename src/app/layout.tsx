@@ -30,7 +30,7 @@ export default function RootLayout({
         <AdminAuthProvider>
           <SidebarProvider>
             <AppSidebar />
-            <SidebarInset>{children}</SidebarInset>
+            <SidebarInset className='p-4 md:p-8'>{children}</SidebarInset>
             <Toaster />
           </SidebarProvider>
         </AdminAuthProvider>

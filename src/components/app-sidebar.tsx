@@ -23,11 +23,13 @@ import {
   Unlock,
   Building2,
   PanelLeftClose,
+  PanelLeftOpen,
 } from "lucide-react";
 import AdminPinDialog from "./admin-pin-dialog";
 import { useAdminAuth } from "@/hooks/use-admin-auth";
 import { Button } from "./ui/button";
 import { useSidebar } from "@/components/ui/sidebar";
+import { cn } from "@/lib/utils";
 
 const navItems = [
   { href: "/", label: "Home", icon: Home },
@@ -46,7 +48,17 @@ export default function AppSidebar() {
     <>
       <div className="md:hidden flex items-center p-2 border-b">
         <SidebarTrigger />
-        <h1 className="text-lg font-headline font-semibold ml-4">Departmental Hub</h1>
+        <h1 className="text-lg font.headline font-semibold ml-4">Departmental Hub</h1>
+      </div>
+       <div
+        className={cn(
+          "fixed top-3 left-3 z-20 md:block hidden",
+          state === "expanded" && "hidden"
+        )}
+      >
+        <Button variant="ghost" size="icon" onClick={toggleSidebar}>
+          <PanelLeftOpen />
+        </Button>
       </div>
       <Sidebar collapsible="offcanvas" variant="sidebar">
         <SidebarHeader className="p-4 flex justify-between items-center">
@@ -55,7 +67,7 @@ export default function AppSidebar() {
                 <Building2 className="w-6 h-6 text-primary" />
              </div>
             <div className="flex flex-col">
-              <h2 className="text-lg font-headline font-semibold">Departmental Hub</h2>
+              <h2 className="text-lg font.headline font-semibold">Departmental Hub</h2>
               <p className="text-xs text-muted-foreground">Centralized Portal</p>
             </div>
           </div>
