@@ -21,10 +21,10 @@ export default function Dashboard() {
     <div className="flex flex-col gap-8">
       <header>
         <h1 className="text-4xl font-headline font-bold tracking-tight">
-          Home Dashboard
+          Department of Pharmacology
         </h1>
         <p className="text-muted-foreground mt-1">
-          A quick overview of your department's status.
+          AIIMS CAPFIMS
         </p>
       </header>
       <main className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">

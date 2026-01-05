@@ -7,7 +7,7 @@ import { AdminAuthProvider } from '@/contexts/admin-auth-context';
 import { Toaster } from '@/components/ui/toaster';
 
 export const metadata: Metadata = {
-  title: 'Departmental Hub',
+  title: 'Dept. of Pharmacology',
   description: 'A centralized portal for departmental management.',
 };
 

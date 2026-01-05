@@ -48,7 +48,7 @@ export default function AppSidebar() {
     <>
       <div className="md:hidden flex items-center p-2 border-b">
         <SidebarTrigger />
-        <h1 className="text-lg font.headline font-semibold ml-4">Departmental Hub</h1>
+        <h1 className="text-lg font.headline font-semibold ml-4">Dept. of Pharmacology</h1>
       </div>
        <div
         className={cn(
@@ -67,8 +67,8 @@ export default function AppSidebar() {
                 <Building2 className="w-6 h-6 text-primary" />
              </div>
             <div className="flex flex-col">
-              <h2 className="text-lg font.headline font-semibold">Departmental Hub</h2>
-              <p className="text-xs text-muted-foreground">Centralized Portal</p>
+              <h2 className="text-lg font.headline font-semibold">Dept. of Pharmacology</h2>
+              <p className="text-xs text-muted-foreground">AIIMS CAPFIMS</p>
             </div>
           </div>
            <Button variant="ghost" size="icon" className="h-8 w-8 hidden md:flex" onClick={() => toggleSidebar()}>
