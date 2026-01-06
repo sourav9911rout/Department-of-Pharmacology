@@ -15,8 +15,8 @@ import { useAdminAuth } from "@/hooks/use-admin-auth";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useFirestore } from "@/firebase";
-import { doc } from "firebase/firestore";
-import { updateDocumentNonBlocking } from "@/firebase/non-blocking-updates";
+import { collection, deleteDoc, doc } from "firebase/firestore";
+import { addDocumentNonBlocking, updateDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function RequirementTable({
@@ -33,9 +33,22 @@ export default function RequirementTable({
     const { isAdmin } = useAdminAuth();
     const firestore = useFirestore();
 
-    const handleStatusChange = (reqId: string, status: Requirement['status']) => {
-        const docRef = doc(firestore, 'requirements', reqId);
-        updateDocumentNonBlocking(docRef, { status });
+    const handleStatusChange = (req: Requirement, status: Requirement['status']) => {
+        const docRef = doc(firestore, 'requirements', req.id);
+        if (status === 'Procured') {
+            const procuredItemsCollectionRef = collection(firestore, 'procured_items');
+            addDocumentNonBlocking(procuredItemsCollectionRef, {
+                name: req.name,
+                quantity: req.requiredQuantity,
+                dateOfProcurement: new Date().toISOString().split('T')[0],
+                installationStatus: 'Pending',
+                category: 'Miscellaneous', // Default category
+                remarks: `Moved from requirement list. Priority: ${req.priorityLevel}`,
+            });
+            deleteDoc(docRef);
+        } else {
+            updateDocumentNonBlocking(docRef, { status });
+        }
     }
 
     const handleSelectAll = (checked: boolean | 'indeterminate') => {
@@ -125,7 +138,7 @@ export default function RequirementTable({
                         </TableCell>
                         <TableCell>
                             {isAdmin ? (
-                                <Select defaultValue={req.status} onValueChange={(value) => handleStatusChange(req.id, value as Requirement['status'])}>
+                                <Select defaultValue={req.status} onValueChange={(value) => handleStatusChange(req, value as Requirement['status'])}>
                                     <SelectTrigger className="w-[120px] h-8 text-xs">
                                         <SelectValue />
                                     </SelectTrigger>
