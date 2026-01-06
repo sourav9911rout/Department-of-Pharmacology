@@ -12,9 +12,37 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useAdminAuth } from "@/hooks/use-admin-auth";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 
-export default function RequirementTable({ data }: { data: Requirement[] }) {
+export default function RequirementTable({
+  data,
+  selectedItems,
+  onSelectionChange,
+}: {
+  data: Requirement[];
+  selectedItems: string[];
+  onSelectionChange: (ids: string[]) => void;
+}) {
     const { isAdmin } = useAdminAuth();
+
+    const handleSelectAll = (checked: boolean | 'indeterminate') => {
+        if (checked === true) {
+            onSelectionChange(data.map(item => item.id));
+        } else {
+            onSelectionChange([]);
+        }
+    }
+
+    const handleSelect = (itemId: string, checked: boolean) => {
+        if (checked) {
+            onSelectionChange([...selectedItems, itemId]);
+        } else {
+            onSelectionChange(selectedItems.filter(id => id !== itemId));
+        }
+    }
+    
+    const isAllSelected = data.length > 0 && selectedItems.length === data.length;
+    const isSomeSelected = selectedItems.length > 0 && selectedItems.length < data.length;
 
     const getPriorityBadgeClass = (priority: Requirement['priority']) => {
         switch (priority) {
@@ -39,6 +67,14 @@ export default function RequirementTable({ data }: { data: Requirement[] }) {
             <Table>
                 <TableHeader>
                 <TableRow>
+                    {isAdmin && (
+                        <TableHead className="w-[50px]">
+                            <Checkbox
+                                checked={isAllSelected || (isSomeSelected ? 'indeterminate' : false)}
+                                onCheckedChange={handleSelectAll}
+                            />
+                        </TableHead>
+                    )}
                     <TableHead>Item Name</TableHead>
                     <TableHead>Required Quantity</TableHead>
                     <TableHead>Priority</TableHead>
@@ -47,7 +83,15 @@ export default function RequirementTable({ data }: { data: Requirement[] }) {
                 </TableHeader>
                 <TableBody>
                 {data.map((req) => (
-                    <TableRow key={req.id}>
+                    <TableRow key={req.id} data-state={selectedItems.includes(req.id) ? 'selected' : ''}>
+                        {isAdmin && (
+                            <TableCell>
+                                <Checkbox
+                                    checked={selectedItems.includes(req.id)}
+                                    onCheckedChange={(checked) => handleSelect(req.id, !!checked)}
+                                />
+                            </TableCell>
+                        )}
                         <TableCell className="font-medium">{req.name}</TableCell>
                         <TableCell>{req.requiredQuantity}</TableCell>
                         <TableCell>
@@ -77,6 +121,13 @@ export default function RequirementTable({ data }: { data: Requirement[] }) {
                 ))}
                 </TableBody>
             </Table>
+             {data.length === 0 && (
+                <caption>
+                    <div className="text-center text-muted-foreground p-8">
+                        No requirements found.
+                    </div>
+                </caption>
+            )}
         </div>
     );
 }

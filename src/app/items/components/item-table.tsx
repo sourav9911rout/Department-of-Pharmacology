@@ -9,19 +9,54 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal } from "lucide-react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useAdminAuth } from "@/hooks/use-admin-auth";
 import { ItemDialog } from "./item-dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 
-export default function ItemTable({ data }: { data: ProcuredItem[] }) {
+export default function ItemTable({
+  data,
+  selectedItems,
+  onSelectionChange,
+}: {
+  data: ProcuredItem[];
+  selectedItems: string[];
+  onSelectionChange: (ids: string[]) => void;
+}) {
     const { isAdmin } = useAdminAuth();
+
+    const handleSelectAll = (checked: boolean | 'indeterminate') => {
+        if (checked === true) {
+            onSelectionChange(data.map(item => item.id));
+        } else {
+            onSelectionChange([]);
+        }
+    }
+
+    const handleSelect = (itemId: string, checked: boolean) => {
+        if (checked) {
+            onSelectionChange([...selectedItems, itemId]);
+        } else {
+            onSelectionChange(selectedItems.filter(id => id !== itemId));
+        }
+    }
+    
+    const isAllSelected = data.length > 0 && selectedItems.length === data.length;
+    const isSomeSelected = selectedItems.length > 0 && selectedItems.length < data.length;
+
 
     return (
         <div className="border rounded-lg">
             <Table>
                 <TableHeader>
                 <TableRow>
+                    {isAdmin && (
+                        <TableHead className="w-[50px]">
+                            <Checkbox
+                                checked={isAllSelected || (isSomeSelected ? 'indeterminate' : false)}
+                                onCheckedChange={handleSelectAll}
+                            />
+                        </TableHead>
+                    )}
                     <TableHead>Item Name</TableHead>
                     <TableHead>Category</TableHead>
                     <TableHead>Quantity</TableHead>
@@ -32,7 +67,15 @@ export default function ItemTable({ data }: { data: ProcuredItem[] }) {
                 </TableHeader>
                 <TableBody>
                 {data.map((item) => (
-                    <TableRow key={item.id}>
+                    <TableRow key={item.id} data-state={selectedItems.includes(item.id) ? 'selected' : ''}>
+                    {isAdmin && (
+                         <TableCell>
+                            <Checkbox
+                                checked={selectedItems.includes(item.id)}
+                                onCheckedChange={(checked) => handleSelect(item.id, !!checked)}
+                            />
+                        </TableCell>
+                    )}
                     <TableCell className="font-medium">{item.name}</TableCell>
                     <TableCell>{item.category}</TableCell>
                     <TableCell>{item.quantity}</TableCell>
@@ -49,6 +92,13 @@ export default function ItemTable({ data }: { data: ProcuredItem[] }) {
                 ))}
                 </TableBody>
             </Table>
+            {data.length === 0 && (
+                <caption>
+                    <div className="text-center text-muted-foreground p-8">
+                        No procured items found.
+                    </div>
+                </caption>
+            )}
         </div>
     );
 }
