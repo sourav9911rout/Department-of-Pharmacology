@@ -18,13 +18,13 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
-import { collection, deleteDoc, doc } from "firebase/firestore";
+import { collection, deleteDoc, doc, orderBy, query } from "firebase/firestore";
 
 export default function ProcuredItemsPage() {
   const { isAdmin } = useAdminAuth();
   const firestore = useFirestore();
   const procuredItemsCollection = useMemoFirebase(
-    () => collection(firestore, 'procured_items'),
+    () => query(collection(firestore, 'procured_items'), orderBy('dateOfProcurement', 'asc')),
     [firestore]
   );
   const { data: items, isLoading } = useCollection<ProcuredItem>(procuredItemsCollection);
