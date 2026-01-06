@@ -70,6 +70,7 @@ export default function ItemTable({
                             />
                         </TableHead>
                     )}
+                    <TableHead className="w-[50px]">S.No.</TableHead>
                     <TableHead>Item Name</TableHead>
                     <TableHead>Category</TableHead>
                     <TableHead>Quantity</TableHead>
@@ -85,6 +86,7 @@ export default function ItemTable({
                   Array.from({ length: 5 }).map((_, i) => (
                     <TableRow key={i}>
                       {isAdmin && <TableCell><Skeleton className="h-4 w-4" /></TableCell>}
+                      <TableCell><Skeleton className="h-4 w-8" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-32" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-12" /></TableCell>
@@ -96,7 +98,7 @@ export default function ItemTable({
                     </TableRow>
                   ))
                 ) : data.length > 0 ? (
-                  data.map((item) => (
+                  data.map((item, index) => (
                     <TableRow key={item.id} data-state={selectedItems.includes(item.id) ? 'selected' : ''}>
                     {isAdmin && (
                          <TableCell>
@@ -106,6 +108,7 @@ export default function ItemTable({
                             />
                         </TableCell>
                     )}
+                    <TableCell className="font-medium">{index + 1}</TableCell>
                     <TableCell className="font-medium">{item.name}</TableCell>
                     <TableCell>{item.category}</TableCell>
                     <TableCell>{item.quantity}</TableCell>
@@ -126,15 +129,14 @@ export default function ItemTable({
                     )}
                     </TableRow>
                   ))
-                ) : null}
-                </TableBody>
-                 {!isLoading && data.length === 0 && (
-                    <TableCaption>
-                        <div className="text-center text-muted-foreground p-8">
+                ) : (
+                    <TableRow>
+                        <TableCell colSpan={isAdmin ? 10 : 9} className="h-24 text-center">
                             No procured items found.
-                        </div>
-                    </TableCaption>
+                        </TableCell>
+                    </TableRow>
                 )}
+                </TableBody>
             </Table>
         </div>
     );

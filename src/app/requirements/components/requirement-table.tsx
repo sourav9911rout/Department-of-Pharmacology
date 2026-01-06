@@ -7,7 +7,6 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-  TableCaption,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -101,6 +100,7 @@ export default function RequirementTable({
                             />
                         </TableHead>
                     )}
+                    <TableHead className="w-[50px]">S.No.</TableHead>
                     <TableHead>Item Name</TableHead>
                     <TableHead>Required Quantity</TableHead>
                     <TableHead>Priority</TableHead>
@@ -112,6 +112,7 @@ export default function RequirementTable({
                   Array.from({ length: 4 }).map((_, i) => (
                     <TableRow key={i}>
                       {isAdmin && <TableCell><Skeleton className="h-4 w-4" /></TableCell>}
+                      <TableCell><Skeleton className="h-4 w-8" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-48" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-20" /></TableCell>
                       <TableCell><Skeleton className="h-6 w-20" /></TableCell>
@@ -119,7 +120,7 @@ export default function RequirementTable({
                     </TableRow>
                   ))
                 ) : data.length > 0 ? (
-                  data.map((req) => (
+                  data.map((req, index) => (
                     <TableRow key={req.id} data-state={selectedItems.includes(req.id) ? 'selected' : ''}>
                         {isAdmin && (
                             <TableCell>
@@ -129,6 +130,7 @@ export default function RequirementTable({
                                 />
                             </TableCell>
                         )}
+                        <TableCell className="font-medium">{index + 1}</TableCell>
                         <TableCell className="font-medium">{req.name}</TableCell>
                         <TableCell>{req.requiredQuantity}</TableCell>
                         <TableCell>
@@ -156,15 +158,14 @@ export default function RequirementTable({
                         </TableCell>
                     </TableRow>
                   ))
-                ) : null }
-                </TableBody>
-                 {!isLoading && data.length === 0 && (
-                    <TableCaption>
-                        <div className="text-center text-muted-foreground p-8">
+                ) : (
+                    <TableRow>
+                        <TableCell colSpan={isAdmin ? 6 : 5} className="h-24 text-center">
                             No requirements found.
-                        </div>
-                    </TableCaption>
-                )}
+                        </TableCell>
+                    </TableRow>
+                ) }
+                </TableBody>
             </Table>
         </div>
     );
