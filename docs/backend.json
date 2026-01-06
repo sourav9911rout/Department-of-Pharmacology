@@ -78,15 +78,6 @@
           "type": "number",
           "description": "The quantity of the item required."
         },
-        "priorityLevel": {
-          "type": "string",
-          "enum": [
-            "High",
-            "Medium",
-            "Low"
-          ],
-          "description": "The priority level of the requirement (e.g., 'High', 'Medium', 'Low')."
-        },
         "status": {
           "type": "string",
           "enum": [
@@ -109,7 +100,6 @@
       "required": [
         "name",
         "requiredQuantity",
-        "priorityLevel",
         "status",
         "type"
       ]

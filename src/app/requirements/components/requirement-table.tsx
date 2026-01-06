@@ -17,6 +17,7 @@ import { useFirestore } from "@/firebase";
 import { collection, deleteDoc, doc } from "firebase/firestore";
 import { addDocumentNonBlocking, updateDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 import { Skeleton } from "@/components/ui/skeleton";
+import { TableCaption } from "@/components/ui/table";
 
 export default function RequirementTable({
   data,
@@ -42,7 +43,7 @@ export default function RequirementTable({
                 dateOfProcurement: new Date().toISOString().split('T')[0],
                 installationStatus: 'Pending',
                 category: 'Miscellaneous', // Default category
-                remarks: `Moved from requirement list. Priority: ${req.priorityLevel}`,
+                remarks: `Moved from requirement list.`,
             });
             deleteDoc(docRef);
         } else {
@@ -69,15 +70,6 @@ export default function RequirementTable({
     const isAllSelected = data.length > 0 && selectedItems.length === data.length;
     const isSomeSelected = selectedItems.length > 0 && selectedItems.length < data.length;
 
-    const getPriorityBadgeClass = (priority: Requirement['priorityLevel']) => {
-        switch (priority) {
-            case 'High': return 'bg-red-100 text-red-800 border-red-300 dark:bg-red-900/50 dark:text-red-300 dark:border-red-700';
-            case 'Medium': return 'bg-yellow-100 text-yellow-800 border-yellow-300 dark:bg-yellow-900/50 dark:text-yellow-300 dark:border-yellow-700';
-            case 'Low': return 'bg-blue-100 text-blue-800 border-blue-300 dark:bg-blue-900/50 dark:text-blue-300 dark:border-blue-700';
-            default: return 'bg-gray-100 text-gray-800 border-gray-300';
-        }
-    }
-
     const getStatusBadgeClass = (status: Requirement['status']) => {
          switch (status) {
             case 'Procured': return 'bg-green-100 text-green-800 border-green-300 dark:bg-green-900/50 dark:text-green-300 dark:border-green-700';
@@ -103,7 +95,6 @@ export default function RequirementTable({
                     <TableHead className="w-[50px]">S.No.</TableHead>
                     <TableHead>Item Name</TableHead>
                     <TableHead>Required Quantity</TableHead>
-                    <TableHead>Priority</TableHead>
                     <TableHead>Status</TableHead>
                 </TableRow>
                 </TableHeader>
@@ -115,7 +106,6 @@ export default function RequirementTable({
                       <TableCell><Skeleton className="h-4 w-8" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-48" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-20" /></TableCell>
-                      <TableCell><Skeleton className="h-6 w-20" /></TableCell>
                       <TableCell><Skeleton className="h-8 w-28" /></TableCell>
                     </TableRow>
                   ))
@@ -133,11 +123,6 @@ export default function RequirementTable({
                         <TableCell className="font-medium">{index + 1}</TableCell>
                         <TableCell className="font-medium">{req.name}</TableCell>
                         <TableCell>{req.requiredQuantity}</TableCell>
-                        <TableCell>
-                            <Badge variant="outline" className={cn("font-normal", getPriorityBadgeClass(req.priorityLevel))}>
-                                {req.priorityLevel}
-                            </Badge>
-                        </TableCell>
                         <TableCell>
                             {isAdmin ? (
                                 <Select defaultValue={req.status} onValueChange={(value) => handleStatusChange(req, value as Requirement['status'])}>
@@ -159,13 +144,12 @@ export default function RequirementTable({
                     </TableRow>
                   ))
                 ) : (
-                    <TableRow>
-                        <TableCell colSpan={isAdmin ? 6 : 5} className="h-24 text-center">
-                            No requirements found.
-                        </TableCell>
-                    </TableRow>
-                ) }
+                    null
+                )}
                 </TableBody>
+                 { !isLoading && data.length === 0 && (
+                    <TableCaption>No requirements found.</TableCaption>
+                )}
             </Table>
         </div>
     );

@@ -28,7 +28,6 @@ export function RequirementDialog({
   const firestore = useFirestore();
   const [open, setOpen] = useState(false);
   const [type, setType] = useState<Requirement['type'] | undefined>();
-  const [priorityLevel, setPriorityLevel] = useState<Requirement['priorityLevel'] | undefined>();
   
   if (!isAdmin) {
     return null;
@@ -41,7 +40,6 @@ export function RequirementDialog({
       name: formData.get('name') as string,
       requiredQuantity: Number(formData.get('requiredQuantity')),
       type: type as Requirement['type'],
-      priorityLevel: priorityLevel as Requirement['priorityLevel'],
     };
 
     const finalData = {
@@ -55,7 +53,6 @@ export function RequirementDialog({
     setOpen(false);
     // Reset form states
     setType(undefined);
-    setPriorityLevel(undefined);
     (e.target as HTMLFormElement).reset();
   };
 
@@ -95,21 +92,6 @@ export function RequirementDialog({
                   <SelectItem value="Primary">Primary</SelectItem>
                   <SelectItem value="Secondary">Secondary</SelectItem>
                   <SelectItem value="Tertiary">Tertiary</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="priorityLevel" className="text-right">
-                Priority
-              </Label>
-              <Select value={priorityLevel} onValueChange={(v) => setPriorityLevel(v as Requirement['priorityLevel'])} required>
-                <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder="Select priority level" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="High">High</SelectItem>
-                  <SelectItem value="Medium">Medium</SelectItem>
-                  <SelectItem value="Low">Low</SelectItem>
                 </SelectContent>
               </Select>
             </div>
