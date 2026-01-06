@@ -1,6 +1,5 @@
 'use client';
 import PageHeader from "@/components/page-header";
-import { requirements } from "@/lib/data";
 import RequirementTable from "./components/requirement-table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState } from "react";
@@ -18,27 +17,39 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
+import { collection, deleteDoc, doc } from "firebase/firestore";
 
 export default function RequirementsPage() {
   const { isAdmin } = useAdminAuth();
-  const [reqs, setReqs] = useState<Requirement[]>(requirements);
+  const firestore = useFirestore();
+  
+  const requirementsCollection = useMemoFirebase(
+    () => collection(firestore, 'requirements'),
+    [firestore]
+  );
+  const { data: reqs, isLoading } = useCollection<Requirement>(requirementsCollection);
+
   const [selectedReqs, setSelectedReqs] = useState<string[]>([]);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
-  const primaryRequirements = reqs.filter((r) => r.type === "Primary");
-  const secondaryRequirements = reqs.filter(
+  const primaryRequirements = reqs?.filter((r) => r.type === "Primary") || [];
+  const secondaryRequirements = reqs?.filter(
     (r) => r.type === "Secondary"
-  );
+  ) || [];
   
   const handleDelete = () => {
-    setReqs(reqs.filter((req) => !selectedReqs.includes(req.id)));
+    selectedReqs.forEach(reqId => {
+      const docRef = doc(firestore, 'requirements', reqId);
+      deleteDoc(docRef);
+    });
     setSelectedReqs([]);
     setIsDeleteDialogOpen(false);
   };
   
   // Combine selection from both tabs
   const handleSelectionChange = (ids: string[], type: 'Primary' | 'Secondary') => {
-    const otherTypeIds = selectedReqs.filter(id => reqs.find(r => r.id === id)?.type !== type);
+    const otherTypeIds = selectedReqs.filter(id => reqs?.find(r => r.id === id)?.type !== type);
     setSelectedReqs([...otherTypeIds, ...ids]);
   }
 
@@ -66,6 +77,7 @@ export default function RequirementsPage() {
             data={primaryRequirements}
             selectedItems={selectedReqs.filter(id => primaryRequirements.some(r => r.id === id))}
             onSelectionChange={(ids) => handleSelectionChange(ids, 'Primary')}
+            isLoading={isLoading}
           />
         </TabsContent>
         <TabsContent value="secondary" className="mt-4">
@@ -73,6 +85,7 @@ export default function RequirementsPage() {
             data={secondaryRequirements}
             selectedItems={selectedReqs.filter(id => secondaryRequirements.some(r => r.id === id))}
             onSelectionChange={(ids) => handleSelectionChange(ids, 'Secondary')}
+            isLoading={isLoading}
           />
         </TabsContent>
       </Tabs>

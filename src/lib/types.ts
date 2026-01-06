@@ -3,7 +3,7 @@ export interface ProcuredItem {
   name: string;
   category: 'Electronics' | 'Furniture' | 'Stationery' | 'Miscellaneous';
   quantity: number;
-  procurementDate: string;
+  dateOfProcurement: string;
   remarks?: string;
 }
 
@@ -11,12 +11,12 @@ export interface Requirement {
   id: string;
   name: string;
   requiredQuantity: number;
-  priority: 'High' | 'Medium' | 'Low';
+  priorityLevel: 'High' | 'Medium' | 'Low';
   status: 'Pending' | 'Procured' | 'Partial';
   type: 'Primary' | 'Secondary';
 }
 
-export interface ScheduledEvent {
+export interface ClassMeeting {
   id: string;
   topic: string;
   date: string;
@@ -26,7 +26,7 @@ export interface ScheduledEvent {
 }
 
 export interface DocumentLink {
-  id: string;
+  id:string;
   title: string;
   description: string;
   driveLink: string;

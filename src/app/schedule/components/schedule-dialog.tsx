@@ -11,10 +11,12 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { useAdminAuth } from '@/hooks/use-admin-auth';
-import type { ScheduledEvent } from '@/lib/types';
+import type { ClassMeeting } from '@/lib/types';
 import { useState } from 'react';
+import { useFirestore } from '@/firebase';
+import { addDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { collection, doc } from 'firebase/firestore';
 
 export function ScheduleDialog({
   children,
@@ -22,24 +24,34 @@ export function ScheduleDialog({
   onSave,
 }: {
   children: React.ReactNode;
-  event?: ScheduledEvent;
-  onSave: (event: Omit<ScheduledEvent, 'id'>) => void;
+  event?: ClassMeeting;
+  onSave: (event: Omit<ClassMeeting, 'id'>) => void;
 }) {
   const { isAdmin } = useAdminAuth();
+  const firestore = useFirestore();
   const [open, setOpen] = useState(false);
   const isEditing = !!event;
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
-    const newEvent = {
+    const newEventData = {
       topic: formData.get('topic') as string,
       date: formData.get('date') as string,
       time: formData.get('time') as string,
       conductedBy: formData.get('conductedBy') as string,
       meetLink: formData.get('meetLink') as string,
     };
-    onSave(newEvent);
+    
+    if (isEditing && event) {
+      const docRef = doc(firestore, 'class_meetings', event.id);
+      setDocumentNonBlocking(docRef, newEventData, { merge: true });
+    } else {
+      const collectionRef = collection(firestore, 'class_meetings');
+      addDocumentNonBlocking(collectionRef, newEventData);
+    }
+    
+    onSave(newEventData);
     setOpen(false);
   };
 

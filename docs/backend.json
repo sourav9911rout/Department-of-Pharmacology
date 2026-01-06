@@ -16,16 +16,17 @@
         },
         "category": {
           "type": "string",
+          "enum": ["Electronics", "Furniture", "Stationery", "Miscellaneous"],
           "description": "The category of the procured item (e.g., 'Electronics', 'Supplies')."
         },
-        "quantityAvailable": {
+        "quantity": {
           "type": "number",
           "description": "The quantity of the item currently available."
         },
         "dateOfProcurement": {
           "type": "string",
           "description": "The date when the item was procured.",
-          "format": "date-time"
+          "format": "date"
         },
         "remarks": {
           "type": "string",
@@ -33,10 +34,9 @@
         }
       },
       "required": [
-        "id",
         "name",
         "category",
-        "quantityAvailable",
+        "quantity",
         "dateOfProcurement"
       ]
     },
@@ -60,19 +60,21 @@
         },
         "priorityLevel": {
           "type": "string",
+          "enum": ["High", "Medium", "Low"],
           "description": "The priority level of the requirement (e.g., 'High', 'Medium', 'Low')."
         },
         "status": {
           "type": "string",
+          "enum": ["Pending", "Procured", "Partial"],
           "description": "The status of the requirement (e.g., 'Pending', 'Procured')."
         },
         "type": {
           "type": "string",
+          "enum": ["Primary", "Secondary"],
           "description": "The type of the requirement (Primary or Secondary)."
         }
       },
       "required": [
-        "id",
         "name",
         "requiredQuantity",
         "priorityLevel",
@@ -97,11 +99,12 @@
         "date": {
           "type": "string",
           "description": "The date of the class/meeting.",
-          "format": "date-time"
+          "format": "date"
         },
         "time": {
           "type": "string",
-          "description": "The time of the class/meeting."
+          "description": "The time of the class/meeting.",
+          "format": "time"
         },
         "conductedBy": {
           "type": "string",
@@ -114,12 +117,40 @@
         }
       },
       "required": [
-        "id",
         "topic",
         "date",
         "time",
         "conductedBy",
         "meetLink"
+      ]
+    },
+    "DocumentLink": {
+      "title": "DocumentLink",
+      "type": "object",
+      "description": "Represents a link to a document in Google Drive.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the document link."
+        },
+        "title": {
+          "type": "string",
+          "description": "The title of the document."
+        },
+        "description": {
+          "type": "string",
+          "description": "A brief description of the document."
+        },
+        "driveLink": {
+          "type": "string",
+          "description": "The URL to the document in Google Drive.",
+          "format": "uri"
+        }
+      },
+      "required": [
+        "title",
+        "description",
+        "driveLink"
       ]
     }
   },
@@ -164,46 +195,6 @@
         }
       },
       {
-        "path": "/requirements/{requirementId}/primary_requirements/{primaryRequirementId}",
-        "definition": {
-          "entityName": "Requirement",
-          "schema": {
-            "$ref": "#/backend/entities/Requirement"
-          },
-          "description": "Stores primary requirements. Only admins can create, update, or delete documents in this collection.",
-          "params": [
-            {
-              "name": "requirementId",
-              "description": "The unique identifier for the requirement item."
-            },
-            {
-              "name": "primaryRequirementId",
-              "description": "The unique identifier for the primary requirement item."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/requirements/{requirementId}/secondary_requirements/{secondaryRequirementId}",
-        "definition": {
-          "entityName": "Requirement",
-          "schema": {
-            "$ref": "#/backend/entities/Requirement"
-          },
-          "description": "Stores secondary requirements. Only admins can create, update, or delete documents in this collection.",
-          "params": [
-            {
-              "name": "requirementId",
-              "description": "The unique identifier for the requirement item."
-            },
-            {
-              "name": "secondaryRequirementId",
-              "description": "The unique identifier for the secondary requirement item."
-            }
-          ]
-        }
-      },
-      {
         "path": "/class_meetings/{classMeetingId}",
         "definition": {
           "entityName": "ClassMeeting",
@@ -215,6 +206,22 @@
             {
               "name": "classMeetingId",
               "description": "The unique identifier for the class meeting."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/documents/{documentId}",
+        "definition": {
+          "entityName": "DocumentLink",
+          "schema": {
+            "$ref": "#/backend/entities/DocumentLink"
+          },
+          "description": "Stores links to important documents.",
+          "params": [
+            {
+              "name": "documentId",
+              "description": "The unique identifier for the document link."
             }
           ]
         }
@@ -235,7 +242,6 @@
           ]
         }
       }
-    ],
-    "reasoning": "The Firestore data structure is designed to support the Departmental Hub application, focusing on procured items, requirements, class meetings, and document access. It prioritizes authorization independence and enables secure list operations.\n\nAuthorization Independence is achieved by denormalizing admin roles. A dedicated collection `/roles_admin/{uid}` is used to determine admin privileges based on document existence, eliminating the need for `get()` calls in security rules. All write operations will require the user to be an admin.\n\nStructural Segregation is implemented by using distinct collections for each entity type (procured items, requirements, and class meetings), ensuring that each collection has a homogeneous security posture. Requirements are further segregated into 'primary' and 'secondary' subcollections under a single 'requirements' collection to ensure that the rules remain simple.\n\nAccess Modeling follows standardized patterns: Path-based ownership is used for admin privileges (`/roles_admin/{uid}`).\n\nThis structure facilitates simple, robust, and easily debuggable security rules that align with the application's requirements, minimizing complexity and maximizing security."
+    ]
   }
 }

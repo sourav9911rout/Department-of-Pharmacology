@@ -1,3 +1,4 @@
+'use client';
 import {
   Card,
   CardContent,
@@ -5,18 +6,40 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Package, ClipboardList, CalendarClock, Sparkles } from 'lucide-react';
-import { procuredItems, requirements, scheduledEvents } from '@/lib/data';
 import Link from 'next/link';
-import Image from 'next/image';
+import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
+import { collection } from 'firebase/firestore';
+import type { ProcuredItem, Requirement, ClassMeeting } from '@/lib/types';
 
 export default function Dashboard() {
-  const totalProcured = procuredItems.length;
-  const pendingRequirements = requirements.filter(
+  const firestore = useFirestore();
+
+  const procuredItemsCollection = useMemoFirebase(
+    () => collection(firestore, 'procured_items'),
+    [firestore]
+  );
+  const { data: procuredItems } = useCollection<ProcuredItem>(procuredItemsCollection);
+  
+  const requirementsCollection = useMemoFirebase(
+    () => collection(firestore, 'requirements'),
+    [firestore]
+  );
+  const { data: requirements } = useCollection<Requirement>(requirementsCollection);
+
+  const scheduleCollection = useMemoFirebase(
+    () => collection(firestore, 'class_meetings'),
+    [firestore]
+  );
+  const { data: scheduledEvents } = useCollection<ClassMeeting>(scheduleCollection);
+
+  const totalProcured = procuredItems?.length ?? 0;
+  const pendingRequirements = requirements?.filter(
     (r) => r.status === 'Pending'
-  ).length;
-  const upcomingClasses = scheduledEvents.filter(
+  ).length ?? 0;
+  
+  const upcomingClasses = scheduledEvents?.filter(
     (e) => new Date(e.date) >= new Date()
-  ).length;
+  ).length ?? 0;
 
   return (
     <div className="flex flex-col gap-8">

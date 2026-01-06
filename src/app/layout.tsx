@@ -5,6 +5,7 @@ import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import AppSidebar from '@/components/app-sidebar';
 import { AdminAuthProvider } from '@/contexts/admin-auth-context';
 import { Toaster } from '@/components/ui/toaster';
+import { FirebaseClientProvider } from '@/firebase';
 
 export const metadata: Metadata = {
   title: 'Dept. of Pharmacology',
@@ -27,13 +28,15 @@ export default function RootLayout({
         />
       </head>
       <body className={cn('font-body antialiased')}>
-        <AdminAuthProvider>
-          <SidebarProvider>
-            <AppSidebar />
-            <SidebarInset className='p-4 md:p-8'>{children}</SidebarInset>
-            <Toaster />
-          </SidebarProvider>
-        </AdminAuthProvider>
+        <FirebaseClientProvider>
+          <AdminAuthProvider>
+            <SidebarProvider>
+              <AppSidebar />
+              <SidebarInset className='p-4 md:p-8'>{children}</SidebarInset>
+              <Toaster />
+            </SidebarProvider>
+          </AdminAuthProvider>
+        </FirebaseClientProvider>
       </body>
     </html>
   );

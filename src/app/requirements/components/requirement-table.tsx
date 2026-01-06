@@ -13,17 +13,29 @@ import { cn } from "@/lib/utils";
 import { useAdminAuth } from "@/hooks/use-admin-auth";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useFirestore } from "@/firebase";
+import { doc } from "firebase/firestore";
+import { updateDocumentNonBlocking } from "@/firebase/non-blocking-updates";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function RequirementTable({
   data,
   selectedItems,
   onSelectionChange,
+  isLoading
 }: {
   data: Requirement[];
   selectedItems: string[];
   onSelectionChange: (ids: string[]) => void;
+  isLoading: boolean;
 }) {
     const { isAdmin } = useAdminAuth();
+    const firestore = useFirestore();
+
+    const handleStatusChange = (reqId: string, status: Requirement['status']) => {
+        const docRef = doc(firestore, 'requirements', reqId);
+        updateDocumentNonBlocking(docRef, { status });
+    }
 
     const handleSelectAll = (checked: boolean | 'indeterminate') => {
         if (checked === true) {
@@ -44,7 +56,7 @@ export default function RequirementTable({
     const isAllSelected = data.length > 0 && selectedItems.length === data.length;
     const isSomeSelected = selectedItems.length > 0 && selectedItems.length < data.length;
 
-    const getPriorityBadgeClass = (priority: Requirement['priority']) => {
+    const getPriorityBadgeClass = (priority: Requirement['priorityLevel']) => {
         switch (priority) {
             case 'High': return 'bg-red-100 text-red-800 border-red-300 dark:bg-red-900/50 dark:text-red-300 dark:border-red-700';
             case 'Medium': return 'bg-yellow-100 text-yellow-800 border-yellow-300 dark:bg-yellow-900/50 dark:text-yellow-300 dark:border-yellow-700';
@@ -82,7 +94,17 @@ export default function RequirementTable({
                 </TableRow>
                 </TableHeader>
                 <TableBody>
-                {data.map((req) => (
+                {isLoading ? (
+                  Array.from({ length: 4 }).map((_, i) => (
+                    <TableRow key={i}>
+                      {isAdmin && <TableCell><Skeleton className="h-4 w-4" /></TableCell>}
+                      <TableCell><Skeleton className="h-4 w-48" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                      <TableCell><Skeleton className="h-6 w-20" /></TableCell>
+                      <TableCell><Skeleton className="h-8 w-28" /></TableCell>
+                    </TableRow>
+                  ))
+                ) : data.map((req) => (
                     <TableRow key={req.id} data-state={selectedItems.includes(req.id) ? 'selected' : ''}>
                         {isAdmin && (
                             <TableCell>
@@ -95,13 +117,13 @@ export default function RequirementTable({
                         <TableCell className="font-medium">{req.name}</TableCell>
                         <TableCell>{req.requiredQuantity}</TableCell>
                         <TableCell>
-                            <Badge variant="outline" className={cn("font-normal", getPriorityBadgeClass(req.priority))}>
-                                {req.priority}
+                            <Badge variant="outline" className={cn("font-normal", getPriorityBadgeClass(req.priorityLevel))}>
+                                {req.priorityLevel}
                             </Badge>
                         </TableCell>
                         <TableCell>
                             {isAdmin ? (
-                                <Select defaultValue={req.status}>
+                                <Select defaultValue={req.status} onValueChange={(value) => handleStatusChange(req.id, value as Requirement['status'])}>
                                     <SelectTrigger className="w-[120px] h-8 text-xs">
                                         <SelectValue />
                                     </SelectTrigger>
@@ -121,7 +143,7 @@ export default function RequirementTable({
                 ))}
                 </TableBody>
             </Table>
-             {data.length === 0 && (
+             {!isLoading && data.length === 0 && (
                 <caption>
                     <div className="text-center text-muted-foreground p-8">
                         No requirements found.

@@ -15,6 +15,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { useAdminAuth } from '@/hooks/use-admin-auth';
 import type { DocumentLink } from '@/lib/types';
 import { useState } from 'react';
+import { useFirestore } from '@/firebase';
+import { addDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { collection, doc } from 'firebase/firestore';
 
 export function DocumentDialog({
   children,
@@ -26,18 +29,28 @@ export function DocumentDialog({
   onSave: (document: Omit<DocumentLink, 'id'>) => void;
 }) {
   const { isAdmin } = useAdminAuth();
+  const firestore = useFirestore();
   const [open, setOpen] = useState(false);
   const isEditing = !!document;
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
-    const newDocument = {
+    const newDocumentData = {
       title: formData.get('title') as string,
       description: formData.get('description') as string,
       driveLink: formData.get('driveLink') as string,
     };
-    onSave(newDocument);
+
+    if (isEditing && document) {
+      const docRef = doc(firestore, 'documents', document.id);
+      setDocumentNonBlocking(docRef, newDocumentData, { merge: true });
+    } else {
+      const collectionRef = collection(firestore, 'documents');
+      addDocumentNonBlocking(collectionRef, newDocumentData);
+    }
+    
+    onSave(newDocumentData);
     setOpen(false);
   };
 

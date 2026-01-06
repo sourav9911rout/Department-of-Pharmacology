@@ -16,6 +16,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { useAdminAuth } from '@/hooks/use-admin-auth';
 import type { ProcuredItem } from '@/lib/types';
 import { useState } from 'react';
+import { useFirestore } from '@/firebase';
+import { addDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { collection, doc } from 'firebase/firestore';
 
 export function ItemDialog({
   children,
@@ -25,7 +28,9 @@ export function ItemDialog({
   item?: ProcuredItem;
 }) {
   const { isAdmin } = useAdminAuth();
+  const firestore = useFirestore();
   const [open, setOpen] = useState(false);
+  const [category, setCategory] = useState(item?.category);
   const isEditing = !!item;
 
   if (!isAdmin) {
@@ -34,9 +39,23 @@ export function ItemDialog({
   
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // In a real app, you would handle form submission here.
-    // For example, calling a server action.
-    console.log('Form submitted');
+    const formData = new FormData(e.currentTarget);
+    const newItemData = {
+      name: formData.get('name') as string,
+      category: category as ProcuredItem['category'],
+      quantity: Number(formData.get('quantity')),
+      dateOfProcurement: formData.get('dateOfProcurement') as string,
+      remarks: formData.get('remarks') as string,
+    };
+
+    if (isEditing && item) {
+      const docRef = doc(firestore, 'procured_items', item.id);
+      setDocumentNonBlocking(docRef, newItemData, { merge: true });
+    } else {
+      const collectionRef = collection(firestore, 'procured_items');
+      addDocumentNonBlocking(collectionRef, newItemData);
+    }
+    
     setOpen(false);
   };
 
@@ -56,13 +75,13 @@ export function ItemDialog({
               <Label htmlFor="name" className="text-right">
                 Name
               </Label>
-              <Input id="name" defaultValue={item?.name} className="col-span-3" required/>
+              <Input id="name" name="name" defaultValue={item?.name} className="col-span-3" required/>
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="category" className="text-right">
                 Category
               </Label>
-              <Select defaultValue={item?.category}>
+              <Select value={category} onValueChange={setCategory}>
                 <SelectTrigger className="col-span-3">
                   <SelectValue placeholder="Select a category" />
                 </SelectTrigger>
@@ -78,19 +97,19 @@ export function ItemDialog({
               <Label htmlFor="quantity" className="text-right">
                 Quantity
               </Label>
-              <Input id="quantity" type="number" defaultValue={item?.quantity} className="col-span-3" required/>
+              <Input id="quantity" name="quantity" type="number" defaultValue={item?.quantity} className="col-span-3" required/>
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="procurementDate" className="text-right">
+              <Label htmlFor="dateOfProcurement" className="text-right">
                 Date
               </Label>
-              <Input id="procurementDate" type="date" defaultValue={item?.procurementDate} className="col-span-3" required/>
+              <Input id="dateOfProcurement" name="dateOfProcurement" type="date" defaultValue={item?.dateOfProcurement} className="col-span-3" required/>
             </div>
             <div className="grid grid-cols-4 items-start gap-4">
               <Label htmlFor="remarks" className="text-right mt-2">
                 Remarks
               </Label>
-              <Textarea id="remarks" defaultValue={item?.remarks} className="col-span-3" />
+              <Textarea id="remarks" name="remarks" defaultValue={item?.remarks} className="col-span-3" />
             </div>
           </div>
           <DialogFooter>

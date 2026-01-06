@@ -12,15 +12,18 @@ import { Button } from "@/components/ui/button";
 import { useAdminAuth } from "@/hooks/use-admin-auth";
 import { ItemDialog } from "./item-dialog";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function ItemTable({
   data,
   selectedItems,
   onSelectionChange,
+  isLoading,
 }: {
   data: ProcuredItem[];
   selectedItems: string[];
   onSelectionChange: (ids: string[]) => void;
+  isLoading: boolean;
 }) {
     const { isAdmin } = useAdminAuth();
 
@@ -66,7 +69,19 @@ export default function ItemTable({
                 </TableRow>
                 </TableHeader>
                 <TableBody>
-                {data.map((item) => (
+                {isLoading ? (
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <TableRow key={i}>
+                      {isAdmin && <TableCell><Skeleton className="h-4 w-4" /></TableCell>}
+                      <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-12" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                      {isAdmin && <TableCell className="text-right"><Skeleton className="h-8 w-16" /></TableCell>}
+                    </TableRow>
+                  ))
+                ) : data.map((item) => (
                     <TableRow key={item.id} data-state={selectedItems.includes(item.id) ? 'selected' : ''}>
                     {isAdmin && (
                          <TableCell>
@@ -79,7 +94,7 @@ export default function ItemTable({
                     <TableCell className="font-medium">{item.name}</TableCell>
                     <TableCell>{item.category}</TableCell>
                     <TableCell>{item.quantity}</TableCell>
-                    <TableCell>{item.procurementDate}</TableCell>
+                    <TableCell>{item.dateOfProcurement}</TableCell>
                     <TableCell className="text-muted-foreground">{item.remarks || 'N/A'}</TableCell>
                     {isAdmin && (
                         <TableCell className="text-right">
@@ -92,7 +107,7 @@ export default function ItemTable({
                 ))}
                 </TableBody>
             </Table>
-            {data.length === 0 && (
+            {!isLoading && data.length === 0 && (
                 <caption>
                     <div className="text-center text-muted-foreground p-8">
                         No procured items found.

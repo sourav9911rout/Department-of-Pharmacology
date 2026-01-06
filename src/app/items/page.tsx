@@ -1,6 +1,5 @@
 'use client';
 import PageHeader from "@/components/page-header";
-import { procuredItems } from "@/lib/data";
 import ItemTable from "./components/item-table";
 import { ItemDialog } from "./components/item-dialog";
 import { Button } from "@/components/ui/button";
@@ -18,15 +17,25 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
+import { collection, deleteDoc, doc } from "firebase/firestore";
 
 export default function ProcuredItemsPage() {
   const { isAdmin } = useAdminAuth();
-  const [items, setItems] = useState<ProcuredItem[]>(procuredItems);
+  const firestore = useFirestore();
+  const procuredItemsCollection = useMemoFirebase(
+    () => collection(firestore, 'procured_items'),
+    [firestore]
+  );
+  const { data: items, isLoading } = useCollection<ProcuredItem>(procuredItemsCollection);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   const handleDelete = () => {
-    setItems(items.filter((item) => !selectedItems.includes(item.id)));
+    selectedItems.forEach(itemId => {
+      const docRef = doc(firestore, 'procured_items', itemId);
+      deleteDoc(docRef);
+    });
     setSelectedItems([]);
     setIsDeleteDialogOpen(false);
   };
@@ -53,9 +62,10 @@ export default function ProcuredItemsPage() {
         </div>
       </PageHeader>
       <ItemTable 
-        data={items} 
+        data={items || []} 
         selectedItems={selectedItems}
         onSelectionChange={setSelectedItems}
+        isLoading={isLoading}
       />
 
        <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>

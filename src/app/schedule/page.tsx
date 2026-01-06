@@ -1,12 +1,11 @@
 'use client';
 import PageHeader from "@/components/page-header";
-import { scheduledEvents } from "@/lib/data";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { PlusCircle, Trash2, Video } from "lucide-react";
 import { format } from "date-fns";
 import { useState } from "react";
-import type { ScheduledEvent } from "@/lib/types";
+import type { ClassMeeting } from "@/lib/types";
 import { useAdminAuth } from "@/hooks/use-admin-auth";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -21,28 +20,35 @@ import {
 } from "@/components/ui/alert-dialog";
 import { ScheduleDialog } from "./components/schedule-dialog";
 import { addHours, parse } from 'date-fns';
+import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
+import { collection, deleteDoc, doc } from "firebase/firestore";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function SchedulePage() {
   const { isAdmin } = useAdminAuth();
-  const [events, setEvents] = useState<ScheduledEvent[]>(scheduledEvents);
+  const firestore = useFirestore();
+  const scheduleCollection = useMemoFirebase(
+    () => collection(firestore, 'class_meetings'),
+    [firestore]
+  );
+  const { data: events, isLoading } = useCollection<ClassMeeting>(scheduleCollection);
+
   const [selectedEvents, setSelectedEvents] = useState<string[]>([]);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   const now = new Date();
   
-  const getEventDateTime = (event: ScheduledEvent) => {
-    // It's important to parse the time correctly. Assuming time is in 'hh:mm a' format.
-    // The date string 'yyyy-MM-dd' is parsed correctly by default.
-    return parse(`${event.date} ${event.time}`, 'yyyy-MM-dd hh:mm a', new Date());
+  const getEventDateTime = (event: ClassMeeting) => {
+    return parse(`${event.date} ${event.time}`, 'yyyy-MM-dd HH:mm', new Date());
   };
 
   const upcomingEvents = events
-    .filter((event) => addHours(getEventDateTime(event), 1) >= now)
-    .sort((a, b) => getEventDateTime(a).getTime() - getEventDateTime(b).getTime());
+    ?.filter((event) => addHours(getEventDateTime(event), 1) >= now)
+    .sort((a, b) => getEventDateTime(a).getTime() - getEventDateTime(b).getTime()) || [];
   
   const pastEvents = events
-    .filter((event) => addHours(getEventDateTime(event), 1) < now)
-    .sort((a, b) => getEventDateTime(b).getTime() - getEventDateTime(a).getTime());
+    ?.filter((event) => addHours(getEventDateTime(event), 1) < now)
+    .sort((a, b) => getEventDateTime(b).getTime() - getEventDateTime(a).getTime()) || [];
 
   const handleSelectEvent = (eventId: string, checked: boolean) => {
     if (checked) {
@@ -53,18 +59,16 @@ export default function SchedulePage() {
   };
 
   const handleDelete = () => {
-    setEvents((prev) =>
-      prev.filter((event) => !selectedEvents.includes(event.id))
-    );
+    selectedEvents.forEach(eventId => {
+      const docRef = doc(firestore, 'class_meetings', eventId);
+      deleteDoc(docRef);
+    });
     setSelectedEvents([]);
     setIsDeleteDialogOpen(false);
   };
 
-  const handleSaveEvent = (event: Omit<ScheduledEvent, 'id'>) => {
-    setEvents((prev) => [
-      ...prev,
-      { ...event, id: `E${prev.length + 1}` },
-    ]);
+  const handleSaveEvent = (event: Omit<ClassMeeting, 'id'>) => {
+    // This is handled by the dialog now
   };
 
   return (
@@ -91,7 +95,23 @@ export default function SchedulePage() {
       <section>
         <h2 className="text-2xl font-headline font-bold mb-4">Upcoming</h2>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {upcomingEvents.length > 0 ? upcomingEvents.map(event => (
+            {isLoading ? (
+              Array.from({ length: 3 }).map((_, i) => (
+                <Card key={i}>
+                  <CardHeader>
+                    <Skeleton className="h-6 w-3/4" />
+                    <Skeleton className="h-4 w-1/2" />
+                  </CardHeader>
+                  <CardContent>
+                    <Skeleton className="h-4 w-full mb-2" />
+                    <Skeleton className="h-4 w-1/3" />
+                  </CardContent>
+                  <CardFooter>
+                    <Skeleton className="h-10 w-full" />
+                  </CardFooter>
+                </Card>
+              ))
+            ) : upcomingEvents.length > 0 ? upcomingEvents.map(event => (
                 <Card key={event.id} className="relative">
                      {isAdmin && (
                         <Checkbox
@@ -105,8 +125,8 @@ export default function SchedulePage() {
                         <CardDescription>Conducted by: {event.conductedBy}</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <p className="font-semibold">{format(new Date(event.date), 'EEEE, MMMM d, yyyy')}</p>
-                        <p className="text-muted-foreground">{event.time}</p>
+                        <p className="font-semibold">{format(getEventDateTime(event), 'EEEE, MMMM d, yyyy')}</p>
+                        <p className="text-muted-foreground">{format(getEventDateTime(event), 'p')}</p>
                     </CardContent>
                     <CardFooter>
                         <Button asChild className="w-full">
@@ -124,7 +144,20 @@ export default function SchedulePage() {
       <section>
         <h2 className="text-2xl font-headline font-bold mb-4">Past Events</h2>
          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {pastEvents.map(event => (
+            {isLoading ? (
+               Array.from({ length: 2 }).map((_, i) => (
+                <Card key={i} className="opacity-70">
+                  <CardHeader>
+                    <Skeleton className="h-6 w-3/4" />
+                    <Skeleton className="h-4 w-1/2" />
+                  </CardHeader>
+                  <CardContent>
+                    <Skeleton className="h-4 w-full mb-2" />
+                    <Skeleton className="h-4 w-1/3" />
+                  </CardContent>
+                </Card>
+              ))
+            ) : pastEvents.map(event => (
                 <Card key={event.id} className="opacity-70 relative">
                      {isAdmin && (
                         <Checkbox
@@ -138,12 +171,12 @@ export default function SchedulePage() {
                         <CardDescription>Conducted by: {event.conductedBy}</CardDescription>
                     </CardHeader>
                     <CardContent>
-                         <p className="font-semibold">{format(new Date(event.date), 'MMMM d, yyyy')}</p>
-                        <p className="text-muted-foreground">{event.time}</p>
+                         <p className="font-semibold">{format(getEventDateTime(event), 'MMMM d, yyyy')}</p>
+                        <p className="text-muted-foreground">{format(getEventDateTime(event), 'p')}</p>
                     </CardContent>
                 </Card>
             ))}
-             {pastEvents.length === 0 && (
+             {!isLoading && pastEvents.length === 0 && (
                 <p className="text-muted-foreground col-span-full">No past events found.</p>
              )}
         </div>

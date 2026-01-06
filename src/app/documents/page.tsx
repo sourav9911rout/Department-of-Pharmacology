@@ -1,6 +1,5 @@
 'use client';
 import PageHeader from "@/components/page-header";
-import { documentLinks } from "@/lib/data";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { FolderGit2, PlusCircle, Trash2 } from "lucide-react";
 import Link from "next/link";
@@ -20,10 +19,19 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useAdminAuth } from "@/hooks/use-admin-auth";
 import { DocumentDialog } from "./components/document-dialog";
 import type { DocumentLink } from "@/lib/types";
+import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
+import { collection, deleteDoc, doc } from "firebase/firestore";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function DocumentsPage() {
   const { isAdmin } = useAdminAuth();
-  const [localDocuments, setLocalDocuments] = useState(documentLinks);
+  const firestore = useFirestore();
+  const documentsCollection = useMemoFirebase(
+    () => collection(firestore, 'documents'), // Assuming collection name is 'documents'
+    [firestore]
+  );
+  const { data: documents, isLoading } = useCollection<DocumentLink>(documentsCollection);
+
   const [selectedDocuments, setSelectedDocuments] = useState<string[]>([]);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
@@ -36,18 +44,16 @@ export default function DocumentsPage() {
   };
 
   const handleDelete = () => {
-    setLocalDocuments((prev) =>
-      prev.filter((doc) => !selectedDocuments.includes(doc.id))
-    );
+    selectedDocuments.forEach(docId => {
+      const docRef = doc(firestore, 'documents', docId);
+      deleteDoc(docRef);
+    });
     setSelectedDocuments([]);
     setIsDeleteDialogOpen(false);
   };
   
   const handleSaveDocument = (doc: Omit<DocumentLink, 'id'>) => {
-     setLocalDocuments((prev) => [
-      ...prev,
-      { ...doc, id: `D${prev.length + 1}` },
-    ]);
+    // This is handled by the dialog now
   };
 
   return (
@@ -72,7 +78,19 @@ export default function DocumentsPage() {
         </div>
       </PageHeader>
       <div className="grid gap-4 md:grid-cols-2">
-        {localDocuments.map((doc) => (
+        {isLoading ? (
+          Array.from({ length: 4 }).map((_, i) => (
+            <Card key={i}>
+              <CardHeader className="flex flex-row items-start gap-4">
+                <Skeleton className="h-12 w-12 rounded-lg" />
+                <div className="flex-1 space-y-2">
+                  <Skeleton className="h-6 w-3/4" />
+                  <Skeleton className="h-4 w-full" />
+                </div>
+              </CardHeader>
+            </Card>
+          ))
+        ) : (documents || []).map((doc) => (
           <div key={doc.id} className="relative">
              {isAdmin && (
                 <Checkbox
@@ -99,7 +117,7 @@ export default function DocumentsPage() {
           </div>
         ))}
       </div>
-       {localDocuments.length === 0 && (
+       {!isLoading && (documents || []).length === 0 && (
           <div className="text-center text-muted-foreground col-span-full py-12">
             No documents available.
           </div>
