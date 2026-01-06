@@ -7,6 +7,7 @@ import {
 import { Package, ClipboardList, CalendarClock, Sparkles } from 'lucide-react';
 import { procuredItems, requirements, scheduledEvents } from '@/lib/data';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function Dashboard() {
   const totalProcured = procuredItems.length;
@@ -20,54 +21,7 @@ export default function Dashboard() {
   return (
     <div className="flex flex-col gap-8">
       <header className="flex items-center gap-4">
-        <svg
-          role="img"
-          aria-labelledby="capfims-logo-title"
-          viewBox="0 0 100 100"
-          className="h-16 w-16 text-primary"
-          fill="currentColor"
-        >
-          <title id="capfims-logo-title">AIIMS CAPFIMS Logo</title>
-          <circle cx="50" cy="50" r="48" fill="#1e3a8a" />
-          <g transform="translate(50, 50) scale(0.8)">
-            <path
-              d="M-2, -45 L-2, 25 L2, 25 L2, -45 Z"
-              fill="white"
-              stroke="white"
-              strokeWidth="1"
-            />
-            <path
-              d="M2, -45 C20, -35 20, -15 2, -5 C-16, -15 -16, -35 -2, -45"
-              fill="none"
-              stroke="white"
-              strokeWidth="4"
-            />
-            <path
-              d="M-2, 5 C25, 15 25, 35 -2, 45 C-29, 35 -29, 15 -2, 5"
-              fill="none"
-              stroke="white"
-              strokeWidth="4"
-            />
-            <path
-              d="M-4, 25h8v20h-8z"
-              fill="white"
-            />
-            <path
-              d="M-30, 20 A30,30 0 0,1 30,20"
-              stroke="white"
-              strokeWidth="3"
-              fill="none"
-              strokeLinecap="round"
-            />
-             <path
-              d="M-25, 10 A25,25 0 0,1 25,10"
-              stroke="white"
-              strokeWidth="3"
-              fill="none"
-              strokeLinecap="round"
-            />
-          </g>
-        </svg>
+        <Image src="/logo.png" alt="AIIMS CAPFIMS Logo" width={64} height={64} />
         <div>
           <h1 className="text-4xl font-headline font-bold tracking-tight">
             Department of Pharmacology
