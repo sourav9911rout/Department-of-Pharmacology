@@ -74,7 +74,6 @@ export default function RequirementTable({
          switch (status) {
             case 'Procured': return 'bg-green-100 text-green-800 border-green-300 dark:bg-green-900/50 dark:text-green-300 dark:border-green-700';
             case 'Pending': return 'bg-orange-100 text-orange-800 border-orange-300 dark:bg-orange-900/50 dark:text-orange-300 dark:border-orange-700';
-            case 'Partial': return 'bg-purple-100 text-purple-800 border-purple-300 dark:bg-purple-900/50 dark:text-purple-300 dark:border-purple-700';
             default: return 'bg-gray-100 text-gray-800 border-gray-300';
         }
     }
@@ -131,7 +130,6 @@ export default function RequirementTable({
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="Pending">Pending</SelectItem>
-                                        <SelectItem value="Partial">Partial</SelectItem>
                                         <SelectItem value="Procured">Procured</SelectItem>
                                     </SelectContent>
                                 </Select>

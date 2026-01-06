@@ -82,8 +82,7 @@
           "type": "string",
           "enum": [
             "Pending",
-            "Procured",
-            "Partial"
+            "Procured"
           ],
           "description": "The status of the requirement (e.g., 'Pending', 'Procured')."
         },

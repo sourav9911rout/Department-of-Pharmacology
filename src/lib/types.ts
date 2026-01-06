@@ -13,7 +13,7 @@ export interface Requirement {
   id: string;
   name: string;
   requiredQuantity: number;
-  status: 'Pending' | 'Procured' | 'Partial';
+  status: 'Pending' | 'Procured';
   type: 'Primary' | 'Secondary' | 'Tertiary';
 }
 
