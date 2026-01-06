@@ -64,7 +64,6 @@ export default function AppSidebar() {
       <Sidebar collapsible="offcanvas" variant="sidebar">
         <SidebarHeader className="p-4 flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <Image src="/logo.png" alt="AIIMS CAPFIMS Logo" width={32} height={32} />
             <div className="flex flex-col">
               <h2 className="text-lg font.headline font-semibold">Dept. of Pharmacology</h2>
               <p className="text-xs text-muted-foreground">AIIMS CAPFIMS</p>

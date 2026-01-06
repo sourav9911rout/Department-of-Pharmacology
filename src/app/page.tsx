@@ -21,7 +21,6 @@ export default function Dashboard() {
   return (
     <div className="flex flex-col gap-8">
       <header className="flex items-center gap-4">
-        <Image src="/logo.png" alt="AIIMS CAPFIMS Logo" width={64} height={64} />
         <div>
           <h1 className="text-4xl font-headline font-bold tracking-tight">
             Department of Pharmacology
