@@ -2,7 +2,7 @@
 import PageHeader from "@/components/page-header";
 import { documentLinks } from "@/lib/data";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { FolderGit2, Trash2 } from "lucide-react";
+import { FolderGit2, PlusCircle, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -18,20 +18,14 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAdminAuth } from "@/hooks/use-admin-auth";
+import { DocumentDialog } from "./components/document-dialog";
+import type { DocumentLink } from "@/lib/types";
 
 export default function DocumentsPage() {
   const { isAdmin } = useAdminAuth();
   const [localDocuments, setLocalDocuments] = useState(documentLinks);
   const [selectedDocuments, setSelectedDocuments] = useState<string[]>([]);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-
-  const handleSelectAll = (checked: boolean | 'indeterminate') => {
-    if (checked) {
-      setSelectedDocuments(localDocuments.map((doc) => doc.id));
-    } else {
-      setSelectedDocuments([]);
-    }
-  };
 
   const handleSelectDocument = (docId: string, checked: boolean) => {
     if (checked) {
@@ -48,9 +42,13 @@ export default function DocumentsPage() {
     setSelectedDocuments([]);
     setIsDeleteDialogOpen(false);
   };
-
-  const isAllSelected = localDocuments.length > 0 && selectedDocuments.length === localDocuments.length;
-  const isSomeSelected = selectedDocuments.length > 0 && selectedDocuments.length < localDocuments.length;
+  
+  const handleSaveDocument = (doc: Omit<DocumentLink, 'id'>) => {
+     setLocalDocuments((prev) => [
+      ...prev,
+      { ...doc, id: `D${prev.length + 1}` },
+    ]);
+  };
 
   return (
     <div className="flex flex-col gap-8">
@@ -58,12 +56,20 @@ export default function DocumentsPage() {
         title="Documents & Resources"
         description="Access official documents, SOPs, and guidelines from Google Drive."
       >
-        {isAdmin && selectedDocuments.length > 0 && (
-          <Button variant="destructive" onClick={() => setIsDeleteDialogOpen(true)}>
-            <Trash2 className="mr-2 h-4 w-4" />
-            Delete ({selectedDocuments.length})
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+            {isAdmin && selectedDocuments.length > 0 && (
+              <Button variant="destructive" onClick={() => setIsDeleteDialogOpen(true)}>
+                <Trash2 className="mr-2 h-4 w-4" />
+                Delete ({selectedDocuments.length})
+              </Button>
+            )}
+            <DocumentDialog onSave={handleSaveDocument}>
+                <Button>
+                    <PlusCircle className="mr-2 h-4 w-4"/>
+                    Add New Document
+                </Button>
+            </DocumentDialog>
+        </div>
       </PageHeader>
       <div className="grid gap-4 md:grid-cols-2">
         {localDocuments.map((doc) => (
