@@ -63,19 +63,53 @@ export default function AppSidebar() {
       <Sidebar collapsible="offcanvas" variant="sidebar">
         <SidebarHeader className="p-4 flex justify-between items-center">
           <div className="flex items-center gap-3">
-             <div className="p-2 bg-primary/20 rounded-lg">
+             <div className="p-1 bg-blue-800 rounded-lg">
                 <svg
-                  xmlns="http://www.w3.org/2000/svg"
+                  role="img"
+                  aria-labelledby="capfims-logo-title-sidebar"
                   viewBox="0 0 100 100"
-                  className="h-6 w-6 text-primary"
+                  className="h-8 w-8 text-primary"
                   fill="currentColor"
                 >
-                  <path d="M50,10A40,40,0,1,0,90,50,40,40,0,0,0,50,10Zm0,75A35,35,0,1,1,85,50,35,35,0,0,1,50,85Z" />
-                  <path d="M50,25a5,5,0,0,0-5,5V45H35a5,5,0,0,0,0,10H45V70a5,5,0,0,0,10,0V55H65a5,5,0,0,0,0-10H55V30A5,5,0,0,0,50,25Z" />
-                  <path d="M35,35a5,5,0,1,0,5,5A5,5,0,0,0,35,35Z" />
-                  <path d="M60,35a5,5,0,1,0,5,5A5,5,0,0,0,60,35Z" />
-                  <path d="M35,60a5,5,0,1,0,5,5A5,5,0,0,0,35,60Z" />
-                  <path d="M60,60a5,5,0,1,0,5,5A5,5,0,0,0,60,60Z" />
+                  <title id="capfims-logo-title-sidebar">AIIMS CAPFIMS Logo</title>
+                  <g transform="translate(50, 50) scale(0.8)">
+                    <path
+                      d="M-2, -45 L-2, 25 L2, 25 L2, -45 Z"
+                      fill="white"
+                      stroke="white"
+                      strokeWidth="1"
+                    />
+                    <path
+                      d="M2, -45 C20, -35 20, -15 2, -5 C-16, -15 -16, -35 -2, -45"
+                      fill="none"
+                      stroke="white"
+                      strokeWidth="4"
+                    />
+                    <path
+                      d="M-2, 5 C25, 15 25, 35 -2, 45 C-29, 35 -29, 15 -2, 5"
+                      fill="none"
+                      stroke="white"
+                      strokeWidth="4"
+                    />
+                     <path
+                      d="M-4, 25h8v20h-8z"
+                      fill="white"
+                    />
+                    <path
+                      d="M-30, 20 A30,30 0 0,1 30,20"
+                      stroke="white"
+                      strokeWidth="3"
+                      fill="none"
+                      strokeLinecap="round"
+                    />
+                     <path
+                      d="M-25, 10 A25,25 0 0,1 25,10"
+                      stroke="white"
+                      strokeWidth="3"
+                      fill="none"
+                      strokeLinecap="round"
+                    />
+                  </g>
                 </svg>
              </div>
             <div className="flex flex-col">
