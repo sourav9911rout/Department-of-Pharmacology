@@ -3,7 +3,7 @@ import PageHeader from "@/components/page-header";
 import { scheduledEvents } from "@/lib/data";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Trash2, Video } from "lucide-react";
+import { PlusCircle, Trash2, Video } from "lucide-react";
 import { format } from "date-fns";
 import { useState } from "react";
 import type { ScheduledEvent } from "@/lib/types";
@@ -19,6 +19,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { ScheduleDialog } from "./components/schedule-dialog";
+import { addHours, parse } from 'date-fns';
 
 export default function SchedulePage() {
   const { isAdmin } = useAdminAuth();
@@ -27,13 +29,20 @@ export default function SchedulePage() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   const now = new Date();
+  
+  const getEventDateTime = (event: ScheduledEvent) => {
+    // It's important to parse the time correctly. Assuming time is in 'hh:mm a' format.
+    // The date string 'yyyy-MM-dd' is parsed correctly by default.
+    return parse(`${event.date} ${event.time}`, 'yyyy-MM-dd hh:mm a', new Date());
+  };
+
   const upcomingEvents = events
-    .filter((event) => new Date(event.date) >= now)
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    .filter((event) => addHours(getEventDateTime(event), 1) >= now)
+    .sort((a, b) => getEventDateTime(a).getTime() - getEventDateTime(b).getTime());
   
   const pastEvents = events
-    .filter((event) => new Date(event.date) < now)
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    .filter((event) => addHours(getEventDateTime(event), 1) < now)
+    .sort((a, b) => getEventDateTime(b).getTime() - getEventDateTime(a).getTime());
 
   const handleSelectEvent = (eventId: string, checked: boolean) => {
     if (checked) {
@@ -51,18 +60,33 @@ export default function SchedulePage() {
     setIsDeleteDialogOpen(false);
   };
 
+  const handleSaveEvent = (event: Omit<ScheduledEvent, 'id'>) => {
+    setEvents((prev) => [
+      ...prev,
+      { ...event, id: `E${prev.length + 1}` },
+    ]);
+  };
+
   return (
     <div className="flex flex-col gap-8">
       <PageHeader
         title="Classes & Meetings"
         description="View upcoming and past scheduled events."
       >
-        {isAdmin && selectedEvents.length > 0 && (
-          <Button variant="destructive" onClick={() => setIsDeleteDialogOpen(true)}>
-            <Trash2 className="mr-2 h-4 w-4" />
-            Delete ({selectedEvents.length})
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+            {isAdmin && selectedEvents.length > 0 && (
+            <Button variant="destructive" onClick={() => setIsDeleteDialogOpen(true)}>
+                <Trash2 className="mr-2 h-4 w-4" />
+                Delete ({selectedEvents.length})
+            </Button>
+            )}
+            <ScheduleDialog onSave={handleSaveEvent}>
+                <Button>
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Add Event
+                </Button>
+            </ScheduleDialog>
+        </div>
       </PageHeader>
       <section>
         <h2 className="text-2xl font-headline font-bold mb-4">Upcoming</h2>
