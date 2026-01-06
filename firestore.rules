@@ -1,0 +1,124 @@
+/**
+ * Core Philosophy: This ruleset implements a strict Role-Based Access Control (RBAC) model
+ * for a departmental hub application. The core principle is that all data creation, modification,
+ * and deletion are restricted to users with administrative privileges. General authenticated
+ * users are granted read-only access to view departmental data like inventory, requirements,
+ * and schedules.
+ *
+ * Data Structure: The data is organized into several top-level collections:
+ * - /procured_items: A list of all items procured by the department.
+ * - /requirements: A list of departmental needs, with nested subcollections for primary and secondary items.
+ * - /class_meetings: A schedule of upcoming classes and meetings.
+ * - /roles_admin: A special collection used solely for authorization lookups.
+ *
+ * Key Security Decisions:
+ * - Admin-Only Writes: All write operations (create, update, delete) on core data collections
+ *   are universally restricted to admin users.
+ * - Read-Only for Authenticated Users: Any user who is signed in can read data from the
+ *   `procured_items`, `requirements`, and `class_meetings` collections. This supports the
+ *   application's function as an informational hub.
+ * - Server-Managed Roles: The `/roles_admin` collection, which grants admin rights, is locked
+ *   down from all client-side access. It is intended to be managed exclusively via a secure
+ *   backend environment (e.g., Cloud Functions with the Admin SDK). This prevents users
+ *   from escalating their own privileges.
+ *
+ * Denormalization for Authorization: Admin roles are denormalized into the `/roles_admin/{userId}`
+ * collection. A user is considered an admin if a document with their UID exists in this collection.
+ * This allows for a fast, efficient `exists()` check in security rules, avoiding slow and costly
+ * `get()` calls for every write operation.
+ *
+ * Structural Segregation: Each primary data type has its own top-level collection, which
+ * simplifies rule application. Nested requirements (`primary_requirements`, `secondary_requirements`)
+ * inherit the security posture of their parent `/requirements` collection, ensuring consistent
+ * and simple rules.
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions for common authorization checks.
+
+    /**
+     * Checks if the user is authenticated.
+     */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /**
+     * Checks if the authenticated user has admin privileges.
+     * Admin status is determined by the existence of a document
+     * in the /roles_admin collection corresponding to the user's UID.
+     */
+    function isAdmin() {
+      return exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
+    }
+
+    /**
+     * @description Rules for the 'procured_items' collection. Allows any signed-in user to
+     *   read the list of procured items, but restricts all write operations to administrators.
+     * @path /procured_items/{procuredItemId}
+     * @allow An authenticated, non-admin user can read a document: `(get) /procured_items/item123`.
+     * @deny A non-admin user attempts to add a new item: `(create) /procured_items/item456`.
+     * @principle Implements public read access for authenticated users with admin-only write controls.
+     */
+    match /procured_items/{procuredItemId} {
+      allow get: if isSignedIn();
+      allow list: if isSignedIn();
+      allow create: if isAdmin();
+      allow update: if isAdmin() && resource != null;
+      allow delete: if isAdmin() && resource != null;
+    }
+
+    /**
+     * @description Rules for the 'requirements' collection and all nested subcollections
+     *   (e.g., 'primary_requirements', 'secondary_requirements'). Allows any signed-in user
+     *   to read requirements, but restricts all write operations to administrators.
+     * @path /requirements/{requirementId=**}
+     * @allow An authenticated, non-admin user can list primary requirements: `(list) /requirements/req123/primary_requirements`.
+     * @deny A non-admin user attempts to delete a requirement: `(delete) /requirements/req123`.
+     * @principle Applies a consistent security model recursively to a collection and all its subcollections.
+     */
+    match /requirements/{requirementId=**} {
+      allow get: if isSignedIn();
+      allow list: if isSignedIn();
+      allow create: if isAdmin();
+      allow update: if isAdmin() && resource != null;
+      allow delete: if isAdmin() && resource != null;
+    }
+
+    /**
+     * @description Rules for the 'class_meetings' collection. Allows any signed-in user
+     *   to view the schedule of meetings, but restricts all write operations to administrators.
+     * @path /class_meetings/{classMeetingId}
+     * @allow An authenticated, non-admin user can read meeting details: `(get) /class_meetings/meeting123`.
+     * @deny A non-admin user attempts to create a new meeting: `(create) /class_meetings/meeting456`.
+     * @principle Implements public read access for authenticated users with admin-only write controls.
+     */
+    match /class_meetings/{classMeetingId} {
+      allow get: if isSignedIn();
+      allow list: if isSignedIn();
+      allow create: if isAdmin();
+      allow update: if isAdmin() && resource != null;
+      allow delete: if isAdmin() && resource != null;
+    }
+
+    /**
+     * @description Security rules for the admin roles collection. This collection is used as a
+     *   lookup table to grant admin privileges. It is read-only by the rules engine (`exists()` call)
+     *   and MUST NOT be readable or writable by any client. It should be managed by a trusted
+     *   server process (e.g., Cloud Functions).
+     * @path /roles_admin/{userId}
+     * @allow No operations are permitted. All client-side requests will be denied.
+     * @deny Any user, including an admin, attempts to read or write to this collection.
+     * @principle Secures critical authorization data by denying all client-side access.
+     */
+    match /roles_admin/{userId} {
+      allow get: if false;
+      allow list: if false;
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
+    }
+  }
+}
