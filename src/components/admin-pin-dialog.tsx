@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -16,7 +17,7 @@ import { Label } from "@/components/ui/label";
 import { useAdminAuth } from "@/hooks/use-admin-auth";
 import { useToast } from "@/hooks/use-toast";
 
-const ADMIN_PIN = "1234"; // This should be in an environment variable in a real app
+const ADMIN_PIN = "743351"; // This should be in an environment variable in a real app
 
 export default function AdminPinDialog({
   children,
@@ -82,7 +83,7 @@ export default function AdminPinDialog({
                 value={pin}
                 onChange={(e) => setPin(e.target.value)}
                 className="col-span-3"
-                maxLength={4}
+                maxLength={6}
               />
             </div>
           </div>
