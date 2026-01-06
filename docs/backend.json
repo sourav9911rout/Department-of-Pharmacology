@@ -51,12 +51,27 @@
           "type": "string",
           "description": "Any additional remarks or notes about the procured item."
         },
-        "documentIds": {
+        "documents": {
           "type": "array",
+          "description": "An array of document links associated with this item.",
           "items": {
-            "type": "string"
-          },
-          "description": "An array of document IDs from the 'documents' collection associated with this item."
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": "string",
+                "description": "The display name for the document link."
+              },
+              "driveLink": {
+                "type": "string",
+                "description": "The URL of the document.",
+                "format": "uri"
+              }
+            },
+            "required": [
+              "title",
+              "driveLink"
+            ]
+          }
         }
       },
       "required": [
@@ -155,35 +170,6 @@
         "conductedBy",
         "meetLink"
       ]
-    },
-    "DocumentLink": {
-      "title": "DocumentLink",
-      "type": "object",
-      "description": "Represents a link to a document in Google Drive.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the document link."
-        },
-        "title": {
-          "type": "string",
-          "description": "The title of the document."
-        },
-        "description": {
-          "type": "string",
-          "description": "A brief description of the document."
-        },
-        "driveLink": {
-          "type": "string",
-          "description": "The URL to the document in Google Drive.",
-          "format": "uri"
-        }
-      },
-      "required": [
-        "title",
-        "description",
-        "driveLink"
-      ]
     }
   },
   "auth": {
@@ -238,22 +224,6 @@
             {
               "name": "classMeetingId",
               "description": "The unique identifier for the class meeting."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/documents/{documentId}",
-        "definition": {
-          "entityName": "DocumentLink",
-          "schema": {
-            "$ref": "#/backend/entities/DocumentLink"
-          },
-          "description": "Stores links to important documents.",
-          "params": [
-            {
-              "name": "documentId",
-              "description": "The unique identifier for the document link."
             }
           ]
         }

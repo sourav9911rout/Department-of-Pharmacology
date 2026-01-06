@@ -18,10 +18,8 @@ import {
   ClipboardList,
   Calendar,
   Pill,
-  FolderOpen,
   Lock,
   Unlock,
-  Building2,
   PanelLeftClose,
   PanelLeftOpen,
 } from "lucide-react";
@@ -30,14 +28,12 @@ import { useAdminAuth } from "@/hooks/use-admin-auth";
 import { Button } from "./ui/button";
 import { useSidebar } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
-import Image from "next/image";
 
 const navItems = [
   { href: "/", label: "Home", icon: Home },
   { href: "/items", label: "Procured Items", icon: Package },
   { href: "/requirements", label: "Requirement List", icon: ClipboardList },
   { href: "/schedule", label: "Classes & Meetings", icon: Calendar },
-  { href: "/documents", label: "Documents", icon: FolderOpen },
 ];
 
 export default function AppSidebar() {

@@ -14,27 +14,14 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useAdminAuth } from '@/hooks/use-admin-auth';
-import type { ProcuredItem, DocumentLink } from '@/lib/types';
-import { useState } from 'react';
-import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
+import type { ProcuredItem } from '@/lib/types';
+import { useState, useEffect } from 'react';
+import { useFirestore } from '@/firebase';
 import { addDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { collection, doc } from 'firebase/firestore';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command"
-import { Badge } from '@/components/ui/badge';
-import { Check, ChevronsUpDown, X } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { PlusCircle, Trash2 } from 'lucide-react';
+
+type Document = { title: string; driveLink: string; };
 
 export function ItemDialog({
   children,
@@ -46,24 +33,53 @@ export function ItemDialog({
   const { isAdmin } = useAdminAuth();
   const firestore = useFirestore();
 
-  const documentsCollection = useMemoFirebase(() => collection(firestore, 'documents'), [firestore]);
-  const { data: allDocuments } = useCollection<DocumentLink>(documentsCollection);
-
   const [open, setOpen] = useState(false);
   const [category, setCategory] = useState(item?.category);
   const [installationStatus, setInstallationStatus] = useState(item?.installationStatus);
-  const [selectedDocumentIds, setSelectedDocumentIds] = useState<string[]>(item?.documentIds || []);
-  const [popoverOpen, setPopoverOpen] = useState(false);
+  const [documents, setDocuments] = useState<Document[]>(item?.documents || []);
   
   const isEditing = !!item;
+  
+  useEffect(() => {
+    if (open) {
+      setCategory(item?.category);
+      setInstallationStatus(item?.installationStatus);
+      setDocuments(item?.documents || [{ title: '', driveLink: '' }]);
+    }
+  }, [open, item]);
+
 
   if (!isAdmin) {
     return null;
   }
   
+  const handleDocumentChange = (index: number, field: keyof Document, value: string) => {
+    const newDocuments = [...documents];
+    newDocuments[index][field] = value;
+    setDocuments(newDocuments);
+  };
+  
+  const addDocumentField = () => {
+    setDocuments([...documents, { title: '', driveLink: '' }]);
+  };
+  
+  const removeDocumentField = (index: number) => {
+    if (documents.length > 1) {
+      const newDocuments = documents.filter((_, i) => i !== index);
+      setDocuments(newDocuments);
+    } else {
+      // Clear the fields if it's the last one
+      setDocuments([{ title: '', driveLink: '' }]);
+    }
+  };
+  
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
+    
+    // Filter out empty documents before submitting
+    const finalDocuments = documents.filter(doc => doc.title.trim() !== '' && doc.driveLink.trim() !== '');
+
     const newItemData: Omit<ProcuredItem, 'id'> = {
       name: formData.get('name') as string,
       category: category as ProcuredItem['category'],
@@ -72,7 +88,7 @@ export function ItemDialog({
       installationStatus: installationStatus as ProcuredItem['installationStatus'],
       remarks: formData.get('remarks') as string,
       dateOfInstallation: installationStatus === 'Installed' ? (formData.get('dateOfInstallation') as string) : '',
-      documentIds: selectedDocumentIds,
+      documents: finalDocuments,
     };
 
     if (isEditing && item) {
@@ -86,20 +102,11 @@ export function ItemDialog({
     setOpen(false);
   };
   
-  const selectedDocuments = allDocuments?.filter(doc => selectedDocumentIds.includes(doc.id)) || [];
 
   return (
-    <Dialog open={open} onOpenChange={(isOpen) => {
-      setOpen(isOpen);
-      if (!isOpen) {
-        // Reset state on close
-        setCategory(item?.category);
-        setInstallationStatus(item?.installationStatus);
-        setSelectedDocumentIds(item?.documentIds || []);
-      }
-    }}>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-md">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
             <DialogTitle>{isEditing ? 'Edit Item' : 'Add New Item'}</DialogTitle>
@@ -107,7 +114,7 @@ export function ItemDialog({
               {isEditing ? "Update the details of the existing item." : "Fill in the details for the new item."}
             </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
+          <div className="grid gap-4 py-4 max-h-[70vh] overflow-y-auto pr-4">
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="name" className="text-right">
                 Name
@@ -172,63 +179,39 @@ export function ItemDialog({
               <Textarea id="remarks" name="remarks" defaultValue={item?.remarks} className="col-span-3" />
             </div>
              <div className="grid grid-cols-4 items-start gap-4">
-              <Label className="text-right mt-2">Documents</Label>
-              <div className="col-span-3">
-                <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      role="combobox"
-                      aria-expanded={popoverOpen}
-                      className="w-full justify-between h-auto min-h-10"
-                    >
-                       <div className="flex gap-1 flex-wrap">
-                        {selectedDocuments.length > 0 ? selectedDocuments.map(doc => (
-                          <Badge
-                            variant="secondary"
-                            key={doc.id}
-                            className="mr-1"
-                          >
-                            {doc.title}
-                          </Badge>
-                        )) : "Select documents..."}
-                       </div>
-                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-[300px] p-0">
-                     <Command>
-                        <CommandInput placeholder="Search documents..." />
-                        <CommandList>
-                            <CommandEmpty>No documents found.</CommandEmpty>
-                            <CommandGroup>
-                            {(allDocuments || []).map((doc) => (
-                                <CommandItem
-                                key={doc.id}
+                <Label className="text-right mt-2">Documents</Label>
+                <div className="col-span-3 space-y-4">
+                    {documents.map((doc, index) => (
+                        <div key={index} className="space-y-2 border p-3 rounded-md relative">
+                            <Input 
+                                placeholder="Document Title" 
                                 value={doc.title}
-                                onSelect={() => {
-                                    setSelectedDocumentIds(current => 
-                                    current.includes(doc.id) 
-                                        ? current.filter(id => id !== doc.id)
-                                        : [...current, doc.id]
-                                    );
-                                }}
+                                onChange={(e) => handleDocumentChange(index, 'title', e.target.value)}
+                                className="text-sm"
+                            />
+                            <Input 
+                                placeholder="Google Drive Link"
+                                value={doc.driveLink}
+                                onChange={(e) => handleDocumentChange(index, 'driveLink', e.target.value)}
+                                className="text-sm"
+                            />
+                             <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="absolute -top-2 -right-2 h-6 w-6"
+                                onClick={() => removeDocumentField(index)}
                                 >
-                                <Check
-                                    className={cn(
-                                    "mr-2 h-4 w-4",
-                                    selectedDocumentIds.includes(doc.id) ? "opacity-100" : "opacity-0"
-                                    )}
-                                />
-                                {doc.title}
-                                </CommandItem>
-                            ))}
-                            </CommandGroup>
-                        </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
-              </div>
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                                <span className="sr-only">Remove Document</span>
+                            </Button>
+                        </div>
+                    ))}
+                     <Button type="button" variant="outline" size="sm" onClick={addDocumentField} className="w-full">
+                        <PlusCircle className="mr-2 h-4 w-4" />
+                        Add Another Document
+                    </Button>
+                </div>
             </div>
           </div>
           <DialogFooter>

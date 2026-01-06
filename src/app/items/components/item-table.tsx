@@ -1,5 +1,5 @@
 'use client';
-import type { DocumentLink, ProcuredItem } from "@/lib/types";
+import type { ProcuredItem } from "@/lib/types";
 import {
   Table,
   TableBody,
@@ -15,8 +15,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
-import { collection } from "firebase/firestore";
 import Link from "next/link";
 
 export default function ItemTable({
@@ -31,9 +29,6 @@ export default function ItemTable({
   isLoading: boolean;
 }) {
     const { isAdmin } = useAdminAuth();
-    const firestore = useFirestore();
-    const documentsCollection = useMemoFirebase(() => collection(firestore, 'documents'), [firestore]);
-    const { data: allDocuments } = useCollection<DocumentLink>(documentsCollection);
 
     const handleSelectAll = (checked: boolean | 'indeterminate') => {
         if (checked === true) {
@@ -60,11 +55,6 @@ export default function ItemTable({
             case 'Pending': return 'bg-orange-100 text-orange-800 border-orange-300 dark:bg-orange-900/50 dark:text-orange-300 dark:border-orange-700';
             default: return 'bg-gray-100 text-gray-800 border-gray-300 dark:bg-gray-900/50 dark:text-gray-300 dark:border-gray-700';
         }
-    }
-    
-    const getDocumentsForItem = (item: ProcuredItem) => {
-        if (!item.documentIds || !allDocuments) return [];
-        return allDocuments.filter(doc => item.documentIds?.includes(doc.id));
     }
 
     return (
@@ -93,7 +83,7 @@ export default function ItemTable({
                 </TableRow>
                 </TableHeader>
                 <TableBody>
-                {isLoading || !allDocuments ? (
+                {isLoading ? (
                   Array.from({ length: 5 }).map((_, i) => (
                     <TableRow key={i}>
                       {isAdmin && <TableCell><Skeleton className="h-4 w-4" /></TableCell>}
@@ -111,7 +101,6 @@ export default function ItemTable({
                   ))
                 ) : data.length > 0 ? (
                   data.map((item, index) => {
-                    const linkedDocuments = getDocumentsForItem(item);
                     return (
                         <TableRow key={item.id} data-state={selectedItems.includes(item.id) ? 'selected' : ''}>
                         {isAdmin && (
@@ -134,11 +123,11 @@ export default function ItemTable({
                         </TableCell>
                         <TableCell>{item.dateOfInstallation || 'N/A'}</TableCell>
                          <TableCell>
-                            <div className="flex flex-wrap gap-1">
-                                {linkedDocuments.length > 0 ? linkedDocuments.map(doc => (
-                                    <Button asChild variant="link" size="sm" className="p-0 h-auto" key={doc.id}>
+                            <div className="flex flex-col gap-1 items-start">
+                                {item.documents && item.documents.length > 0 ? item.documents.map((doc, docIndex) => (
+                                    <Button asChild variant="link" size="sm" className="p-0 h-auto" key={docIndex}>
                                         <Link href={doc.driveLink} target="_blank" rel="noopener noreferrer">
-                                            <Badge variant="secondary" className="cursor-pointer hover:bg-primary/20">{doc.title}</Badge>
+                                            {doc.title}
                                         </Link>
                                     </Button>
                                 )) : <span className="text-muted-foreground">N/A</span>}
