@@ -95,7 +95,8 @@
           "type": "string",
           "enum": [
             "Primary",
-            "Secondary"
+            "Secondary",
+            "Tertiary"
           ],
           "description": "The type of the requirement (Primary or Secondary)."
         }

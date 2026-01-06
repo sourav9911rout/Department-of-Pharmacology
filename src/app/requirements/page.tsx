@@ -38,6 +38,9 @@ export default function RequirementsPage() {
   const secondaryRequirements = reqs?.filter(
     (r) => r.type === "Secondary"
   ) || [];
+  const tertiaryRequirements = reqs?.filter(
+    (r) => r.type === "Tertiary"
+  ) || [];
   
   const handleDelete = () => {
     selectedReqs.forEach(reqId => {
@@ -48,8 +51,8 @@ export default function RequirementsPage() {
     setIsDeleteDialogOpen(false);
   };
   
-  // Combine selection from both tabs
-  const handleSelectionChange = (ids: string[], type: 'Primary' | 'Secondary') => {
+  // Combine selection from all tabs
+  const handleSelectionChange = (ids: string[], type: 'Primary' | 'Secondary' | 'Tertiary') => {
     const otherTypeIds = selectedReqs.filter(id => reqs?.find(r => r.id === id)?.type !== type);
     setSelectedReqs([...otherTypeIds, ...ids]);
   }
@@ -77,9 +80,10 @@ export default function RequirementsPage() {
       </PageHeader>
 
       <Tabs defaultValue="primary" onValueChange={() => { /* Clears selection on tab change if desired */ }}>
-        <TabsList className="grid w-full grid-cols-2 md:w-[400px]">
+        <TabsList className="grid w-full grid-cols-3 md:w-[600px]">
           <TabsTrigger value="primary">Primary Requirements</TabsTrigger>
           <TabsTrigger value="secondary">Secondary Requirements</TabsTrigger>
+          <TabsTrigger value="tertiary">Tertiary Requirements</TabsTrigger>
         </TabsList>
         <TabsContent value="primary" className="mt-4">
           <RequirementTable
@@ -94,6 +98,14 @@ export default function RequirementsPage() {
             data={secondaryRequirements}
             selectedItems={selectedReqs.filter(id => secondaryRequirements.some(r => r.id === id))}
             onSelectionChange={(ids) => handleSelectionChange(ids, 'Secondary')}
+            isLoading={isLoading}
+          />
+        </TabsContent>
+         <TabsContent value="tertiary" className="mt-4">
+          <RequirementTable
+            data={tertiaryRequirements}
+            selectedItems={selectedReqs.filter(id => tertiaryRequirements.some(r => r.id === id))}
+            onSelectionChange={(ids) => handleSelectionChange(ids, 'Tertiary')}
             isLoading={isLoading}
           />
         </TabsContent>

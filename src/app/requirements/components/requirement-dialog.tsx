@@ -53,6 +53,10 @@ export function RequirementDialog({
     addDocumentNonBlocking(collectionRef, finalData);
     
     setOpen(false);
+    // Reset form states
+    setType(undefined);
+    setPriorityLevel(undefined);
+    (e.target as HTMLFormElement).reset();
   };
 
   return (
@@ -90,6 +94,7 @@ export function RequirementDialog({
                 <SelectContent>
                   <SelectItem value="Primary">Primary</SelectItem>
                   <SelectItem value="Secondary">Secondary</SelectItem>
+                  <SelectItem value="Tertiary">Tertiary</SelectItem>
                 </SelectContent>
               </Select>
             </div>

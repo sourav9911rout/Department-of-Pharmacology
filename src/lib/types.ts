@@ -14,7 +14,7 @@ export interface Requirement {
   requiredQuantity: number;
   priorityLevel: 'High' | 'Medium' | 'Low';
   status: 'Pending' | 'Procured' | 'Partial';
-  type: 'Primary' | 'Secondary';
+  type: 'Primary' | 'Secondary' | 'Tertiary';
 }
 
 export interface ClassMeeting {
