@@ -42,6 +42,11 @@
           ],
           "description": "The installation status of the procured item."
         },
+        "dateOfInstallation": {
+          "type": "string",
+          "description": "The date when the item was installed.",
+          "format": "date"
+        },
         "remarks": {
           "type": "string",
           "description": "Any additional remarks or notes about the procured item."

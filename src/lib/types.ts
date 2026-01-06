@@ -5,6 +5,7 @@ export interface ProcuredItem {
   quantity: number;
   dateOfProcurement: string;
   installationStatus: 'Pending' | 'Installed' | 'Not Applicable';
+  dateOfInstallation?: string;
   remarks?: string;
 }
 

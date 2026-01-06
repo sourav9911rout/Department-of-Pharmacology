@@ -41,13 +41,14 @@ export function ItemDialog({
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
-    const newItemData = {
+    const newItemData: Omit<ProcuredItem, 'id'> = {
       name: formData.get('name') as string,
       category: category as ProcuredItem['category'],
       quantity: Number(formData.get('quantity')),
       dateOfProcurement: formData.get('dateOfProcurement') as string,
       installationStatus: installationStatus as ProcuredItem['installationStatus'],
       remarks: formData.get('remarks') as string,
+      dateOfInstallation: installationStatus === 'Installed' ? (formData.get('dateOfInstallation') as string) : '',
     };
 
     if (isEditing && item) {
@@ -122,6 +123,14 @@ export function ItemDialog({
                 </SelectContent>
               </Select>
             </div>
+            {installationStatus === 'Installed' && (
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="dateOfInstallation" className="text-right">
+                  Installation Date
+                </Label>
+                <Input id="dateOfInstallation" name="dateOfInstallation" type="date" defaultValue={item?.dateOfInstallation} className="col-span-3" required/>
+              </div>
+            )}
             <div className="grid grid-cols-4 items-start gap-4">
               <Label htmlFor="remarks" className="text-right mt-2">
                 Remarks
