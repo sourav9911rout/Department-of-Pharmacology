@@ -33,6 +33,9 @@ export default function Dashboard() {
   const { data: scheduledEvents } = useCollection<ClassMeeting>(scheduleCollection);
 
   const totalProcured = procuredItems?.length ?? 0;
+  const installedItems = procuredItems?.filter(item => item.installationStatus === 'Installed').length ?? 0;
+  const pendingInstallationItems = procuredItems?.filter(item => item.installationStatus === 'Pending').length ?? 0;
+
   const pendingRequirements = requirements?.filter(
     (r) => r.status === 'Pending'
   ).length ?? 0;
@@ -62,7 +65,7 @@ export default function Dashboard() {
           <CardContent>
             <div className="text-2xl font-bold">{totalProcured}</div>
             <p className="text-xs text-muted-foreground">
-              items currently in inventory
+              {installedItems} installed, {pendingInstallationItems} pending
             </p>
           </CardContent>
         </Card>
