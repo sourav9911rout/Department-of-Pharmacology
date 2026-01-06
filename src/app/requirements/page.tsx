@@ -6,7 +6,7 @@ import { useState } from "react";
 import type { Requirement } from "@/lib/types";
 import { useAdminAuth } from "@/hooks/use-admin-auth";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, Trash2 } from "lucide-react";
+import { FileDown, PlusCircle, Trash2 } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,10 +20,14 @@ import {
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
 import { collection, deleteDoc, doc } from "firebase/firestore";
 import { RequirementDialog } from "./components/requirement-dialog";
+import jsPDF from "jspdf";
+import "jspdf-autotable";
+
 
 export default function RequirementsPage() {
   const { isAdmin } = useAdminAuth();
   const firestore = useFirestore();
+  const [activeTab, setActiveTab] = useState('primary');
   
   const requirementsCollection = useMemoFirebase(
     () => collection(firestore, 'requirements'),
@@ -56,6 +60,36 @@ export default function RequirementsPage() {
     const otherTypeIds = selectedReqs.filter(id => reqs?.find(r => r.id === id)?.type !== type);
     setSelectedReqs([...otherTypeIds, ...ids]);
   }
+  
+  const handleDownloadPdf = () => {
+    const doc = new jsPDF();
+    let dataToExport: Requirement[] = [];
+    let title = "Requirement List";
+
+    if (activeTab === 'primary') {
+      dataToExport = primaryRequirements;
+      title = "Primary Requirements";
+    } else if (activeTab === 'secondary') {
+      dataToExport = secondaryRequirements;
+      title = "Secondary Requirements";
+    } else if (activeTab === 'tertiary') {
+        dataToExport = tertiaryRequirements;
+        title = "Tertiary Requirements";
+    }
+
+    doc.text(title, 14, 16);
+    (doc as any).autoTable({
+      head: [['Item Name', 'Required Quantity', 'Priority', 'Status']],
+      body: dataToExport.map(req => [
+        req.name,
+        req.requiredQuantity,
+        req.priorityLevel,
+        req.status
+      ]),
+      startY: 20,
+    });
+    doc.save(`requirements_${activeTab}.pdf`);
+  };
 
   return (
     <div className="flex flex-col gap-8">
@@ -64,6 +98,10 @@ export default function RequirementsPage() {
         description="Manage primary and secondary requirements for the department."
       >
         <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={handleDownloadPdf}>
+                <FileDown className="mr-2 h-4 w-4"/>
+                Download PDF
+            </Button>
             {isAdmin && selectedReqs.length > 0 && (
             <Button variant="destructive" onClick={() => setIsDeleteDialogOpen(true)}>
                 <Trash2 className="mr-2 h-4 w-4" />
@@ -79,7 +117,7 @@ export default function RequirementsPage() {
         </div>
       </PageHeader>
 
-      <Tabs defaultValue="primary" onValueChange={() => { /* Clears selection on tab change if desired */ }}>
+      <Tabs defaultValue="primary" onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-3 md:w-[600px]">
           <TabsTrigger value="primary">Primary Requirements</TabsTrigger>
           <TabsTrigger value="secondary">Secondary Requirements</TabsTrigger>

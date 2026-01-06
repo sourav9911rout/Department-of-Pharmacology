@@ -1,7 +1,7 @@
 'use client';
 import PageHeader from "@/components/page-header";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { FolderGit2, PlusCircle, Trash2 } from "lucide-react";
+import { FileDown, FolderGit2, PlusCircle, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,8 @@ import type { DocumentLink } from "@/lib/types";
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
 import { collection, deleteDoc, doc } from "firebase/firestore";
 import { Skeleton } from "@/components/ui/skeleton";
+import jsPDF from "jspdf";
+import "jspdf-autotable";
 
 export default function DocumentsPage() {
   const { isAdmin } = useAdminAuth();
@@ -55,6 +57,21 @@ export default function DocumentsPage() {
   const handleSaveDocument = (doc: Omit<DocumentLink, 'id'>) => {
     // This is handled by the dialog now
   };
+  
+  const handleDownloadPdf = () => {
+    const doc = new jsPDF();
+    doc.text("Documents & Resources", 14, 16);
+    (doc as any).autoTable({
+        head: [['Title', 'Description', 'Link']],
+        body: (documents || []).map(d => [
+            d.title,
+            d.description,
+            d.driveLink
+        ]),
+        startY: 20,
+    });
+    doc.save("documents.pdf");
+  }
 
   return (
     <div className="flex flex-col gap-8">
@@ -63,6 +80,10 @@ export default function DocumentsPage() {
         description="Access official documents, SOPs, and guidelines from Google Drive."
       >
         <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={handleDownloadPdf}>
+                <FileDown className="mr-2 h-4 w-4"/>
+                Download PDF
+            </Button>
             {isAdmin && selectedDocuments.length > 0 && (
               <Button variant="destructive" onClick={() => setIsDeleteDialogOpen(true)}>
                 <Trash2 className="mr-2 h-4 w-4" />

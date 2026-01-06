@@ -3,7 +3,7 @@ import PageHeader from "@/components/page-header";
 import ItemTable from "./components/item-table";
 import { ItemDialog } from "./components/item-dialog";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, Trash2 } from "lucide-react";
+import { FileDown, PlusCircle, Trash2 } from "lucide-react";
 import { useState } from "react";
 import type { ProcuredItem } from "@/lib/types";
 import { useAdminAuth } from "@/hooks/use-admin-auth";
@@ -19,6 +19,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
 import { collection, deleteDoc, doc, orderBy, query } from "firebase/firestore";
+import jsPDF from "jspdf";
+import "jspdf-autotable";
 
 export default function ProcuredItemsPage() {
   const { isAdmin } = useAdminAuth();
@@ -39,6 +41,25 @@ export default function ProcuredItemsPage() {
     setSelectedItems([]);
     setIsDeleteDialogOpen(false);
   };
+  
+  const handleDownloadPdf = () => {
+    const doc = new jsPDF();
+    doc.text("Procured Items", 14, 16);
+    (doc as any).autoTable({
+      head: [['Name', 'Category', 'Quantity', 'Procurement Date', 'Installation Status', 'Installation Date', 'Remarks']],
+      body: (items || []).map(item => [
+        item.name,
+        item.category,
+        item.quantity,
+        item.dateOfProcurement,
+        item.installationStatus,
+        item.dateOfInstallation || 'N/A',
+        item.remarks || 'N/A'
+      ]),
+      startY: 20,
+    });
+    doc.save("procured_items.pdf");
+  }
 
   return (
     <div className="flex flex-col gap-8">
@@ -47,6 +68,10 @@ export default function ProcuredItemsPage() {
         description="Track all items procured by the department."
       >
         <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={handleDownloadPdf}>
+            <FileDown className="mr-2 h-4 w-4"/>
+            Download PDF
+          </Button>
           {isAdmin && selectedItems.length > 0 && (
               <Button variant="destructive" onClick={() => setIsDeleteDialogOpen(true)}>
                   <Trash2 className="mr-2 h-4 w-4" />

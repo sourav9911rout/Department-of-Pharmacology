@@ -2,7 +2,7 @@
 import PageHeader from "@/components/page-header";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, Trash2, Video } from "lucide-react";
+import { FileDown, PlusCircle, Trash2, Video } from "lucide-react";
 import { format } from "date-fns";
 import { useState } from "react";
 import type { ClassMeeting } from "@/lib/types";
@@ -23,6 +23,8 @@ import { addHours, parse } from 'date-fns';
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
 import { collection, deleteDoc, doc } from "firebase/firestore";
 import { Skeleton } from "@/components/ui/skeleton";
+import jsPDF from "jspdf";
+import "jspdf-autotable";
 
 export default function SchedulePage() {
   const { isAdmin } = useAdminAuth();
@@ -70,6 +72,48 @@ export default function SchedulePage() {
   const handleSaveEvent = (event: Omit<ClassMeeting, 'id'>) => {
     // This is handled by the dialog now
   };
+  
+  const handleDownloadPdf = () => {
+    const doc = new jsPDF();
+    doc.text("Upcoming Classes & Meetings", 14, 16);
+    (doc as any).autoTable({
+        head: [['Topic', 'Date', 'Time', 'Conducted By']],
+        body: upcomingEvents.map(event => [
+            event.topic,
+            format(getEventDateTime(event), 'MMM d, yyyy'),
+            format(getEventDateTime(event), 'p'),
+            event.conductedBy,
+        ]),
+        startY: 20,
+    });
+
+    if (pastEvents.length > 0) {
+        (doc as any).autoTable({
+            head: [['Past Events']],
+            body: [],
+            startY: (doc as any).autoTable.previous.finalY + 10,
+            theme: 'plain',
+            styles: {
+                head: {
+                    fontSize: 12,
+                    fontStyle: 'bold',
+                }
+            }
+        });
+        (doc as any).autoTable({
+            head: [['Topic', 'Date', 'Time', 'Conducted By']],
+            body: pastEvents.map(event => [
+                event.topic,
+                format(getEventDateTime(event), 'MMM d, yyyy'),
+                format(getEventDateTime(event), 'p'),
+                event.conductedBy,
+            ]),
+            startY: (doc as any).autoTable.previous.finalY + 2,
+        });
+    }
+
+    doc.save("class_schedule.pdf");
+  };
 
   return (
     <div className="flex flex-col gap-8">
@@ -78,6 +122,10 @@ export default function SchedulePage() {
         description="View upcoming and past scheduled events."
       >
         <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={handleDownloadPdf}>
+                <FileDown className="mr-2 h-4 w-4"/>
+                Download PDF
+            </Button>
             {isAdmin && selectedEvents.length > 0 && (
             <Button variant="destructive" onClick={() => setIsDeleteDialogOpen(true)}>
                 <Trash2 className="mr-2 h-4 w-4" />
