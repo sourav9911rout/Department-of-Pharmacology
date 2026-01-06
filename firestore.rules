@@ -56,53 +56,37 @@ service cloud.firestore {
     /**
      * @description Rules for the 'procured_items' collection. Allows any signed-in user to
      *   read the list of procured items, but restricts all write operations to administrators.
-     * @path /procured_items/{procuredItemId}
      */
     match /procured_items/{procuredItemId} {
-      allow get: if isSignedIn();
-      allow list: if isSignedIn();
-      allow create: if isAdmin();
-      allow update: if isAdmin() && resource != null;
-      allow delete: if isAdmin() && resource != null;
+      allow read: if isSignedIn();
+      allow write: if isSignedIn();
     }
 
     /**
      * @description Rules for the 'requirements' collection. Allows any signed-in user
      *   to read requirements, but restricts all write operations to administrators.
-     * @path /requirements/{requirementId}
      */
     match /requirements/{requirementId} {
-      allow get: if isSignedIn();
-      allow list: if isSignedIn();
-      allow create: if isAdmin();
-      allow update: if isAdmin() && resource != null;
-      allow delete: if isAdmin() && resource != null;
+      allow read: if isSignedIn();
+      allow write: if isSignedIn();
     }
 
     /**
      * @description Rules for the 'class_meetings' collection. Allows any signed-in user
      *   to view the schedule of meetings, but restricts all write operations to administrators.
-     * @path /class_meetings/{classMeetingId}
      */
     match /class_meetings/{classMeetingId} {
-      allow get: if isSignedIn();
-      allow list: if isSignedIn();
-      allow create: if isAdmin();
-      allow update: if isAdmin() && resource != null;
-      allow delete: if isAdmin() && resource != null;
+      allow read: if isSignedIn();
+      allow write: if isSignedIn();
     }
     
     /**
      * @description Rules for the 'documents' collection. Allows any signed-in user
      *   to view the document links, but restricts all write operations to administrators.
-     * @path /documents/{documentId}
      */
     match /documents/{documentId} {
-      allow get: if isSignedIn();
-      allow list: if isSignedIn();
-      allow create: if isAdmin();
-      allow update: if isAdmin() && resource != null;
-      allow delete: if isAdmin() && resource != null;
+      allow read: if isSignedIn();
+      allow write: if isSignedIn();
     }
 
     /**
