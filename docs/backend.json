@@ -16,7 +16,12 @@
         },
         "category": {
           "type": "string",
-          "enum": ["Electronics", "Furniture", "Stationery", "Miscellaneous"],
+          "enum": [
+            "Electronics",
+            "Furniture",
+            "Stationery",
+            "Miscellaneous"
+          ],
           "description": "The category of the procured item (e.g., 'Electronics', 'Supplies')."
         },
         "quantity": {
@@ -28,6 +33,15 @@
           "description": "The date when the item was procured.",
           "format": "date"
         },
+        "installationStatus": {
+          "type": "string",
+          "enum": [
+            "Pending",
+            "Installed",
+            "Not Applicable"
+          ],
+          "description": "The installation status of the procured item."
+        },
         "remarks": {
           "type": "string",
           "description": "Any additional remarks or notes about the procured item."
@@ -37,7 +51,8 @@
         "name",
         "category",
         "quantity",
-        "dateOfProcurement"
+        "dateOfProcurement",
+        "installationStatus"
       ]
     },
     "Requirement": {
@@ -60,17 +75,28 @@
         },
         "priorityLevel": {
           "type": "string",
-          "enum": ["High", "Medium", "Low"],
+          "enum": [
+            "High",
+            "Medium",
+            "Low"
+          ],
           "description": "The priority level of the requirement (e.g., 'High', 'Medium', 'Low')."
         },
         "status": {
           "type": "string",
-          "enum": ["Pending", "Procured", "Partial"],
+          "enum": [
+            "Pending",
+            "Procured",
+            "Partial"
+          ],
           "description": "The status of the requirement (e.g., 'Pending', 'Procured')."
         },
         "type": {
           "type": "string",
-          "enum": ["Primary", "Secondary"],
+          "enum": [
+            "Primary",
+            "Secondary"
+          ],
           "description": "The type of the requirement (Primary or Secondary)."
         }
       },

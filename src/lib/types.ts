@@ -4,6 +4,7 @@ export interface ProcuredItem {
   category: 'Electronics' | 'Furniture' | 'Stationery' | 'Miscellaneous';
   quantity: number;
   dateOfProcurement: string;
+  installationStatus: 'Pending' | 'Installed' | 'Not Applicable';
   remarks?: string;
 }
 

@@ -14,6 +14,8 @@ import { useAdminAuth } from "@/hooks/use-admin-auth";
 import { ItemDialog } from "./item-dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 export default function ItemTable({
   data,
@@ -47,6 +49,13 @@ export default function ItemTable({
     const isAllSelected = data.length > 0 && selectedItems.length === data.length;
     const isSomeSelected = selectedItems.length > 0 && selectedItems.length < data.length;
 
+    const getStatusBadgeClass = (status: ProcuredItem['installationStatus']) => {
+        switch (status) {
+            case 'Installed': return 'bg-green-100 text-green-800 border-green-300 dark:bg-green-900/50 dark:text-green-300 dark:border-green-700';
+            case 'Pending': return 'bg-orange-100 text-orange-800 border-orange-300 dark:bg-orange-900/50 dark:text-orange-300 dark:border-orange-700';
+            default: return 'bg-gray-100 text-gray-800 border-gray-300 dark:bg-gray-900/50 dark:text-gray-300 dark:border-gray-700';
+        }
+    }
 
     return (
         <div className="border rounded-lg">
@@ -65,6 +74,7 @@ export default function ItemTable({
                     <TableHead>Category</TableHead>
                     <TableHead>Quantity</TableHead>
                     <TableHead>Procurement Date</TableHead>
+                    <TableHead>Installation Status</TableHead>
                     <TableHead>Remarks</TableHead>
                     {isAdmin && <TableHead className="text-right">Actions</TableHead>}
                 </TableRow>
@@ -78,6 +88,7 @@ export default function ItemTable({
                       <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-12" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                      <TableCell><Skeleton className="h-6 w-24" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                       {isAdmin && <TableCell className="text-right"><Skeleton className="h-8 w-16" /></TableCell>}
                     </TableRow>
@@ -97,6 +108,11 @@ export default function ItemTable({
                     <TableCell>{item.category}</TableCell>
                     <TableCell>{item.quantity}</TableCell>
                     <TableCell>{item.dateOfProcurement}</TableCell>
+                    <TableCell>
+                        <Badge variant="outline" className={cn("font-normal", getStatusBadgeClass(item.installationStatus))}>
+                            {item.installationStatus || 'N/A'}
+                        </Badge>
+                    </TableCell>
                     <TableCell className="text-muted-foreground">{item.remarks || 'N/A'}</TableCell>
                     {isAdmin && (
                         <TableCell className="text-right">

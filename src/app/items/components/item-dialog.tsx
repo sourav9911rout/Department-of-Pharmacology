@@ -31,6 +31,7 @@ export function ItemDialog({
   const firestore = useFirestore();
   const [open, setOpen] = useState(false);
   const [category, setCategory] = useState(item?.category);
+  const [installationStatus, setInstallationStatus] = useState(item?.installationStatus);
   const isEditing = !!item;
 
   if (!isAdmin) {
@@ -45,6 +46,7 @@ export function ItemDialog({
       category: category as ProcuredItem['category'],
       quantity: Number(formData.get('quantity')),
       dateOfProcurement: formData.get('dateOfProcurement') as string,
+      installationStatus: installationStatus as ProcuredItem['installationStatus'],
       remarks: formData.get('remarks') as string,
     };
 
@@ -81,7 +83,7 @@ export function ItemDialog({
               <Label htmlFor="category" className="text-right">
                 Category
               </Label>
-              <Select value={category} onValueChange={setCategory}>
+              <Select value={category} onValueChange={setCategory} required>
                 <SelectTrigger className="col-span-3">
                   <SelectValue placeholder="Select a category" />
                 </SelectTrigger>
@@ -104,6 +106,21 @@ export function ItemDialog({
                 Date
               </Label>
               <Input id="dateOfProcurement" name="dateOfProcurement" type="date" defaultValue={item?.dateOfProcurement} className="col-span-3" required/>
+            </div>
+             <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="installationStatus" className="text-right">
+                Status
+              </Label>
+              <Select value={installationStatus} onValueChange={setInstallationStatus}>
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Pending">Pending</SelectItem>
+                  <SelectItem value="Installed">Installed</SelectItem>
+                  <SelectItem value="Not Applicable">Not Applicable</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div className="grid grid-cols-4 items-start gap-4">
               <Label htmlFor="remarks" className="text-right mt-2">

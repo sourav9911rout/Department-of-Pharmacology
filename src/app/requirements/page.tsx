@@ -6,7 +6,7 @@ import { useState } from "react";
 import type { Requirement } from "@/lib/types";
 import { useAdminAuth } from "@/hooks/use-admin-auth";
 import { Button } from "@/components/ui/button";
-import { Trash2 } from "lucide-react";
+import { PlusCircle, Trash2 } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
 import { collection, deleteDoc, doc } from "firebase/firestore";
+import { RequirementDialog } from "./components/requirement-dialog";
 
 export default function RequirementsPage() {
   const { isAdmin } = useAdminAuth();
@@ -59,12 +60,20 @@ export default function RequirementsPage() {
         title="Requirement List"
         description="Manage primary and secondary requirements for the department."
       >
-        {isAdmin && selectedReqs.length > 0 && (
-          <Button variant="destructive" onClick={() => setIsDeleteDialogOpen(true)}>
-            <Trash2 className="mr-2 h-4 w-4" />
-            Delete ({selectedReqs.length})
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+            {isAdmin && selectedReqs.length > 0 && (
+            <Button variant="destructive" onClick={() => setIsDeleteDialogOpen(true)}>
+                <Trash2 className="mr-2 h-4 w-4" />
+                Delete ({selectedReqs.length})
+            </Button>
+            )}
+            <RequirementDialog>
+                <Button>
+                    <PlusCircle className="mr-2 h-4 w-4"/>
+                    Add Requirement
+                </Button>
+            </RequirementDialog>
+        </div>
       </PageHeader>
 
       <Tabs defaultValue="primary" onValueChange={() => { /* Clears selection on tab change if desired */ }}>
