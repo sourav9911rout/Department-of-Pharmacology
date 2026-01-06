@@ -7,6 +7,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
+  TableCaption,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { useAdminAuth } from "@/hooks/use-admin-auth";
@@ -81,7 +82,8 @@ export default function ItemTable({
                       {isAdmin && <TableCell className="text-right"><Skeleton className="h-8 w-16" /></TableCell>}
                     </TableRow>
                   ))
-                ) : data.map((item) => (
+                ) : data.length > 0 ? (
+                  data.map((item) => (
                     <TableRow key={item.id} data-state={selectedItems.includes(item.id) ? 'selected' : ''}>
                     {isAdmin && (
                          <TableCell>
@@ -104,16 +106,17 @@ export default function ItemTable({
                         </TableCell>
                     )}
                     </TableRow>
-                ))}
+                  ))
+                ) : null}
                 </TableBody>
+                 {!isLoading && data.length === 0 && (
+                    <TableCaption>
+                        <div className="text-center text-muted-foreground p-8">
+                            No procured items found.
+                        </div>
+                    </TableCaption>
+                )}
             </Table>
-            {!isLoading && data.length === 0 && (
-                <caption>
-                    <div className="text-center text-muted-foreground p-8">
-                        No procured items found.
-                    </div>
-                </caption>
-            )}
         </div>
     );
 }

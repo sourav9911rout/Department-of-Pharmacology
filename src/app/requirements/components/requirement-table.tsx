@@ -7,6 +7,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
+  TableCaption,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -104,7 +105,8 @@ export default function RequirementTable({
                       <TableCell><Skeleton className="h-8 w-28" /></TableCell>
                     </TableRow>
                   ))
-                ) : data.map((req) => (
+                ) : data.length > 0 ? (
+                  data.map((req) => (
                     <TableRow key={req.id} data-state={selectedItems.includes(req.id) ? 'selected' : ''}>
                         {isAdmin && (
                             <TableCell>
@@ -140,16 +142,17 @@ export default function RequirementTable({
                             )}
                         </TableCell>
                     </TableRow>
-                ))}
+                  ))
+                ) : null }
                 </TableBody>
+                 {!isLoading && data.length === 0 && (
+                    <TableCaption>
+                        <div className="text-center text-muted-foreground p-8">
+                            No requirements found.
+                        </div>
+                    </TableCaption>
+                )}
             </Table>
-             {!isLoading && data.length === 0 && (
-                <caption>
-                    <div className="text-center text-muted-foreground p-8">
-                        No requirements found.
-                    </div>
-                </caption>
-            )}
         </div>
     );
 }
