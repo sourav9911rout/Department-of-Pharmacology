@@ -15,6 +15,7 @@ export interface Requirement {
   requiredQuantity: number;
   status: 'Pending' | 'Procured';
   type: 'Primary' | 'Secondary' | 'Tertiary';
+  remarks?: string;
 }
 
 export interface ClassMeeting {

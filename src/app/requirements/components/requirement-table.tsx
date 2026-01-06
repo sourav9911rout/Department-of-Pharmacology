@@ -43,7 +43,7 @@ export default function RequirementTable({
                 dateOfProcurement: new Date().toISOString().split('T')[0],
                 installationStatus: 'Pending',
                 category: 'Miscellaneous', // Default category
-                remarks: `Moved from requirement list.`,
+                remarks: req.remarks || `Moved from requirement list.`,
             });
             deleteDoc(docRef);
         } else {
@@ -94,6 +94,7 @@ export default function RequirementTable({
                     <TableHead className="w-[50px]">S.No.</TableHead>
                     <TableHead>Item Name</TableHead>
                     <TableHead>Required Quantity</TableHead>
+                    <TableHead>Remarks</TableHead>
                     <TableHead>Status</TableHead>
                 </TableRow>
                 </TableHeader>
@@ -105,6 +106,7 @@ export default function RequirementTable({
                       <TableCell><Skeleton className="h-4 w-8" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-48" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-32" /></TableCell>
                       <TableCell><Skeleton className="h-8 w-28" /></TableCell>
                     </TableRow>
                   ))
@@ -122,6 +124,7 @@ export default function RequirementTable({
                         <TableCell className="font-medium">{index + 1}</TableCell>
                         <TableCell className="font-medium">{req.name}</TableCell>
                         <TableCell>{req.requiredQuantity}</TableCell>
+                        <TableCell className="text-muted-foreground">{req.remarks || 'N/A'}</TableCell>
                         <TableCell>
                             {isAdmin ? (
                                 <Select defaultValue={req.status} onValueChange={(value) => handleStatusChange(req, value as Requirement['status'])}>

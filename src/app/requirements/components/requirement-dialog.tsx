@@ -18,6 +18,7 @@ import { useState } from 'react';
 import { useFirestore } from '@/firebase';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { collection } from 'firebase/firestore';
+import { Textarea } from '@/components/ui/textarea';
 
 export function RequirementDialog({
   children,
@@ -40,6 +41,7 @@ export function RequirementDialog({
       name: formData.get('name') as string,
       requiredQuantity: Number(formData.get('requiredQuantity')),
       type: type as Requirement['type'],
+      remarks: formData.get('remarks') as string,
     };
 
     const finalData = {
@@ -94,6 +96,12 @@ export function RequirementDialog({
                   <SelectItem value="Tertiary">Tertiary</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+            <div className="grid grid-cols-4 items-start gap-4">
+              <Label htmlFor="remarks" className="text-right mt-2">
+                Remarks
+              </Label>
+              <Textarea id="remarks" name="remarks" className="col-span-3" />
             </div>
           </div>
           <DialogFooter>

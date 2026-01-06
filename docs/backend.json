@@ -94,6 +94,10 @@
             "Tertiary"
           ],
           "description": "The type of the requirement (Primary or Secondary)."
+        },
+        "remarks": {
+          "type": "string",
+          "description": "Any additional remarks or notes about the requirement."
         }
       },
       "required": [
