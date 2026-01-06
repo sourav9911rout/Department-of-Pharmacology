@@ -50,6 +50,13 @@
         "remarks": {
           "type": "string",
           "description": "Any additional remarks or notes about the procured item."
+        },
+        "documentIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "An array of document IDs from the 'documents' collection associated with this item."
         }
       },
       "required": [

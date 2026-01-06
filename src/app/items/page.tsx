@@ -43,11 +43,12 @@ export default function ProcuredItemsPage() {
   };
   
   const handleDownloadPdf = () => {
-    const doc = new jsPDF();
+    const doc = new jsPDF({ orientation: "landscape" });
     doc.text("Procured Items", 14, 16);
     (doc as any).autoTable({
-      head: [['Name', 'Category', 'Quantity', 'Procurement Date', 'Installation Status', 'Installation Date', 'Remarks']],
-      body: (items || []).map(item => [
+      head: [['S.No.', 'Name', 'Category', 'Qty', 'Procurement Date', 'Status', 'Install Date', 'Remarks']],
+      body: (items || []).map((item, index) => [
+        index + 1,
         item.name,
         item.category,
         item.quantity,

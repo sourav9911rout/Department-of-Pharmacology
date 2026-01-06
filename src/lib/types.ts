@@ -7,6 +7,7 @@ export interface ProcuredItem {
   installationStatus: 'Pending' | 'Installed' | 'Not Applicable';
   dateOfInstallation?: string;
   remarks?: string;
+  documentIds?: string[];
 }
 
 export interface Requirement {
