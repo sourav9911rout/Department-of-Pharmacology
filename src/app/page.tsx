@@ -85,7 +85,7 @@ export default function Dashboard() {
             <CardContent>
               <div className="text-2xl font-bold">{pendingRequirements}</div>
               <p className="text-xs text-muted-foreground">
-                {pendingPrimary}P, {pendingSecondary}S, {pendingTertiary}T
+                {pendingPrimary} Primary, {pendingSecondary} Secondary, {pendingTertiary} Tertiary
               </p>
             </CardContent>
           </Card>
