@@ -12,6 +12,7 @@ import {
   SidebarMenuButton,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
+import { SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import {
   Home,
   Package,
@@ -22,6 +23,7 @@ import {
   Unlock,
   PanelLeftClose,
   PanelLeftOpen,
+  FileText,
 } from "lucide-react";
 import AdminPinDialog from "./admin-pin-dialog";
 import { useAdminAuth } from "@/hooks/use-admin-auth";
@@ -34,6 +36,7 @@ const navItems = [
   { href: "/items", label: "Procured Items", icon: Package },
   { href: "/requirements", label: "Requirement List", icon: ClipboardList },
   { href: "/schedule", label: "Classes & Meetings", icon: Calendar },
+  { href: "/sops", label: "SOPs", icon: FileText },
 ];
 
 export default function AppSidebar() {
@@ -58,6 +61,9 @@ export default function AppSidebar() {
         </Button>
       </div>
       <Sidebar collapsible="offcanvas" variant="sidebar">
+        <SheetHeader className="p-0">
+          <SheetTitle className="sr-only">Sidebar</SheetTitle>
+        </SheetHeader>
         <SidebarHeader className="p-4 flex justify-between items-center">
           <div className="flex items-center gap-3">
             <div className="flex flex-col">
