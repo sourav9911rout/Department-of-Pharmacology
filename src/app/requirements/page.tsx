@@ -79,8 +79,9 @@ export default function RequirementsPage() {
 
     doc.text(title, 14, 16);
     (doc as any).autoTable({
-      head: [['Item Name', 'Required Quantity', 'Status', 'Remarks']],
-      body: dataToExport.map(req => [
+      head: [['S.No.', 'Item Name', 'Required Quantity', 'Status', 'Remarks']],
+      body: dataToExport.map((req, index) => [
+        index + 1,
         req.name,
         req.requiredQuantity,
         req.status,
