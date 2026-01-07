@@ -3,7 +3,7 @@ import PageHeader from "@/components/page-header";
 import ItemTable from "./components/item-table";
 import { ItemDialog } from "./components/item-dialog";
 import { Button } from "@/components/ui/button";
-import { FileDown, PlusCircle, Trash2 } from "lucide-react";
+import { FileDown, PlusCircle, Trash2, ArrowUpDown } from "lucide-react";
 import { useState } from "react";
 import type { ProcuredItem } from "@/lib/types";
 import { useAdminAuth } from "@/hooks/use-admin-auth";
@@ -18,20 +18,35 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
-import { collection, deleteDoc, doc, orderBy, query } from "firebase/firestore";
+import { collection, deleteDoc, doc, orderBy, query, WhereFilter, where } from "firebase/firestore";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+
+type SortOption = 'name' | 'dateOfInstallation' | 'dateOfProcurement';
 
 export default function ProcuredItemsPage() {
   const { isAdmin } = useAdminAuth();
   const firestore = useFirestore();
-  const procuredItemsCollection = useMemoFirebase(
-    () => query(collection(firestore, 'procured_items'), orderBy('dateOfProcurement', 'asc')),
-    [firestore]
-  );
-  const { data: items, isLoading } = useCollection<ProcuredItem>(procuredItemsCollection);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [sortBy, setSortBy] = useState<SortOption>('dateOfProcurement');
+
+  const procuredItemsCollection = useMemoFirebase(
+    () => {
+        let q = query(collection(firestore, 'procured_items'));
+        
+        // Firestore requires the first orderBy field to be in the inequality filter if one exists
+        // We don't have one here, but it's good practice.
+        // We must have an index for each field we order by.
+        q = query(q, orderBy(sortBy, 'asc'));
+
+        return q;
+    },
+    [firestore, sortBy]
+  );
+  
+  const { data: items, isLoading } = useCollection<ProcuredItem>(procuredItemsCollection);
 
   const handleDelete = () => {
     selectedItems.forEach(itemId => {
@@ -61,6 +76,15 @@ export default function ProcuredItemsPage() {
     });
     doc.save("procured_items.pdf");
   }
+  
+  const getSortLabel = () => {
+    switch (sortBy) {
+        case 'name': return 'Name (A-Z)';
+        case 'dateOfInstallation': return 'Installation Date';
+        case 'dateOfProcurement': return 'Procurement Date';
+        default: return 'Sort by';
+    }
+  }
 
   return (
     <div className="flex flex-col gap-8">
@@ -69,6 +93,25 @@ export default function ProcuredItemsPage() {
         description="Track all items procured by the department."
       >
         <div className="flex items-center gap-2">
+           <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline">
+                <ArrowUpDown className="mr-2 h-4 w-4" />
+                {getSortLabel()}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onSelect={() => setSortBy('dateOfProcurement')}>
+                Procurement Date (Old to New)
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => setSortBy('name')}>
+                Name (A to Z)
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => setSortBy('dateOfInstallation')}>
+                 Installation Date (Old to New)
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <Button variant="outline" onClick={handleDownloadPdf}>
             <FileDown className="mr-2 h-4 w-4"/>
             Download PDF
