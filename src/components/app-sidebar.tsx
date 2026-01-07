@@ -13,7 +13,6 @@ import {
   SidebarMenuButton,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import {
   Home,
   Package,
@@ -60,9 +59,6 @@ export default function AppSidebar() {
         </Button>
       </div>
       <Sidebar collapsible="offcanvas" variant="sidebar">
-        <SheetHeader className="p-0">
-          <SheetTitle className="sr-only">Sidebar</SheetTitle>
-        </SheetHeader>
         <SidebarHeader className="p-4 flex justify-between items-center">
           <div className="flex items-center gap-3">
             <div className="flex flex-col">
