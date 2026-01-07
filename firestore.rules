@@ -9,14 +9,13 @@
  * - /procured_items: A list of all items procured by the department.
  * - /requirements: A list of departmental needs, with nested subcollections for primary and secondary items.
  * - /class_meetings: A schedule of upcoming classes and meetings.
- * - /sops: Links to Standard Operating Procedure documents.
  * - /roles_admin: A special collection used solely for authorization lookups.
  *
  * Key Security Decisions:
  * - Admin-Only Writes: All write operations (create, update, delete) on core data collections
  *   are universally restricted to admin users.
  * - Read-Only for Authenticated Users: Any user who is signed in can read data from the
- *   `procured_items`, `requirements`, `class_meetings`, and `sops` collections. This supports the
+ *   `procured_items`, `requirements`, and `class_meetings` collections. This supports the
  *   application's function as an informational hub.
  * - Server-Managed Roles: The `/roles_admin` collection, which grants admin rights, is locked
  *   down from all client-side access. It is intended to be managed exclusively via a secure
@@ -76,15 +75,6 @@ service cloud.firestore {
      *   to view the schedule of meetings, but restricts all write operations to administrators.
      */
     match /class_meetings/{classMeetingId} {
-      allow read: if isSignedIn();
-      allow write: if isAdmin();
-    }
-    
-    /**
-     * @description Rules for the 'sops' collection. Allows any signed-in user
-     *   to view the SOP links, but restricts all write operations to administrators.
-     */
-    match /sops/{sopId} {
       allow read: if isSignedIn();
       allow write: if isAdmin();
     }

@@ -22,7 +22,6 @@ import {
   Unlock,
   PanelLeftClose,
   PanelLeftOpen,
-  FileText,
 } from "lucide-react";
 import AdminPinDialog from "./admin-pin-dialog";
 import { useAdminAuth } from "@/hooks/use-admin-auth";
@@ -35,7 +34,6 @@ const navItems = [
   { href: "/items", label: "Procured Items", icon: Package },
   { href: "/requirements", label: "Requirement List", icon: ClipboardList },
   { href: "/schedule", label: "Classes & Meetings", icon: Calendar },
-  { href: "/sops", label: "SOPs", icon: FileText },
 ];
 
 export default function AppSidebar() {

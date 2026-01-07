@@ -170,31 +170,6 @@
         "conductedBy",
         "meetLink"
       ]
-    },
-    "Sop": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Sop",
-      "type": "object",
-      "description": "Represents a Standard Operating Procedure document link.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the SOP."
-        },
-        "title": {
-          "type": "string",
-          "description": "The title of the SOP document."
-        },
-        "driveLink": {
-          "type": "string",
-          "description": "The Google Drive link to the SOP document.",
-          "format": "uri"
-        }
-      },
-      "required": [
-        "title",
-        "driveLink"
-      ]
     }
   },
   "auth": {
@@ -249,22 +224,6 @@
             {
               "name": "classMeetingId",
               "description": "The unique identifier for the class meeting."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/sops/{sopId}",
-        "definition": {
-          "entityName": "Sop",
-          "schema": {
-            "$ref": "#/backend/entities/Sop"
-          },
-          "description": "Stores links to Standard Operating Procedure documents. Only admins can create, update, or delete.",
-          "params": [
-            {
-              "name": "sopId",
-              "description": "The unique identifier for the SOP."
             }
           ]
         }
