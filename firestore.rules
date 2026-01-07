@@ -80,6 +80,16 @@ service cloud.firestore {
     }
     
     /**
+     * @description Rules for the 'sops' collection. Allows any signed-in user to read SOPs,
+     *   but restricts create operations to administrators. Update and delete are disallowed.
+     */
+    match /sops/{sopId} {
+      allow read: if isSignedIn();
+      allow create: if isAdmin();
+      allow update, delete: if false;
+    }
+    
+    /**
      * @description Security rules for the admin roles collection. This collection is used as a
      *   lookup table to grant admin privileges. It is read-only by the rules engine (`exists()` call)
      *   and MUST NOT be readable or writable by any client. It should be managed by a trusted

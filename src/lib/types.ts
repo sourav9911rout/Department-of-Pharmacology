@@ -30,3 +30,9 @@ export interface ClassMeeting {
   conductedBy: string;
   meetLink: string;
 }
+
+export interface Sop {
+    id: string;
+    name: string;
+    driveLink: string;
+}

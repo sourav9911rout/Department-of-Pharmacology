@@ -170,6 +170,31 @@
         "conductedBy",
         "meetLink"
       ]
+    },
+    "Sop": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Sop",
+      "type": "object",
+      "description": "Represents a Standard Operating Procedure document.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the SOP."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name or title of the SOP document."
+        },
+        "driveLink": {
+          "type": "string",
+          "description": "The Google Drive link to the SOP document.",
+          "format": "uri"
+        }
+      },
+      "required": [
+        "name",
+        "driveLink"
+      ]
     }
   },
   "auth": {
@@ -240,6 +265,22 @@
             {
               "name": "userId",
               "description": "The unique identifier for the user."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/sops/{sopId}",
+        "definition": {
+          "entityName": "Sop",
+          "schema": {
+            "$ref": "#/backend/entities/Sop"
+          },
+          "description": "Stores Standard Operating Procedure documents. Only admins can create documents.",
+          "params": [
+            {
+              "name": "sopId",
+              "description": "The unique identifier for the SOP."
             }
           ]
         }
