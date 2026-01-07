@@ -39,6 +39,9 @@ export default function Dashboard() {
   const pendingRequirements = requirements?.filter(
     (r) => r.status === 'Pending'
   ).length ?? 0;
+  const pendingPrimary = requirements?.filter(r => r.status === 'Pending' && r.type === 'Primary').length ?? 0;
+  const pendingSecondary = requirements?.filter(r => r.status === 'Pending' && r.type === 'Secondary').length ?? 0;
+  const pendingTertiary = requirements?.filter(r => r.status === 'Pending' && r.type === 'Tertiary').length ?? 0;
   
   const upcomingClasses = scheduledEvents?.filter(
     (e) => new Date(e.date) >= new Date()
@@ -82,7 +85,7 @@ export default function Dashboard() {
             <CardContent>
               <div className="text-2xl font-bold">{pendingRequirements}</div>
               <p className="text-xs text-muted-foreground">
-                items waiting for procurement
+                {pendingPrimary}P, {pendingSecondary}S, {pendingTertiary}T
               </p>
             </CardContent>
           </Card>
