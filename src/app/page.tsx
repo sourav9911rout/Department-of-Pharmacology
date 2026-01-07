@@ -5,11 +5,11 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Package, ClipboardList, CalendarClock, Sparkles, FileText } from 'lucide-react';
+import { Package, ClipboardList, CalendarClock, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection } from 'firebase/firestore';
-import type { ProcuredItem, Requirement, ClassMeeting, SOP } from '@/lib/types';
+import type { ProcuredItem, Requirement, ClassMeeting } from '@/lib/types';
 
 export default function Dashboard() {
   const firestore = useFirestore();
@@ -32,12 +32,6 @@ export default function Dashboard() {
   );
   const { data: scheduledEvents } = useCollection<ClassMeeting>(scheduleCollection);
 
-  const sopsCollection = useMemoFirebase(
-    () => collection(firestore, 'sops'),
-    [firestore]
-  );
-  const { data: sops } = useCollection<SOP>(sopsCollection);
-
   const totalProcured = procuredItems?.length ?? 0;
   const installedItems = procuredItems?.filter(item => item.installationStatus === 'Installed').length ?? 0;
   const pendingInstallationItems = procuredItems?.filter(item => item.installationStatus === 'Pending').length ?? 0;
@@ -52,8 +46,6 @@ export default function Dashboard() {
   const upcomingClasses = scheduledEvents?.filter(
     (e) => new Date(e.date) >= new Date()
   ).length ?? 0;
-
-  const totalSOPs = sops?.length ?? 0;
 
   return (
     <div className="flex flex-col gap-8">
@@ -110,22 +102,6 @@ export default function Dashboard() {
               <div className="text-2xl font-bold">+{upcomingClasses}</div>
               <p className="text-xs text-muted-foreground">
                 scheduled in the near future
-              </p>
-            </CardContent>
-          </Card>
-        </Link>
-        <Link href="/sops" className="block">
-          <Card className="h-full hover:bg-primary/5 hover:border-primary/40 transition-colors">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                SOPs
-              </CardTitle>
-              <FileText className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{totalSOPs}</div>
-              <p className="text-xs text-muted-foreground">
-                Standard Operating Procedures
               </p>
             </CardContent>
           </Card>
