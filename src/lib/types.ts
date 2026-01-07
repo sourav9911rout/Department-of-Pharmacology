@@ -31,9 +31,8 @@ export interface ClassMeeting {
   meetLink: string;
 }
 
-export interface DocumentLink {
-  id:string;
+export interface Sop {
+  id: string;
   title: string;
-  description: string;
   driveLink: string;
 }
