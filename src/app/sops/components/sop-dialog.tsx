@@ -12,23 +12,19 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAdminAuth } from '@/hooks/use-admin-auth';
-import type { Sop } from '@/lib/types';
 import { useState } from 'react';
 import { useFirestore } from '@/firebase';
-import { addDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
-import { collection, doc } from 'firebase/firestore';
+import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { collection } from 'firebase/firestore';
 
 export function SopDialog({
   children,
-  sop,
 }: {
   children: React.ReactNode;
-  sop?: Sop;
 }) {
   const { isAdmin } = useAdminAuth();
   const firestore = useFirestore();
   const [open, setOpen] = useState(false);
-  const isEditing = !!sop;
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -38,13 +34,8 @@ export function SopDialog({
       driveLink: formData.get('driveLink') as string,
     };
     
-    if (isEditing && sop) {
-      const docRef = doc(firestore, 'sops', sop.id);
-      setDocumentNonBlocking(docRef, newSopData, { merge: true });
-    } else {
-      const collectionRef = collection(firestore, 'sops');
-      addDocumentNonBlocking(collectionRef, newSopData);
-    }
+    const collectionRef = collection(firestore, 'sops');
+    addDocumentNonBlocking(collectionRef, newSopData);
     
     setOpen(false);
   };
@@ -59,9 +50,9 @@ export function SopDialog({
       <DialogContent className="sm:max-w-[425px]">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>{isEditing ? 'Edit SOP' : 'Add New SOP'}</DialogTitle>
+            <DialogTitle>Add New SOP</DialogTitle>
             <DialogDescription>
-              {isEditing ? 'Update the details of the SOP.' : 'Fill in the details for the new SOP.'}
+              Fill in the details for the new SOP.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
@@ -69,17 +60,17 @@ export function SopDialog({
               <Label htmlFor="title" className="text-right">
                 Title
               </Label>
-              <Input id="title" name="title" defaultValue={sop?.title} className="col-span-3" required />
+              <Input id="title" name="title" className="col-span-3" required />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="driveLink" className="text-right">
                 Drive Link
               </Label>
-              <Input id="driveLink" name="driveLink" defaultValue={sop?.driveLink} className="col-span-3" required />
+              <Input id="driveLink" name="driveLink" className="col-span-3" required />
             </div>
           </div>
           <DialogFooter>
-            <Button type="submit">{isEditing ? 'Save Changes' : 'Add SOP'}</Button>
+            <Button type="submit">Add SOP</Button>
           </DialogFooter>
         </form>
       </DialogContent>
