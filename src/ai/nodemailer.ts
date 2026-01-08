@@ -1,4 +1,4 @@
-'use server';
+
 import nodemailer from 'nodemailer';
 
 const email = process.env.GMAIL_EMAIL;
