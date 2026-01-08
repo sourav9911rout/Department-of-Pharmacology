@@ -10,8 +10,6 @@ import { z } from 'zod';
 import { Resend } from 'resend';
 import EventNotificationEmail from '@/components/emails/event-notification-email';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 export const SendEventEmailSchema = z.object({
   topic: z.string().describe('The topic of the class/meeting.'),
   date: z.string().describe('The date of the class/meeting.'),
@@ -40,11 +38,13 @@ const sendEventEmailFlow = ai.defineFlow(
     }
     
     if (!process.env.RESEND_API_KEY) {
-        throw new Error("RESEND_API_KEY is not set in the environment variables.");
+        throw new Error("RESEND_API_KEY is not set in the environment variables. Please add it to your .env file to send emails.");
     }
     if (!process.env.EMAIL_FROM) {
-        throw new Error("EMAIL_FROM is not set in the environment variables.");
+        throw new Error("EMAIL_FROM is not set in the environment variables. Please add it to your .env file to specify the sender's email address.");
     }
+
+    const resend = new Resend(process.env.RESEND_API_KEY);
 
     try {
       await resend.emails.send({
@@ -61,7 +61,7 @@ const sendEventEmailFlow = ai.defineFlow(
       });
     } catch (error) {
         console.error("Error sending email with Resend:", error);
-        throw new Error("Failed to send email.");
+        throw new Error("Failed to send email. Please check your Resend configuration and API key.");
     }
   }
 );
