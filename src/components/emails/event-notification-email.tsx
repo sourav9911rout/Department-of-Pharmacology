@@ -1,13 +1,13 @@
 
 import {
   Body,
-  Button,
   Container,
   Head,
   Html,
   Preview,
   Section,
   Text,
+  Link,
 } from '@react-email/components';
 import { format, parse } from 'date-fns';
 
@@ -41,19 +41,17 @@ export default function EventNotificationEmail({
           </Text>
           <Section style={detailsSection}>
             <Text style={detailsText}>
-              <strong>Name of the Lecture:</strong> {topic}
+              Name of the Lecture: {topic}
             </Text>
             <Text style={detailsText}>
-              <strong>Conducted by:</strong> {conductedBy}
+              Conducted by: {conductedBy}
             </Text>
             <Text style={detailsText}>
-              <strong>Date and Time:</strong> {formattedDateTime}
+              Date and Time: {formattedDateTime}
             </Text>
-          </Section>
-           <Section style={buttonContainer}>
-            <Button style={button} href={meetLink}>
-              Join Google Meet
-            </Button>
+            <Text style={detailsText}>
+              Google Meet link: <Link href={meetLink} style={link}>{meetLink}</Link>
+            </Text>
           </Section>
           <Text style={footerText}>
             From
@@ -89,30 +87,19 @@ const paragraph = {
 };
 
 const detailsSection = {
-  padding: '20px 0',
-  margin: '20px 0',
+  padding: '10px 0',
+  margin: '10px 0',
 };
 
 const detailsText = {
   fontSize: '14px',
   lineHeight: '24px',
-  margin: '8px 0',
+  margin: '4px 0',
+  color: '#525f7f',
 };
 
-const buttonContainer = {
-  textAlign: 'center' as const,
-  margin: '32px 0',
-};
-
-const button = {
-  backgroundColor: '#4e88e8',
-  borderRadius: '3px',
-  color: '#fff',
-  fontSize: '16px',
-  textDecoration: 'none',
-  textAlign: 'center' as const,
-  display: 'inline-block',
-  padding: '12px 20px',
+const link = {
+  color: '#4e88e8',
 };
 
 const footerText = {
