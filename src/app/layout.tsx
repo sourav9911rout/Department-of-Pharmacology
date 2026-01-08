@@ -1,3 +1,4 @@
+
 import type { Metadata } from 'next';
 import './globals.css';
 import { cn } from '@/lib/utils';
@@ -6,6 +7,7 @@ import AppSidebar from '@/components/app-sidebar';
 import { AdminAuthProvider } from '@/contexts/admin-auth-context';
 import { Toaster } from '@/components/ui/toaster';
 import { FirebaseClientProvider } from '@/firebase';
+import { ProtectedLayout } from '@/components/ProtectedLayout';
 
 export const metadata: Metadata = {
   title: 'Dept. of Pharmacology',
@@ -15,7 +17,7 @@ export const metadata: Metadata = {
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children: React.Node;
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
@@ -29,13 +31,15 @@ export default function RootLayout({
       </head>
       <body className={cn('font-body antialiased')}>
         <FirebaseClientProvider>
-          <AdminAuthProvider>
-            <SidebarProvider>
-              <AppSidebar />
-              <SidebarInset className='p-4 md:p-8'>{children}</SidebarInset>
-              <Toaster />
-            </SidebarProvider>
-          </AdminAuthProvider>
+          <ProtectedLayout>
+            <AdminAuthProvider>
+              <SidebarProvider>
+                <AppSidebar />
+                <SidebarInset className='p-4 md:p-8'>{children}</SidebarInset>
+                <Toaster />
+              </SidebarProvider>
+            </AdminAuthProvider>
+          </ProtectedLayout>
         </FirebaseClientProvider>
       </body>
     </html>

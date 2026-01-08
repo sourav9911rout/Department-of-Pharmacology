@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { DependencyList, createContext, useContext, ReactNode, useMemo, useState, useEffect } from 'react';
@@ -5,6 +6,7 @@ import { FirebaseApp } from 'firebase/app';
 import { Firestore } from 'firebase/firestore';
 import { Auth, User, onAuthStateChanged } from 'firebase/auth';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener'
+import { usePathname } from 'next/navigation';
 
 interface FirebaseProviderProps {
   children: ReactNode;
@@ -66,6 +68,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
     isUserLoading: true,    // Start loading until first auth event
     userError: null,
   });
+  const pathname = usePathname();
 
   // Effect to subscribe to Firebase auth state changes
   useEffect(() => {
@@ -100,9 +103,9 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
       userError: userAuthState.userError,
     };
   }, [firebaseApp, firestore, auth, userAuthState]);
-
-  // Don't render children until we have a user
-  if (userAuthState.isUserLoading || !userAuthState.user) {
+  
+  // Don't render protected content until auth state is resolved, unless on login page
+  if (userAuthState.isUserLoading && pathname !== '/login') {
     return null; // Or a loading spinner
   }
 
@@ -174,6 +177,12 @@ export function useMemoFirebase<T>(factory: () => T, deps: DependencyList): T | 
  * @returns {UserHookResult} Object with user, isUserLoading, userError.
  */
 export const useUser = (): UserHookResult => { // Renamed from useAuthUser
-  const { user, isUserLoading, userError } = useFirebase(); // Leverages the main hook
+  const context = useContext(FirebaseContext);
+  if (context === undefined) {
+    // This can happen on the login page before the main provider is set up
+    // Return a loading state.
+    return { user: null, isUserLoading: true, userError: null };
+  }
+  const { user, isUserLoading, userError } = context;
   return { user, isUserLoading, userError };
 };
