@@ -1,3 +1,4 @@
+
 'use client';
 import { Button } from '@/components/ui/button';
 import {
@@ -19,6 +20,7 @@ import { useState, useEffect } from 'react';
 import { useFirestore } from '@/firebase';
 import { addDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { collection, doc } from 'firebase/firestore';
+import { PlusCircle, Trash2 } from 'lucide-react';
 
 export function ItemDialog({
   children,
@@ -33,6 +35,7 @@ export function ItemDialog({
   const [open, setOpen] = useState(false);
   const [category, setCategory] = useState(item?.category);
   const [installationStatus, setInstallationStatus] = useState(item?.installationStatus);
+  const [documents, setDocuments] = useState(item?.documents || [{ name: '', link: '' }]);
   
   const isEditing = !!item;
   
@@ -40,6 +43,7 @@ export function ItemDialog({
     if (open) {
       setCategory(item?.category);
       setInstallationStatus(item?.installationStatus);
+      setDocuments(item?.documents && item.documents.length > 0 ? item.documents : [{ name: '', link: '' }]);
     }
   }, [open, item]);
 
@@ -47,10 +51,32 @@ export function ItemDialog({
   if (!isAdmin) {
     return null;
   }
+
+  const handleDocChange = (index: number, field: 'name' | 'link', value: string) => {
+    const newDocs = [...documents];
+    newDocs[index][field] = value;
+    setDocuments(newDocs);
+  };
+
+  const addDocField = () => {
+    setDocuments([...documents, { name: '', link: '' }]);
+  };
+
+  const removeDocField = (index: number) => {
+    if (documents.length > 1) {
+      const newDocs = documents.filter((_, i) => i !== index);
+      setDocuments(newDocs);
+    } else {
+      // Clear the fields if it's the last one
+      setDocuments([{ name: '', link: '' }]);
+    }
+  };
   
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
+
+    const filteredDocuments = documents.filter(doc => doc.name.trim() !== '' && doc.link.trim() !== '');
     
     const newItemData: Omit<ProcuredItem, 'id'> = {
       name: formData.get('name') as string,
@@ -60,6 +86,7 @@ export function ItemDialog({
       installationStatus: installationStatus as ProcuredItem['installationStatus'],
       remarks: formData.get('remarks') as string,
       dateOfInstallation: installationStatus === 'Installed' ? (formData.get('dateOfInstallation') as string) : '',
+      documents: filteredDocuments,
     };
 
     if (isEditing && item) {
@@ -143,6 +170,35 @@ export function ItemDialog({
                 <Input id="dateOfInstallation" name="dateOfInstallation" type="date" defaultValue={item?.dateOfInstallation} className="col-span-3" required/>
               </div>
             )}
+            <div className="grid grid-cols-4 items-start gap-4">
+              <Label htmlFor="documents" className="text-right mt-2">
+                Documents
+              </Label>
+              <div className="col-span-3 space-y-2">
+                {documents.map((doc, index) => (
+                  <div key={index} className="flex items-center gap-2">
+                    <Input
+                      placeholder="Doc Name"
+                      value={doc.name}
+                      onChange={(e) => handleDocChange(index, 'name', e.target.value)}
+                      className="flex-1"
+                    />
+                    <Input
+                      placeholder="Doc Link"
+                      value={doc.link}
+                      onChange={(e) => handleDocChange(index, 'link', e.target.value)}
+                      className="flex-1"
+                    />
+                    <Button type="button" variant="ghost" size="icon" onClick={() => removeDocField(index)}>
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </div>
+                ))}
+                 <Button type="button" variant="outline" size="sm" onClick={addDocField}>
+                  <PlusCircle className="mr-2 h-4 w-4" /> Add Document
+                </Button>
+              </div>
+            </div>
             <div className="grid grid-cols-4 items-start gap-4">
               <Label htmlFor="remarks" className="text-right mt-2">
                 Remarks

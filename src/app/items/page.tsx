@@ -1,3 +1,4 @@
+
 'use client';
 import PageHeader from "@/components/page-header";
 import ItemTable from "./components/item-table";
@@ -122,12 +123,14 @@ export default function ProcuredItemsPage() {
                   Delete ({selectedItems.length})
               </Button>
           )}
-          <ItemDialog>
-              <Button>
-                  <PlusCircle className="mr-2 h-4 w-4"/>
-                  Add New Item
-              </Button>
-          </ItemDialog>
+          {isAdmin && (
+            <ItemDialog>
+                <Button>
+                    <PlusCircle className="mr-2 h-4 w-4"/>
+                    Add New Item
+                </Button>
+            </ItemDialog>
+          )}
         </div>
       </PageHeader>
       <ItemTable 

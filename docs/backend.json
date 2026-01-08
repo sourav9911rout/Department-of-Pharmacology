@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "ProcuredItem": {
@@ -50,6 +51,25 @@
         "remarks": {
           "type": "string",
           "description": "Any additional remarks or notes about the procured item."
+        },
+        "documents": {
+          "type": "array",
+          "description": "A list of related documents, like manuals or receipts.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "The display name of the document."
+              },
+              "link": {
+                "type": "string",
+                "description": "A URL pointing to the document.",
+                "format": "uri"
+              }
+            },
+            "required": ["name", "link"]
+          }
         }
       },
       "required": [

@@ -1,3 +1,4 @@
+
 'use client';
 import type { ProcuredItem } from "@/lib/types";
 import {
@@ -15,6 +16,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { Link as LinkIcon } from "lucide-react";
+import Link from "next/link";
 
 export default function ItemTable({
   data,
@@ -76,6 +79,7 @@ export default function ItemTable({
                     <TableHead>Procurement Date</TableHead>
                     <TableHead>Installation Status</TableHead>
                     <TableHead>Installation Date</TableHead>
+                    <TableHead>Documents</TableHead>
                     <TableHead>Remarks</TableHead>
                     {isAdmin && <TableHead className="text-right">Actions</TableHead>}
                 </TableRow>
@@ -91,6 +95,7 @@ export default function ItemTable({
                       <TableCell><Skeleton className="h-4 w-12" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                       <TableCell><Skeleton className="h-6 w-24" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                       {isAdmin && <TableCell className="text-right"><Skeleton className="h-8 w-16" /></TableCell>}
@@ -119,6 +124,22 @@ export default function ItemTable({
                             </Badge>
                         </TableCell>
                         <TableCell>{item.dateOfInstallation || 'N/A'}</TableCell>
+                        <TableCell>
+                            {item.documents && item.documents.length > 0 ? (
+                                <div className="flex flex-col gap-1.5 items-start">
+                                    {item.documents.map((doc, i) => (
+                                        <Button key={i} variant="link" size="sm" asChild className="h-auto p-0 text-xs">
+                                            <Link href={doc.link} target="_blank" rel="noopener noreferrer">
+                                                <LinkIcon className="mr-1.5 h-3 w-3"/>
+                                                {doc.name}
+                                            </Link>
+                                        </Button>
+                                    ))}
+                                </div>
+                            ) : (
+                                <span className="text-muted-foreground">N/A</span>
+                            )}
+                        </TableCell>
                         <TableCell className="text-muted-foreground">{item.remarks || 'N/A'}</TableCell>
                         {isAdmin && (
                             <TableCell className="text-right">
@@ -132,7 +153,7 @@ export default function ItemTable({
                   })
                 ) : (
                     <TableRow>
-                        <TableCell colSpan={isAdmin ? 10 : 9} className="h-24 text-center">
+                        <TableCell colSpan={isAdmin ? 11 : 10} className="h-24 text-center">
                             No procured items found.
                         </TableCell>
                     </TableRow>
