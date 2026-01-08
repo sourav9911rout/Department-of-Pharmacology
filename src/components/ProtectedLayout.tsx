@@ -12,22 +12,24 @@ export function ProtectedLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
 
   useEffect(() => {
-    // If we are on the login page, do nothing.
-    if (pathname === '/login') {
+    // If auth is still loading, or if we are already on the login page, do nothing yet.
+    if (isUserLoading || pathname === '/login') {
       return;
     }
 
-    if (!isUserLoading && !user) {
+    // If auth has loaded and there's no user, redirect to login.
+    if (!user) {
       const redirectUrl = `/login?redirect=${encodeURIComponent(pathname)}`;
       router.replace(redirectUrl);
     }
   }, [isUserLoading, user, router, pathname]);
-  
-  // If we are on the login page, just render the children.
+
+  // If we are on the login page, render it directly.
   if (pathname === '/login') {
     return <>{children}</>;
   }
 
+  // If authentication is still in progress, show a loading screen.
   if (isUserLoading || !user) {
     return (
       <div className="flex h-screen w-full flex-col items-center justify-center bg-background">
@@ -36,6 +38,7 @@ export function ProtectedLayout({ children }: { children: ReactNode }) {
       </div>
     );
   }
-
+  
+  // If the user is authenticated and not on the login page, show the app content.
   return <>{children}</>;
 }
