@@ -63,6 +63,7 @@ export function ContactsTable({
                     <TableHead className="w-[50px]">S.No.</TableHead>
                     <TableHead>Name</TableHead>
                     <TableHead>Email Address</TableHead>
+                    <TableHead>Designation</TableHead>
                     {isAdmin && <TableHead className="text-right">Actions</TableHead>}
                 </TableRow>
                 </TableHeader>
@@ -74,6 +75,7 @@ export function ContactsTable({
                       <TableCell><Skeleton className="h-4 w-8" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-32" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-48" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-32" /></TableCell>
                       {isAdmin && <TableCell className="text-right"><Skeleton className="h-8 w-16" /></TableCell>}
                     </TableRow>
                   ))
@@ -92,6 +94,7 @@ export function ContactsTable({
                         <TableCell className="font-medium">{index + 1}</TableCell>
                         <TableCell className="font-medium">{item.name}</TableCell>
                         <TableCell>{item.email}</TableCell>
+                        <TableCell className="text-muted-foreground">{item.designation || 'N/A'}</TableCell>
                         {isAdmin && (
                             <TableCell className="text-right">
                                <ContactDialog contact={item}>
@@ -104,7 +107,7 @@ export function ContactsTable({
                   })
                 ) : (
                     <TableRow>
-                        <TableCell colSpan={isAdmin ? 5 : 4} className="h-24 text-center">
+                        <TableCell colSpan={isAdmin ? 6 : 5} className="h-24 text-center">
                             No contacts found.
                         </TableCell>
                     </TableRow>

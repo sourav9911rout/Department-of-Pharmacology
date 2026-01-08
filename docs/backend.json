@@ -236,6 +236,10 @@
           "type": "string",
           "description": "The email address of the contact.",
           "format": "email"
+        },
+        "designation": {
+          "type": "string",
+          "description": "The designation of the contact."
         }
       },
       "required": ["name", "email"]

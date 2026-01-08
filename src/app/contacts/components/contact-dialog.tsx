@@ -53,6 +53,7 @@ export function ContactDialog({
     const newContactData = {
       name: formData.get('name') as string,
       email: formData.get('email') as string,
+      designation: formData.get('designation') as string,
     };
 
     if (isEditing && contact) {
@@ -90,6 +91,12 @@ export function ContactDialog({
                 Email
               </Label>
                <Input id="email" name="email" type="email" defaultValue={contact?.email} className="col-span-3" required/>
+            </div>
+             <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="designation" className="text-right">
+                Designation
+              </Label>
+              <Input id="designation" name="designation" defaultValue={contact?.designation} className="col-span-3" />
             </div>
           </div>
           <DialogFooter>

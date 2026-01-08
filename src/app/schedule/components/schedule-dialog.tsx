@@ -203,17 +203,21 @@ export function ScheduleDialog({
             <div className="space-y-4">
               <Label>Invitees</Label>
               <div className="flex flex-wrap gap-2 mb-2">
-                {allInvitees.map(email => (
-                  <Badge key={email} variant="secondary" className="flex items-center gap-1">
-                    {contacts?.find(c=>c.email === email)?.name || email}
-                    <button type='button' onClick={() => {
-                        setSelectedInvitees(p => p.filter(e => e !== email));
-                        setManualInvitees(p => p.filter(e => e.trim() !== email));
-                    }}>
-                        <X className="h-3 w-3"/>
-                    </button>
-                  </Badge>
-                ))}
+                {allInvitees.map(email => {
+                    const contact = contacts?.find(c => c.email === email);
+                    const displayName = contact ? `${contact.name} ${contact.designation ? `(${contact.designation})` : ''}` : email;
+                    return (
+                        <Badge key={email} variant="secondary" className="flex items-center gap-1">
+                            {displayName}
+                            <button type='button' onClick={() => {
+                                setSelectedInvitees(p => p.filter(e => e !== email));
+                                setManualInvitees(p => p.filter(e => e.trim() !== email));
+                            }}>
+                                <X className="h-3 w-3"/>
+                            </button>
+                        </Badge>
+                    )
+                })}
               </div>
               <Command className="rounded-lg border shadow-md">
                 <CommandInput placeholder="Search contacts..." />
@@ -238,7 +242,7 @@ export function ScheduleDialog({
                              />
                             <div>
                                 <p>{contact.name}</p>
-                                <p className="text-xs text-muted-foreground">{contact.email}</p>
+                                <p className="text-xs text-muted-foreground">{contact.email} {contact.designation && `(${contact.designation})`}</p>
                             </div>
                           </div>
                         </CommandItem>
