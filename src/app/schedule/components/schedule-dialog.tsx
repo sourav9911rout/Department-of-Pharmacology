@@ -99,7 +99,7 @@ export function ScheduleDialog({
         toast({
           variant: "destructive",
           title: "Email Error",
-          description: error instanceof Error ? error.message : "Could not send invitations. Please check the email addresses and your API key.",
+          description: error instanceof Error ? error.message : "Could not send invitations. Please check your email settings and credentials in the .env file.",
         });
       }
     }

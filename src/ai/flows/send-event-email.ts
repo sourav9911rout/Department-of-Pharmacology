@@ -1,14 +1,16 @@
 'use server';
 /**
- * @fileOverview A flow for sending event notification emails.
+ * @fileOverview A flow for sending event notification emails using Nodemailer.
  *
  * - sendEventEmail - A function that handles sending an email for a class/meeting event.
  * - SendEventEmailSchema - The input type for the sendEventEmail function.
  */
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
-import { Resend } from 'resend';
+import { transporter } from '@/ai/nodemailer';
 import EventNotificationEmail from '@/components/emails/event-notification-email';
+import { render } from '@react-email/components';
+
 
 const SendEventEmailSchema = z.object({
   topic: z.string().describe('The topic of the class/meeting.'),
@@ -33,35 +35,34 @@ const sendEventEmailFlow = ai.defineFlow(
       return;
     }
     
-    if (!process.env.RESEND_API_KEY || process.env.RESEND_API_KEY === '') {
-        throw new Error("RESEND_API_KEY is not set in the environment variables. Please add it to your .env file to send emails.");
-    }
-    if (!process.env.EMAIL_FROM || process.env.EMAIL_FROM === '') {
-        throw new Error("EMAIL_FROM is not set in the environment variables. Please add it to your .env file to specify the sender's email address.");
+    if (!process.env.GMAIL_EMAIL || !process.env.GMAIL_APP_PASSWORD) {
+        throw new Error("Gmail credentials are not set in the environment variables. Please add GMAIL_EMAIL and GMAIL_APP_PASSWORD to your .env file.");
     }
 
-    const resend = new Resend(process.env.RESEND_API_KEY);
+    const emailHtml = render(EventNotificationEmail({
+        topic: input.topic,
+        date: input.date,
+        time: input.time,
+        conductedBy: input.conductedBy,
+        meetLink: input.meetLink,
+    }));
+
+    const mailOptions = {
+      from: process.env.GMAIL_EMAIL,
+      to: input.invitees,
+      subject: `Invitation: ${input.topic}`,
+      html: emailHtml,
+    };
 
     try {
-      await resend.emails.send({
-        from: process.env.EMAIL_FROM,
-        to: input.invitees,
-        subject: `Invitation: ${input.topic}`,
-        react: EventNotificationEmail({
-          topic: input.topic,
-          date: input.date,
-          time: input.time,
-          conductedBy: input.conductedBy,
-          meetLink: input.meetLink,
-        }),
-      });
+      await transporter.sendMail(mailOptions);
+      console.log('Event notification emails sent successfully.');
     } catch (error) {
-        console.error("Error sending email with Resend:", error);
-        // Re-throw the error to be caught by the calling UI component
+        console.error("Error sending email with Nodemailer:", error);
         if (error instanceof Error) {
             throw new Error(`Failed to send email: ${error.message}`);
         }
-        throw new Error("Failed to send email due to an unknown error. Please check your Resend configuration and API key.");
+        throw new Error("Failed to send email due to an unknown error. Please check your Nodemailer configuration and credentials.");
     }
   }
 );
