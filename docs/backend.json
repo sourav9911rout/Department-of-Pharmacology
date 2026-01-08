@@ -217,6 +217,28 @@
         }
       },
       "required": ["name", "driveLink"]
+    },
+    "Contact": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Contact",
+      "type": "object",
+      "description": "Represents a contact with a name and email address.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Contact."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the contact."
+        },
+        "email": {
+          "type": "string",
+          "description": "The email address of the contact.",
+          "format": "email"
+        }
+      },
+      "required": ["name", "email"]
     }
   },
   "auth": {
@@ -286,6 +308,22 @@
             {
               "name": "sopId",
               "description": "The unique identifier for the SOP."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/contacts/{contactId}",
+        "definition": {
+          "entityName": "Contact",
+          "schema": {
+            "$ref": "#/backend/entities/Contact"
+          },
+          "description": "Stores contact information (name and email). Only admins can manage contacts.",
+          "params": [
+            {
+              "name": "contactId",
+              "description": "The unique identifier for the contact."
             }
           ]
         }
