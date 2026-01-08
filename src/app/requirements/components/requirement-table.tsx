@@ -18,6 +18,9 @@ import { collection, deleteDoc, doc } from "firebase/firestore";
 import { addDocumentNonBlocking, updateDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TableCaption } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { Link as LinkIcon } from "lucide-react";
 
 export default function RequirementTable({
   data,
@@ -44,6 +47,7 @@ export default function RequirementTable({
                 installationStatus: 'Pending',
                 category: 'Miscellaneous', // Default category
                 remarks: req.remarks || `Moved from requirement list.`,
+                documents: req.documents || [],
             });
             deleteDoc(docRef);
         } else {
@@ -94,6 +98,7 @@ export default function RequirementTable({
                     <TableHead className="w-[50px]">S.No.</TableHead>
                     <TableHead>Item Name</TableHead>
                     <TableHead>Required Quantity</TableHead>
+                    <TableHead>Documents</TableHead>
                     <TableHead>Remarks</TableHead>
                     <TableHead>Status</TableHead>
                 </TableRow>
@@ -106,6 +111,7 @@ export default function RequirementTable({
                       <TableCell><Skeleton className="h-4 w-8" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-48" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-32" /></TableCell>
                       <TableCell><Skeleton className="h-8 w-28" /></TableCell>
                     </TableRow>
@@ -124,6 +130,24 @@ export default function RequirementTable({
                         <TableCell className="font-medium">{index + 1}</TableCell>
                         <TableCell className="font-medium">{req.name}</TableCell>
                         <TableCell>{req.requiredQuantity}</TableCell>
+                        <TableCell>
+                            {req.documents && req.documents.length > 0 ? (
+                                <div className="flex flex-col gap-1.5 items-start">
+                                    {req.documents.map((doc, i) => (
+                                        doc.name && doc.link ? (
+                                            <Button key={i} variant="link" size="sm" asChild className="h-auto p-0 text-xs">
+                                                <Link href={doc.link} target="_blank" rel="noopener noreferrer">
+                                                    <LinkIcon className="mr-1.5 h-3 w-3"/>
+                                                    {doc.name}
+                                                </Link>
+                                            </Button>
+                                        ) : null
+                                    ))}
+                                </div>
+                            ) : (
+                                <span className="text-muted-foreground">N/A</span>
+                            )}
+                        </TableCell>
                         <TableCell className="text-muted-foreground">{req.remarks || 'N/A'}</TableCell>
                         <TableCell>
                             {isAdmin ? (

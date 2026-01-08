@@ -6,7 +6,7 @@ export interface ProcuredItem {
   quantity: number;
   dateOfProcurement: string;
   installationStatus: 'Pending' | 'Installed' | 'Not Applicable';
-  dateOfInstallation?: string;
+  dateOfInstallation: string;
   remarks?: string;
   documents?: Array<{ name: string; link: string }>;
 }
@@ -18,6 +18,7 @@ export interface Requirement {
   status: 'Pending' | 'Procured';
   type: 'Primary' | 'Secondary' | 'Tertiary';
   remarks?: string;
+  documents?: Array<{ name: string; link: string }>;
 }
 
 export interface ClassMeeting {
