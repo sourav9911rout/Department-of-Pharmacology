@@ -30,7 +30,7 @@ export function ProtectedLayout({ children }: { children: ReactNode }) {
     }
   }, [isUserLoading, user, router, pathname, isPublicRoute]);
 
-  // For public routes, always render the content.
+  // For public routes, always render the content immediately.
   if (isPublicRoute) {
     return <>{children}</>;
   }
