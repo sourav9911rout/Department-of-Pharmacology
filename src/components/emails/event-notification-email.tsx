@@ -1,9 +1,9 @@
+
 import {
   Body,
   Button,
   Container,
   Head,
-  Heading,
   Html,
   Preview,
   Section,
@@ -27,36 +27,40 @@ export default function EventNotificationEmail({
   meetLink,
 }: EventNotificationEmailProps) {
   const eventDateTime = parse(`${date} ${time}`, 'yyyy-MM-dd HH:mm', new Date());
+  const formattedDateTime = format(eventDateTime, "EEEE, MMMM d, yyyy 'at' p");
 
   return (
     <Html>
       <Head />
-      <Preview>Invitation: {topic}</Preview>
+      <Preview>Gentle Reminder: {topic}</Preview>
       <Body style={main}>
         <Container style={container}>
-          <Heading style={heading}>Event Invitation</Heading>
-          <Text style={paragraph}>You have been invited to the following event:</Text>
+          <Text style={paragraph}>Respected Ma’am/Sir,</Text>
+          <Text style={paragraph}>
+            This is a gentle reminder for the lecture scheduled in the Department of Pharmacology, for the following:
+          </Text>
           <Section style={detailsSection}>
-            <Text style={detailsTitle}>
-              <strong>Topic:</strong> {topic}
+            <Text style={detailsText}>
+              <strong>Name of the Lecture:</strong> {topic}
             </Text>
             <Text style={detailsText}>
-              <strong>Conducted By:</strong> {conductedBy}
+              <strong>Conducted by:</strong> {conductedBy}
             </Text>
             <Text style={detailsText}>
-              <strong>Date:</strong> {format(eventDateTime, 'EEEE, MMMM d, yyyy')}
-            </Text>
-            <Text style={detailsText}>
-              <strong>Time:</strong> {format(eventDateTime, 'p')}
+              <strong>Date and Time:</strong> {formattedDateTime}
             </Text>
           </Section>
-          <Section style={buttonContainer}>
+           <Section style={buttonContainer}>
             <Button style={button} href={meetLink}>
               Join Google Meet
             </Button>
           </Section>
           <Text style={footerText}>
-            This is an automated notification from the Department of Pharmacology, AIIMS CAPFIMS.
+            From
+            <br />
+            Department of Pharmacology
+            <br />
+            AIIMS-CAPFIMS
           </Text>
         </Container>
       </Body>
@@ -72,51 +76,32 @@ const main = {
 const container = {
   backgroundColor: '#ffffff',
   margin: '0 auto',
-  padding: '20px 0 48px',
+  padding: '20px 48px',
   marginBottom: '64px',
   border: '1px solid #f0f0f0',
   borderRadius: '4px',
 };
 
-const heading = {
-  fontSize: '28px',
-  fontWeight: 'bold',
-  marginTop: '48px',
-  textAlign: 'center' as const,
-};
-
 const paragraph = {
   fontSize: '16px',
   lineHeight: '24px',
-  textAlign: 'center' as const,
   color: '#525f7f',
-  padding: '0 40px',
 };
 
 const detailsSection = {
-  padding: '20px 40px',
+  padding: '20px 0',
   margin: '20px 0',
-  backgroundColor: '#f0f4f8',
-  border: '1px solid #e3e8ee',
-  borderRadius: '4px',
 };
-
-const detailsTitle = {
-    fontSize: '18px',
-    fontWeight: 'bold',
-    margin: '0 0 10px 0',
-}
 
 const detailsText = {
   fontSize: '14px',
-  lineHeight: '20px',
-  margin: '5px 0',
+  lineHeight: '24px',
+  margin: '8px 0',
 };
-
 
 const buttonContainer = {
   textAlign: 'center' as const,
-  marginTop: '32px',
+  margin: '32px 0',
 };
 
 const button = {
@@ -132,8 +117,7 @@ const button = {
 
 const footerText = {
   color: '#8898aa',
-  fontSize: '12px',
-  lineHeight: '16px',
-  textAlign: 'center' as const,
+  fontSize: '14px',
+  lineHeight: '22px',
   marginTop: '32px',
 };
