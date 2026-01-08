@@ -10,7 +10,7 @@ import { z } from 'zod';
 import { Resend } from 'resend';
 import EventNotificationEmail from '@/components/emails/event-notification-email';
 
-export const SendEventEmailSchema = z.object({
+const SendEventEmailSchema = z.object({
   topic: z.string().describe('The topic of the class/meeting.'),
   date: z.string().describe('The date of the class/meeting.'),
   time: z.string().describe('The time of the class/meeting.'),
