@@ -40,7 +40,14 @@ export default function ProcuredItemsPage() {
         // Firestore requires the first orderBy field to be in the inequality filter if one exists
         // We don't have one here, but it's good practice.
         // We must have an index for each field we order by.
-        q = query(q, orderBy(sortBy, 'asc'));
+        if (sortBy === 'dateOfInstallation') {
+          // To sort by a field that may not exist on all documents (for legacy data),
+          // we can add a second orderBy clause on a field that *does* exist, like the name.
+          // This seems to encourage Firestore to include all documents in the sorted result.
+          q = query(q, orderBy(sortBy, 'asc'), orderBy('name', 'asc'));
+        } else {
+          q = query(q, orderBy(sortBy, 'asc'));
+        }
 
         return q;
     },
