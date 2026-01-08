@@ -78,7 +78,7 @@ export function ItemDialog({
 
     const filteredDocuments = documents.filter(doc => doc.name.trim() !== '' && doc.link.trim() !== '');
     
-    const newItemData: Omit<ProcuredItem, 'id'> = {
+    const newItemData = {
       name: formData.get('name') as string,
       category: category as ProcuredItem['category'],
       quantity: Number(formData.get('quantity')),
