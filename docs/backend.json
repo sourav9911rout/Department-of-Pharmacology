@@ -70,11 +70,6 @@
             },
             "required": ["name", "link"]
           }
-        },
-        "lastModified": {
-          "type": "string",
-          "format": "date-time",
-          "description": "The timestamp when the item was last modified."
         }
       },
       "required": [

@@ -21,7 +21,6 @@ import { useFirestore } from '@/firebase';
 import { addDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { collection, doc } from 'firebase/firestore';
 import { PlusCircle, Trash2 } from 'lucide-react';
-import { format } from 'date-fns';
 
 export function ItemDialog({
   children,
@@ -88,7 +87,6 @@ export function ItemDialog({
       remarks: formData.get('remarks') as string,
       dateOfInstallation: installationStatus === 'Installed' ? (formData.get('dateOfInstallation') as string) : '',
       documents: filteredDocuments,
-      lastModified: new Date().toISOString(),
     };
 
     if (isEditing && item) {
@@ -96,7 +94,7 @@ export function ItemDialog({
       setDocumentNonBlocking(docRef, newItemData, { merge: true });
     } else {
       const collectionRef = collection(firestore, 'procured_items');
-      addDocumentNonBlocking(collectionRef, { ...newItemData, lastModified: undefined });
+      addDocumentNonBlocking(collectionRef, newItemData);
     }
     
     setOpen(false);
@@ -113,11 +111,6 @@ export function ItemDialog({
             <DialogDescription>
               {isEditing ? "Update the details of the existing item." : "Fill in the details for the new item."}
             </DialogDescription>
-             {isEditing && item?.lastModified && (
-                <p className="text-xs text-muted-foreground pt-2">
-                    Last Modified: {format(new Date(item.lastModified), "PPP p")}
-                </p>
-            )}
           </DialogHeader>
           <div className="grid gap-4 py-4 max-h-[70vh] overflow-y-auto pr-4">
             <div className="grid grid-cols-4 items-center gap-4">

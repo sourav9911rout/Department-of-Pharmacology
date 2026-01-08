@@ -9,7 +9,6 @@ export interface ProcuredItem {
   dateOfInstallation?: string;
   remarks?: string;
   documents?: Array<{ name: string; link: string }>;
-  lastModified?: string;
 }
 
 export interface Requirement {
