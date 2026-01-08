@@ -23,19 +23,17 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
 import { collection, doc, updateDoc, deleteDoc, query, where, orderBy } from "firebase/firestore";
-import type { TrashedItem, ProcuredItem, Requirement, ClassMeeting, Sop } from "@/lib/types";
+import type { TrashedItem, ProcuredItem, Requirement } from "@/lib/types";
 import { useAdminAuth } from "@/hooks/use-admin-auth";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 
-type CollectionName = 'procured_items' | 'requirements' | 'class_meetings' | 'sops';
+type CollectionName = 'procured_items' | 'requirements';
 
 const collectionTypeMapping: Record<CollectionName, string> = {
   procured_items: 'Procured Item',
   requirements: 'Requirement',
-  class_meetings: 'Class/Meeting',
-  sops: 'SOP',
 };
 
 export default function TrashPage() {
@@ -51,23 +49,15 @@ export default function TrashPage() {
   const trashedRequirementsQuery = useMemoFirebase(() => query(collection(firestore, 'requirements'), where('deleted', '==', true)), [firestore]);
   const { data: trashedRequirements, isLoading: loadingReqs } = useCollection<Requirement>(trashedRequirementsQuery);
 
-  const trashedMeetingsQuery = useMemoFirebase(() => query(collection(firestore, 'class_meetings'), where('deleted', '==', true)), [firestore]);
-  const { data: trashedMeetings, isLoading: loadingMeetings } = useCollection<ClassMeeting>(trashedMeetingsQuery);
-  
-  const trashedSopsQuery = useMemoFirebase(() => query(collection(firestore, 'sops'), where('deleted', '==', true)), [firestore]);
-  const { data: trashedSops, isLoading: loadingSops } = useCollection<Sop>(trashedSopsQuery);
-
   const allTrashedItems = useMemo<TrashedItem[]>(() => {
     const procured = trashedProcuredItems?.map(item => ({ ...item, originalCollection: 'procured_items' as const })) || [];
     const reqs = trashedRequirements?.map(item => ({ ...item, originalCollection: 'requirements' as const })) || [];
-    const meetings = trashedMeetings?.map(item => ({ ...item, originalCollection: 'class_meetings' as const })) || [];
-    const sops = trashedSops?.map(item => ({ ...item, originalCollection: 'sops' as const })) || [];
     
-    const combined = [...procured, ...reqs, ...meetings, ...sops];
+    const combined = [...procured, ...reqs];
     return combined.sort((a, b) => new Date(b.deletedAt!).getTime() - new Date(a.deletedAt!).getTime());
-  }, [trashedProcuredItems, trashedRequirements, trashedMeetings, trashedSops]);
+  }, [trashedProcuredItems, trashedRequirements]);
 
-  const isLoading = loadingProcured || loadingReqs || loadingMeetings || loadingSops;
+  const isLoading = loadingProcured || loadingReqs;
 
   const handleRestore = () => {
     if (!itemToRestore) return;
@@ -103,7 +93,7 @@ export default function TrashPage() {
     <div className="flex flex-col gap-8">
       <PageHeader
         title="Trash"
-        description="View and manage recently deleted items."
+        description="View and manage recently deleted equipment."
       />
 
       <div className="border rounded-lg">

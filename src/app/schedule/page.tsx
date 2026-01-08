@@ -22,7 +22,7 @@ import {
 import { ScheduleDialog } from "./components/schedule-dialog";
 import { addHours, parse } from 'date-fns';
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
-import { collection, doc, query, where, updateDoc } from "firebase/firestore";
+import { collection, doc, query, deleteDoc } from "firebase/firestore";
 import { Skeleton } from "@/components/ui/skeleton";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
@@ -31,7 +31,7 @@ export default function SchedulePage() {
   const { isAdmin } = useAdminAuth();
   const firestore = useFirestore();
   const scheduleCollection = useMemoFirebase(
-    () => query(collection(firestore, 'class_meetings'), where('deleted', '!=', true)),
+    () => query(collection(firestore, 'class_meetings')),
     [firestore]
   );
   const { data: events, isLoading } = useCollection<ClassMeeting>(scheduleCollection);
@@ -64,10 +64,7 @@ export default function SchedulePage() {
   const handleDelete = () => {
     selectedEvents.forEach(eventId => {
       const docRef = doc(firestore, 'class_meetings', eventId);
-      updateDoc(docRef, {
-        deleted: true,
-        deletedAt: new Date().toISOString()
-      });
+      deleteDoc(docRef);
     });
     setSelectedEvents([]);
     setIsDeleteDialogOpen(false);
@@ -238,7 +235,7 @@ export default function SchedulePage() {
                 <AlertDialogHeader>
                     <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                     <AlertDialogDescription>
-                        This action will move the selected event(s) to the trash. You can restore them later.
+                        This action cannot be undone. This will permanently delete the selected event(s).
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>

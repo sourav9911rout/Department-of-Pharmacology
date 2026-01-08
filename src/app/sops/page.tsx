@@ -7,7 +7,7 @@ import { useAdminAuth } from "@/hooks/use-admin-auth";
 import { BookOpen, PlusCircle, Link as LinkIcon, Trash2 } from "lucide-react";
 import { SopDialog } from "./components/sop-dialog";
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
-import { collection, doc, query, where, updateDoc } from "firebase/firestore";
+import { collection, doc, query, deleteDoc } from "firebase/firestore";
 import type { Sop } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
@@ -22,7 +22,7 @@ export default function SopsPage() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   const sopsCollection = useMemoFirebase(
-    () => query(collection(firestore, 'sops'), where('deleted', '!=', true)),
+    () => query(collection(firestore, 'sops')),
     [firestore]
   );
   const { data: sops, isLoading } = useCollection<Sop>(sopsCollection);
@@ -36,10 +36,7 @@ export default function SopsPage() {
   const handleDelete = () => {
     selectedSops.forEach(sopId => {
       const docRef = doc(firestore, 'sops', sopId);
-      updateDoc(docRef, {
-        deleted: true,
-        deletedAt: new Date().toISOString()
-      });
+      deleteDoc(docRef);
     });
     setSelectedSops([]);
     setIsDeleteDialogOpen(false);
@@ -118,7 +115,7 @@ export default function SopsPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action will move the selected SOP(s) to the trash. You can restore them later.
+              This action cannot be undone. This will permanently delete the selected SOP(s).
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

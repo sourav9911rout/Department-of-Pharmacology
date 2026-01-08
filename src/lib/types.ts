@@ -6,7 +6,7 @@ export interface ProcuredItem {
   quantity: number;
   dateOfProcurement: string;
   installationStatus: 'Pending' | 'Installed' | 'Not Applicable';
-  dateOfInstallation: string;
+  dateOfInstallation?: string;
   remarks?: string;
   documents?: Array<{ name: string; link: string }>;
   deleted?: boolean;
@@ -32,18 +32,14 @@ export interface ClassMeeting {
   time: string;
   conductedBy: string;
   meetLink: string;
-  deleted?: boolean;
-  deletedAt?: string;
 }
 
 export interface Sop {
   id: string;
   name: string;
   driveLink: string;
-  deleted?: boolean;
-  deletedAt?: string;
 }
 
-export type TrashedItem = (ProcuredItem | Requirement | ClassMeeting | Sop) & {
-  originalCollection: 'procured_items' | 'requirements' | 'class_meetings' | 'sops';
+export type TrashedItem = (ProcuredItem | Requirement) & {
+  originalCollection: 'procured_items' | 'requirements';
 };
