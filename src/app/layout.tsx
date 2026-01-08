@@ -7,7 +7,6 @@ import AppSidebar from '@/components/app-sidebar';
 import { AdminAuthProvider } from '@/contexts/admin-auth-context';
 import { Toaster } from '@/components/ui/toaster';
 import { FirebaseClientProvider } from '@/firebase';
-import { ProtectedLayout } from '@/components/ProtectedLayout';
 
 export const metadata: Metadata = {
   title: 'Dept. of Pharmacology',
@@ -31,7 +30,6 @@ export default function RootLayout({
       </head>
       <body className={cn('font-body antialiased')}>
         <FirebaseClientProvider>
-          <ProtectedLayout>
             <AdminAuthProvider>
               <SidebarProvider>
                 <AppSidebar />
@@ -39,7 +37,6 @@ export default function RootLayout({
                 <Toaster />
               </SidebarProvider>
             </AdminAuthProvider>
-          </ProtectedLayout>
         </FirebaseClientProvider>
       </body>
     </html>

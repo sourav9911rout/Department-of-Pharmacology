@@ -68,7 +68,6 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
     isUserLoading: true,    // Start loading until first auth event
     userError: null,
   });
-  const pathname = usePathname();
 
   // Effect to subscribe to Firebase auth state changes
   useEffect(() => {
@@ -104,11 +103,6 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
     };
   }, [firebaseApp, firestore, auth, userAuthState]);
   
-  // Don't render protected content until auth state is resolved, unless on login page
-  if (userAuthState.isUserLoading && pathname !== '/login') {
-    return null; // Or a loading spinner
-  }
-
   return (
     <FirebaseContext.Provider value={contextValue}>
       <FirebaseErrorListener />
