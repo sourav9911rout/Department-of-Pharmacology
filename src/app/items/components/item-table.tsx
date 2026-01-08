@@ -18,6 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { Link as LinkIcon } from "lucide-react";
 import Link from "next/link";
+import { format } from "date-fns";
 
 export default function ItemTable({
   data,
@@ -81,6 +82,7 @@ export default function ItemTable({
                     <TableHead>Installation Date</TableHead>
                     <TableHead>Documents</TableHead>
                     <TableHead>Remarks</TableHead>
+                    {isAdmin && <TableHead>Last Modified</TableHead>}
                     {isAdmin && <TableHead className="text-right">Actions</TableHead>}
                 </TableRow>
                 </TableHeader>
@@ -98,6 +100,7 @@ export default function ItemTable({
                       <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                      {isAdmin && <TableCell><Skeleton className="h-4 w-24" /></TableCell>}
                       {isAdmin && <TableCell className="text-right"><Skeleton className="h-8 w-16" /></TableCell>}
                     </TableRow>
                   ))
@@ -144,6 +147,11 @@ export default function ItemTable({
                         </TableCell>
                         <TableCell className="text-muted-foreground">{item.remarks || 'N/A'}</TableCell>
                         {isAdmin && (
+                            <TableCell className="text-muted-foreground text-xs">
+                                {item.lastModified ? format(new Date(item.lastModified), 'dd/MM/yy p') : 'N/A'}
+                            </TableCell>
+                        )}
+                        {isAdmin && (
                             <TableCell className="text-right">
                                <ItemDialog item={item}>
                                    <Button variant="ghost" size="sm">Edit</Button>
@@ -155,7 +163,7 @@ export default function ItemTable({
                   })
                 ) : (
                     <TableRow>
-                        <TableCell colSpan={isAdmin ? 11 : 10} className="h-24 text-center">
+                        <TableCell colSpan={isAdmin ? 12 : 10} className="h-24 text-center">
                             No procured items found.
                         </TableCell>
                     </TableRow>

@@ -9,6 +9,7 @@ export interface ProcuredItem {
   dateOfInstallation?: string;
   remarks?: string;
   documents?: Array<{ name: string; link: string }>;
+  lastModified?: string;
 }
 
 export interface Requirement {
@@ -27,4 +28,10 @@ export interface ClassMeeting {
   time: string;
   conductedBy: string;
   meetLink: string;
+}
+
+export interface Sop {
+  id: string;
+  name: string;
+  driveLink: string;
 }

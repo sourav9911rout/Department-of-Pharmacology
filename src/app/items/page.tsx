@@ -24,14 +24,14 @@ import jsPDF from "jspdf";
 import "jspdf-autotable";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
-type SortOption = 'name' | 'dateOfInstallation' | 'dateOfProcurement';
+type SortOption = 'name' | 'lastModified' | 'dateOfProcurement';
 
 export default function ProcuredItemsPage() {
   const { isAdmin } = useAdminAuth();
   const firestore = useFirestore();
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [sortBy, setSortBy] = useState<SortOption>('dateOfProcurement');
+  const [sortBy, setSortBy] = useState<SortOption>('lastModified');
 
   const procuredItemsCollection = useMemoFirebase(
     () => {
@@ -40,7 +40,11 @@ export default function ProcuredItemsPage() {
         // Firestore requires the first orderBy field to be in the inequality filter if one exists
         // We don't have one here, but it's good practice.
         // We must have an index for each field we order by.
-        q = query(q, orderBy(sortBy, 'asc'));
+        if (sortBy === 'lastModified') {
+             q = query(q, orderBy(sortBy, 'desc'));
+        } else {
+             q = query(q, orderBy(sortBy, 'asc'));
+        }
 
         return q;
     },
@@ -81,7 +85,7 @@ export default function ProcuredItemsPage() {
   const getSortLabel = () => {
     switch (sortBy) {
         case 'name': return 'Name (A-Z)';
-        case 'dateOfInstallation': return 'Installation Date';
+        case 'lastModified': return 'Last Modified';
         case 'dateOfProcurement': return 'Procurement Date';
         default: return 'Sort by';
     }
@@ -102,14 +106,14 @@ export default function ProcuredItemsPage() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
+              <DropdownMenuItem onSelect={() => setSortBy('lastModified')}>
+                Last Modified (Newest First)
+              </DropdownMenuItem>
               <DropdownMenuItem onSelect={() => setSortBy('dateOfProcurement')}>
                 Procurement Date (Old to New)
               </DropdownMenuItem>
               <DropdownMenuItem onSelect={() => setSortBy('name')}>
                 Name (A to Z)
-              </DropdownMenuItem>
-              <DropdownMenuItem onSelect={() => setSortBy('dateOfInstallation')}>
-                 Installation Date (Old to New)
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
