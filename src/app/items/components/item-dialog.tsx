@@ -19,9 +19,6 @@ import { useState, useEffect } from 'react';
 import { useFirestore } from '@/firebase';
 import { addDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { collection, doc } from 'firebase/firestore';
-import { PlusCircle, Trash2 } from 'lucide-react';
-
-type Document = { title: string; driveLink: string; };
 
 export function ItemDialog({
   children,
@@ -36,7 +33,6 @@ export function ItemDialog({
   const [open, setOpen] = useState(false);
   const [category, setCategory] = useState(item?.category);
   const [installationStatus, setInstallationStatus] = useState(item?.installationStatus);
-  const [documents, setDocuments] = useState<Document[]>(item?.documents || []);
   
   const isEditing = !!item;
   
@@ -44,7 +40,6 @@ export function ItemDialog({
     if (open) {
       setCategory(item?.category);
       setInstallationStatus(item?.installationStatus);
-      setDocuments(item?.documents || [{ title: '', driveLink: '' }]);
     }
   }, [open, item]);
 
@@ -53,33 +48,10 @@ export function ItemDialog({
     return null;
   }
   
-  const handleDocumentChange = (index: number, field: keyof Document, value: string) => {
-    const newDocuments = [...documents];
-    newDocuments[index][field] = value;
-    setDocuments(newDocuments);
-  };
-  
-  const addDocumentField = () => {
-    setDocuments([...documents, { title: '', driveLink: '' }]);
-  };
-  
-  const removeDocumentField = (index: number) => {
-    if (documents.length > 1) {
-      const newDocuments = documents.filter((_, i) => i !== index);
-      setDocuments(newDocuments);
-    } else {
-      // Clear the fields if it's the last one
-      setDocuments([{ title: '', driveLink: '' }]);
-    }
-  };
-  
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     
-    // Filter out empty documents before submitting
-    const finalDocuments = documents.filter(doc => doc.title.trim() !== '' && doc.driveLink.trim() !== '');
-
     const newItemData: Omit<ProcuredItem, 'id'> = {
       name: formData.get('name') as string,
       category: category as ProcuredItem['category'],
@@ -88,7 +60,6 @@ export function ItemDialog({
       installationStatus: installationStatus as ProcuredItem['installationStatus'],
       remarks: formData.get('remarks') as string,
       dateOfInstallation: installationStatus === 'Installed' ? (formData.get('dateOfInstallation') as string) : '',
-      documents: finalDocuments,
     };
 
     if (isEditing && item) {
@@ -177,41 +148,6 @@ export function ItemDialog({
                 Remarks
               </Label>
               <Textarea id="remarks" name="remarks" defaultValue={item?.remarks} className="col-span-3" />
-            </div>
-             <div className="grid grid-cols-4 items-start gap-4">
-                <Label className="text-right mt-2">Documents</Label>
-                <div className="col-span-3 space-y-4">
-                    {documents.map((doc, index) => (
-                        <div key={index} className="space-y-2 border p-3 rounded-md relative">
-                            <Input 
-                                placeholder="Document Title" 
-                                value={doc.title}
-                                onChange={(e) => handleDocumentChange(index, 'title', e.target.value)}
-                                className="text-sm"
-                            />
-                            <Input 
-                                placeholder="Google Drive Link"
-                                value={doc.driveLink}
-                                onChange={(e) => handleDocumentChange(index, 'driveLink', e.target.value)}
-                                className="text-sm"
-                            />
-                             <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon"
-                                className="absolute -top-2 -right-2 h-6 w-6"
-                                onClick={() => removeDocumentField(index)}
-                                >
-                                <Trash2 className="h-4 w-4 text-destructive" />
-                                <span className="sr-only">Remove Document</span>
-                            </Button>
-                        </div>
-                    ))}
-                     <Button type="button" variant="outline" size="sm" onClick={addDocumentField} className="w-full">
-                        <PlusCircle className="mr-2 h-4 w-4" />
-                        Add Another Document
-                    </Button>
-                </div>
             </div>
           </div>
           <DialogFooter>

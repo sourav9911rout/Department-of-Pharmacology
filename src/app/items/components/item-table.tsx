@@ -15,7 +15,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import Link from "next/link";
 
 export default function ItemTable({
   data,
@@ -77,7 +76,6 @@ export default function ItemTable({
                     <TableHead>Procurement Date</TableHead>
                     <TableHead>Installation Status</TableHead>
                     <TableHead>Installation Date</TableHead>
-                    <TableHead>Documents</TableHead>
                     <TableHead>Remarks</TableHead>
                     {isAdmin && <TableHead className="text-right">Actions</TableHead>}
                 </TableRow>
@@ -93,7 +91,6 @@ export default function ItemTable({
                       <TableCell><Skeleton className="h-4 w-12" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                       <TableCell><Skeleton className="h-6 w-24" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                       {isAdmin && <TableCell className="text-right"><Skeleton className="h-8 w-16" /></TableCell>}
@@ -122,17 +119,6 @@ export default function ItemTable({
                             </Badge>
                         </TableCell>
                         <TableCell>{item.dateOfInstallation || 'N/A'}</TableCell>
-                         <TableCell>
-                            <div className="flex flex-col gap-1 items-start">
-                                {item.documents && item.documents.length > 0 ? item.documents.map((doc, docIndex) => (
-                                    <Button asChild variant="link" size="sm" className="p-0 h-auto" key={docIndex}>
-                                        <Link href={doc.driveLink} target="_blank" rel="noopener noreferrer">
-                                            {doc.title}
-                                        </Link>
-                                    </Button>
-                                )) : <span className="text-muted-foreground">N/A</span>}
-                            </div>
-                         </TableCell>
                         <TableCell className="text-muted-foreground">{item.remarks || 'N/A'}</TableCell>
                         {isAdmin && (
                             <TableCell className="text-right">
@@ -146,7 +132,7 @@ export default function ItemTable({
                   })
                 ) : (
                     <TableRow>
-                        <TableCell colSpan={isAdmin ? 11 : 10} className="h-24 text-center">
+                        <TableCell colSpan={isAdmin ? 10 : 9} className="h-24 text-center">
                             No procured items found.
                         </TableCell>
                     </TableRow>

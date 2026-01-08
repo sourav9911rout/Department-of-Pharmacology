@@ -50,28 +50,6 @@
         "remarks": {
           "type": "string",
           "description": "Any additional remarks or notes about the procured item."
-        },
-        "documents": {
-          "type": "array",
-          "description": "An array of document links associated with this item.",
-          "items": {
-            "type": "object",
-            "properties": {
-              "title": {
-                "type": "string",
-                "description": "The display name for the document link."
-              },
-              "driveLink": {
-                "type": "string",
-                "description": "The URL of the document.",
-                "format": "uri"
-              }
-            },
-            "required": [
-              "title",
-              "driveLink"
-            ]
-          }
         }
       },
       "required": [

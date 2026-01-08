@@ -7,10 +7,6 @@ export interface ProcuredItem {
   installationStatus: 'Pending' | 'Installed' | 'Not Applicable';
   dateOfInstallation?: string;
   remarks?: string;
-  documents?: Array<{
-    title: string;
-    driveLink: string;
-  }>;
 }
 
 export interface Requirement {
