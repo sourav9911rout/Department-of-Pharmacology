@@ -22,8 +22,6 @@ import { collection, deleteDoc, doc, orderBy, query } from "firebase/firestore";
 import { RequirementDialog } from "./components/requirement-dialog";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function RequirementsPage() {
   const { isAdmin } = useAdminAuth();
@@ -119,20 +117,6 @@ export default function RequirementsPage() {
         </div>
       </PageHeader>
       
-      <div className="flex items-center gap-4">
-        <div className="flex items-center gap-2">
-            <Label htmlFor="sort-by" className="text-sm font-medium">Sort by</Label>
-             <Select value="name" disabled>
-                <SelectTrigger id="sort-by" className="w-[240px]">
-                    <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                    <SelectItem value="name">Name (A to Z)</SelectItem>
-                </SelectContent>
-            </Select>
-        </div>
-      </div>
-
       <Tabs defaultValue="primary" onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-3 md:w-[600px]">
           <TabsTrigger value="primary">Primary Requirements</TabsTrigger>
