@@ -57,6 +57,7 @@ const sendEventEmailFlow = ai.defineFlow(
       });
     } catch (error) {
         console.error("Error sending email with Resend:", error);
+        // Re-throw the error to be caught by the calling UI component
         if (error instanceof Error) {
             throw new Error(`Failed to send email: ${error.message}`);
         }
