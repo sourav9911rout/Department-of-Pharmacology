@@ -128,12 +128,14 @@ export default function ItemTable({
                             {item.documents && item.documents.length > 0 ? (
                                 <div className="flex flex-col gap-1.5 items-start">
                                     {item.documents.map((doc, i) => (
-                                        <Button key={i} variant="link" size="sm" asChild className="h-auto p-0 text-xs">
-                                            <Link href={doc.link} target="_blank" rel="noopener noreferrer">
-                                                <LinkIcon className="mr-1.5 h-3 w-3"/>
-                                                {doc.name}
-                                            </Link>
-                                        </Button>
+                                        doc.name && doc.link ? (
+                                            <Button key={i} variant="link" size="sm" asChild className="h-auto p-0 text-xs">
+                                                <Link href={doc.link} target="_blank" rel="noopener noreferrer">
+                                                    <LinkIcon className="mr-1.5 h-3 w-3"/>
+                                                    {doc.name}
+                                                </Link>
+                                            </Button>
+                                        ) : null
                                     ))}
                                 </div>
                             ) : (
