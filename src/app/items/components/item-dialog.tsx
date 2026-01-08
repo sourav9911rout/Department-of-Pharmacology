@@ -179,13 +179,13 @@ export function ItemDialog({
                   <div key={index} className="flex items-center gap-2">
                     <Input
                       placeholder="Doc Name"
-                      value={doc.name}
+                      value={doc.name || ''}
                       onChange={(e) => handleDocChange(index, 'name', e.target.value)}
                       className="flex-1"
                     />
                     <Input
                       placeholder="Doc Link"
-                      value={doc.link}
+                      value={doc.link || ''}
                       onChange={(e) => handleDocChange(index, 'link', e.target.value)}
                       className="flex-1"
                     />
