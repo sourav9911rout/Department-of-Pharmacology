@@ -9,8 +9,6 @@ export interface ProcuredItem {
   dateOfInstallation?: string;
   remarks?: string;
   documents?: Array<{ name: string; link: string }>;
-  deleted?: boolean;
-  deletedAt?: string;
 }
 
 export interface Requirement {
@@ -21,8 +19,6 @@ export interface Requirement {
   type: 'Primary' | 'Secondary' | 'Tertiary';
   remarks?: string;
   documents?: Array<{ name: string; link: string }>;
-  deleted?: boolean;
-  deletedAt?: string;
 }
 
 export interface ClassMeeting {

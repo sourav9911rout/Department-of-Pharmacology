@@ -23,7 +23,6 @@ import {
   Unlock,
   PanelLeftClose,
   PanelLeftOpen,
-  Trash2,
   BookOpen,
 } from "lucide-react";
 import AdminPinDialog from "./admin-pin-dialog";
@@ -88,19 +87,6 @@ export default function AppSidebar() {
                 </Link>
               </SidebarMenuItem>
             ))}
-             {isAdmin && (
-              <SidebarMenuItem>
-                <Link href="/trash">
-                  <SidebarMenuButton
-                    isActive={pathname === "/trash"}
-                    className="w-full justify-start"
-                  >
-                    <Trash2 className="size-4" />
-                    <span>Trash</span>
-                  </SidebarMenuButton>
-                </Link>
-              </SidebarMenuItem>
-            )}
             <SidebarMenuItem>
               <a
                 href="https://pharmacology.vercel.app"
