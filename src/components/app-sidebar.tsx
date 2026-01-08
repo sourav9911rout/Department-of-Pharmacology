@@ -24,6 +24,7 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   BookOpen,
+  Recycle,
 } from "lucide-react";
 import AdminPinDialog from "./admin-pin-dialog";
 import { useAdminAuth } from "@/hooks/use-admin-auth";
@@ -37,6 +38,7 @@ const navItems = [
   { href: "/requirements", label: "Requirement List", icon: ClipboardList },
   { href: "/schedule", label: "Classes & Meetings", icon: Calendar },
   { href: "/sops", label: "SOPs", icon: BookOpen },
+  { href: "/recycle-bin", label: "Recycle Bin", icon: Recycle },
 ];
 
 export default function AppSidebar() {

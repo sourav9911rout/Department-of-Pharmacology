@@ -36,6 +36,10 @@ export interface Sop {
   driveLink: string;
 }
 
-export type TrashedItem = (ProcuredItem | Requirement) & {
-  originalCollection: 'procured_items' | 'requirements';
-};
+export interface TrashedItemDocument {
+    id: string;
+    originalId: string;
+    originalCollection: 'procured_items' | 'requirements' | 'class_meetings' | 'sops';
+    deletedAt: string; 
+    data: ProcuredItem | Requirement | ClassMeeting | Sop;
+}

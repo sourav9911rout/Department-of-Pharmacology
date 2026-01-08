@@ -19,7 +19,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
-import { collection, doc, query, orderBy, OrderByDirection, deleteDoc } from "firebase/firestore";
+import { collection, doc, query, orderBy, OrderByDirection, deleteDoc, getDoc, setDoc, Timestamp } from "firebase/firestore";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -41,11 +41,21 @@ export default function ProcuredItemsPage() {
   
   const { data: items, isLoading } = useCollection<ProcuredItem>(procuredItemsQuery);
 
-  const handleDelete = () => {
-    selectedItems.forEach(itemId => {
-      const docRef = doc(firestore, 'procured_items', itemId);
-      deleteDoc(docRef);
-    });
+  const handleDelete = async () => {
+    for (const itemId of selectedItems) {
+      const originalDocRef = doc(firestore, 'procured_items', itemId);
+      const originalDoc = await getDoc(originalDocRef);
+      if (originalDoc.exists()) {
+        const trashDocRef = doc(collection(firestore, 'trash'));
+        await setDoc(trashDocRef, {
+          originalId: itemId,
+          originalCollection: 'procured_items',
+          deletedAt: Timestamp.now().toDate().toISOString(),
+          data: originalDoc.data(),
+        });
+        await deleteDoc(originalDocRef);
+      }
+    }
     setSelectedItems([]);
     setIsDeleteDialogOpen(false);
   };
@@ -125,7 +135,7 @@ export default function ProcuredItemsPage() {
                 <AlertDialogHeader>
                     <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                     <AlertDialogDescription>
-                        This action cannot be undone. This will permanently delete the selected item(s).
+                        This action cannot be undone. This will move the selected item(s) to the Recycle Bin.
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
