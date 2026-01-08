@@ -28,8 +28,9 @@ export default function ContactsPage() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   const contactsQuery = useMemoFirebase(() => {
+    if (!isAdmin) return null;
     return query(collection(firestore, 'contacts'), orderBy('name', 'asc'));
-  }, [firestore]);
+  }, [firestore, isAdmin]);
   
   const { data: contacts, isLoading } = useCollection<Contact>(contactsQuery);
 
@@ -75,30 +76,36 @@ export default function ContactsPage() {
           )}
         </div>
       </PageHeader>
+      
+      {!isAdmin ? (
+        <p className="text-muted-foreground">You do not have permission to view this page. Please enable Admin Mode to manage contacts.</p>
+      ) : (
+        <>
+          <ContactsTable 
+            data={contacts || []} 
+            selectedItems={selectedItems}
+            onSelectionChange={setSelectedItems}
+            isLoading={isLoading}
+          />
 
-      <ContactsTable 
-        data={contacts || []} 
-        selectedItems={selectedItems}
-        onSelectionChange={setSelectedItems}
-        isLoading={isLoading}
-      />
-
-       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-            <AlertDialogContent>
-                <AlertDialogHeader>
-                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                        This action cannot be undone. This will move the selected contact(s) to the Recycle Bin.
-                    </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                        Delete
-                    </AlertDialogAction>
-                </AlertDialogFooter>
-            </AlertDialogContent>
-        </AlertDialog>
+          <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This action cannot be undone. This will move the selected contact(s) to the Recycle Bin.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                            Delete
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+        </>
+      )}
     </div>
   );
 }

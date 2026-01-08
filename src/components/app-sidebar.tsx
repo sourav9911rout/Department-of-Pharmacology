@@ -39,11 +39,11 @@ const navItems = [
   { href: "/items", label: "Procured Items", icon: Package },
   { href: "/requirements", label: "Requirement List", icon: ClipboardList },
   { href: "/schedule", label: "Classes & Meetings", icon: Calendar },
-  { href: "/contacts", label: "Contacts", icon: Contact },
   { href: "/sops", label: "SOPs", icon: BookOpen },
 ];
 
 const adminNavItems = [
+    { href: "/contacts", label: "Contacts", icon: Contact },
     { href: "/recycle-bin", label: "Recycle Bin", icon: Recycle },
 ]
 
