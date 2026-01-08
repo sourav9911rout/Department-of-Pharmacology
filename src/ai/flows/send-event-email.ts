@@ -21,10 +21,6 @@ const SendEventEmailSchema = z.object({
 
 export type SendEventEmailInput = z.infer<typeof SendEventEmailSchema>;
 
-export async function sendEventEmail(input: SendEventEmailInput) {
-  return sendEventEmailFlow(input);
-}
-
 const sendEventEmailFlow = ai.defineFlow(
   {
     name: 'sendEventEmailFlow',
@@ -37,10 +33,10 @@ const sendEventEmailFlow = ai.defineFlow(
       return;
     }
     
-    if (!process.env.RESEND_API_KEY) {
+    if (!process.env.RESEND_API_KEY || process.env.RESEND_API_KEY === '') {
         throw new Error("RESEND_API_KEY is not set in the environment variables. Please add it to your .env file to send emails.");
     }
-    if (!process.env.EMAIL_FROM) {
+    if (!process.env.EMAIL_FROM || process.env.EMAIL_FROM === '') {
         throw new Error("EMAIL_FROM is not set in the environment variables. Please add it to your .env file to specify the sender's email address.");
     }
 
@@ -68,3 +64,7 @@ const sendEventEmailFlow = ai.defineFlow(
     }
   }
 );
+
+export async function sendEventEmail(input: SendEventEmailInput): Promise<void> {
+  await sendEventEmailFlow(input);
+}
