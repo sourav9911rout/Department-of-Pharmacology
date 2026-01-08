@@ -49,7 +49,7 @@ const sendEventEmailFlow = ai.defineFlow(
 
     const mailOptions = {
       from: process.env.GMAIL_EMAIL,
-      to: input.invitees,
+      to: input.invitees.join(', '),
       subject: `Invitation: ${input.topic}`,
       html: emailHtml,
     };
