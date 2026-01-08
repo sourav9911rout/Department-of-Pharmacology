@@ -6,30 +6,36 @@ import { useUser } from '@/firebase/provider';
 import { useEffect, type ReactNode } from 'react';
 import { ShieldCheck } from 'lucide-react';
 
+// Define which routes are public and do not require authentication.
+const PUBLIC_ROUTES = ['/', '/login'];
+
 export function ProtectedLayout({ children }: { children: ReactNode }) {
   const { user, isUserLoading } = useUser();
   const router = useRouter();
   const pathname = usePathname();
 
+  // Check if the current route is public.
+  const isPublicRoute = PUBLIC_ROUTES.includes(pathname);
+
   useEffect(() => {
-    // If auth is still loading, or if we are already on the login page, do nothing yet.
-    if (isUserLoading || pathname === '/login') {
+    // If authentication is still loading, or if the route is public, do nothing yet.
+    if (isUserLoading || isPublicRoute) {
       return;
     }
 
-    // If auth has loaded and there's no user, redirect to login.
+    // If auth has loaded, the route is not public, and there's no user, redirect to login.
     if (!user) {
       const redirectUrl = `/login?redirect=${encodeURIComponent(pathname)}`;
       router.replace(redirectUrl);
     }
-  }, [isUserLoading, user, router, pathname]);
+  }, [isUserLoading, user, router, pathname, isPublicRoute]);
 
-  // If we are on the login page, render it directly.
-  if (pathname === '/login') {
+  // If the route is public, render the content directly.
+  if (isPublicRoute) {
     return <>{children}</>;
   }
 
-  // If authentication is still in progress, show a loading screen.
+  // For protected routes, if auth is still loading or there's no user, show a loading screen.
   if (isUserLoading || !user) {
     return (
       <div className="flex h-screen w-full flex-col items-center justify-center bg-background">
@@ -39,6 +45,6 @@ export function ProtectedLayout({ children }: { children: ReactNode }) {
     );
   }
   
-  // If the user is authenticated and not on the login page, show the app content.
+  // If the user is authenticated, show the protected app content.
   return <>{children}</>;
 }
