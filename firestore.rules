@@ -93,11 +93,12 @@ service cloud.firestore {
     
     /**
      * @description Security rules for the 'trash' collection. This collection stores
-     *   soft-deleted items. Only administrators can read from it (to restore or permanently delete)
-     *   and write to it (which happens programmatically when an item is deleted).
+     *   soft-deleted items. All signed-in users can view the trash, but only administrators can
+     *   write to it (to restore or permanently delete).
      */
     match /trash/{trashId} {
-        allow read, write: if isAdmin();
+        allow read: if isSignedIn();
+        allow write: if isAdmin();
     }
 
     /**
