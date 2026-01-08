@@ -89,9 +89,7 @@ export function ScheduleDialog({
         description: "The event invitations are being sent to the invitees.",
       });
       try {
-        await sendEventEmail({
-          ...newEventData
-        });
+        await sendEventEmail(newEventData);
          toast({
           title: "Invitations Sent",
           description: "All invitees have been notified.",
