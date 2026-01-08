@@ -108,12 +108,14 @@ export default function RequirementsPage() {
                 Delete ({selectedReqs.length})
             </Button>
             )}
-            <RequirementDialog>
-                <Button>
-                    <PlusCircle className="mr-2 h-4 w-4"/>
-                    Add Requirement
-                </Button>
-            </RequirementDialog>
+            {isAdmin && (
+              <RequirementDialog>
+                  <Button>
+                      <PlusCircle className="mr-2 h-4 w-4"/>
+                      Add Requirement
+                  </Button>
+              </RequirementDialog>
+            )}
         </div>
       </PageHeader>
       

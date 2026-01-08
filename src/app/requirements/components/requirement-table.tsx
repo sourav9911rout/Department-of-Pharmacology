@@ -21,6 +21,7 @@ import { TableCaption } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Link as LinkIcon } from "lucide-react";
+import { RequirementDialog } from "./requirement-dialog";
 
 export default function RequirementTable({
   data,
@@ -101,6 +102,7 @@ export default function RequirementTable({
                     <TableHead>Documents</TableHead>
                     <TableHead>Remarks</TableHead>
                     <TableHead>Status</TableHead>
+                    {isAdmin && <TableHead className="text-right">Actions</TableHead>}
                 </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -114,6 +116,7 @@ export default function RequirementTable({
                       <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-32" /></TableCell>
                       <TableCell><Skeleton className="h-8 w-28" /></TableCell>
+                      {isAdmin && <TableCell className="text-right"><Skeleton className="h-8 w-16" /></TableCell>}
                     </TableRow>
                   ))
                 ) : data.length > 0 ? (
@@ -166,6 +169,13 @@ export default function RequirementTable({
                                 </Badge>
                             )}
                         </TableCell>
+                        {isAdmin && (
+                            <TableCell className="text-right">
+                               <RequirementDialog requirement={req}>
+                                   <Button variant="ghost" size="sm">Edit</Button>
+                               </RequirementDialog>
+                            </TableCell>
+                        )}
                     </TableRow>
                   ))
                 ) : (

@@ -14,24 +14,37 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAdminAuth } from '@/hooks/use-admin-auth';
 import type { Requirement } from '@/lib/types';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useFirestore } from '@/firebase';
-import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
-import { collection } from 'firebase/firestore';
+import { addDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { collection, doc } from 'firebase/firestore';
 import { Textarea } from '@/components/ui/textarea';
 import { PlusCircle, Trash2 } from 'lucide-react';
 
 export function RequirementDialog({
   children,
+  requirement,
 }: {
   children: React.ReactNode;
+  requirement?: Requirement;
 }) {
   const { isAdmin } = useAdminAuth();
   const firestore = useFirestore();
+
   const [open, setOpen] = useState(false);
-  const [type, setType] = useState<Requirement['type'] | undefined>();
-  const [documents, setDocuments] = useState([{ name: '', link: '' }]);
+  const [type, setType] = useState(requirement?.type);
+  const [documents, setDocuments] = useState(requirement?.documents || [{ name: '', link: '' }]);
   
+  const isEditing = !!requirement;
+
+  useEffect(() => {
+    if (open) {
+      setType(requirement?.type);
+      setDocuments(requirement?.documents && requirement.documents.length > 0 ? requirement.documents : [{ name: '', link: '' }]);
+    }
+  }, [open, requirement]);
+
+
   if (!isAdmin) {
     return null;
   }
@@ -51,7 +64,6 @@ export function RequirementDialog({
       const newDocs = documents.filter((_, i) => i !== index);
       setDocuments(newDocs);
     } else {
-      // Clear the fields if it's the last one
       setDocuments([{ name: '', link: '' }]);
     }
   };
@@ -61,27 +73,34 @@ export function RequirementDialog({
     const formData = new FormData(e.currentTarget);
     const filteredDocuments = documents.filter(doc => doc.name.trim() !== '' && doc.link.trim() !== '');
 
-    const newRequirementData: Omit<Requirement, 'id' | 'status'> = {
+    const newRequirementData: Omit<Requirement, 'id'|'status'> = {
       name: formData.get('name') as string,
       requiredQuantity: Number(formData.get('requiredQuantity')),
       type: type as Requirement['type'],
       remarks: formData.get('remarks') as string,
       documents: filteredDocuments,
     };
-
-    const finalData = {
-        ...newRequirementData,
-        status: 'Pending' as Requirement['status'],
+    
+    if (isEditing && requirement) {
+      const docRef = doc(firestore, 'requirements', requirement.id);
+      const updatedData = { ...newRequirementData, status: requirement.status };
+      setDocumentNonBlocking(docRef, updatedData, { merge: true });
+    } else {
+      const finalData = {
+          ...newRequirementData,
+          status: 'Pending' as Requirement['status'],
+      }
+      const collectionRef = collection(firestore, 'requirements');
+      addDocumentNonBlocking(collectionRef, finalData);
     }
-
-    const collectionRef = collection(firestore, 'requirements');
-    addDocumentNonBlocking(collectionRef, finalData);
     
     setOpen(false);
-    // Reset form states
-    setType(undefined);
-    setDocuments([{ name: '', link: '' }]);
-    (e.target as HTMLFormElement).reset();
+    if (!isEditing) {
+        // Reset form states only when adding
+        setType(undefined);
+        setDocuments([{ name: '', link: '' }]);
+        (e.target as HTMLFormElement).reset();
+    }
   };
 
   return (
@@ -90,9 +109,9 @@ export function RequirementDialog({
       <DialogContent className="sm:max-w-md">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>Add New Requirement</DialogTitle>
+            <DialogTitle>{isEditing ? 'Edit Requirement' : 'Add New Requirement'}</DialogTitle>
             <DialogDescription>
-              Fill in the details for the new requirement.
+              {isEditing ? 'Update the details of the existing requirement.' : 'Fill in the details for the new requirement.'}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4 max-h-[70vh] overflow-y-auto pr-4">
@@ -100,13 +119,13 @@ export function RequirementDialog({
               <Label htmlFor="name" className="text-right">
                 Name
               </Label>
-              <Input id="name" name="name" className="col-span-3" required/>
+              <Input id="name" name="name" defaultValue={requirement?.name} className="col-span-3" required/>
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="requiredQuantity" className="text-right">
                 Quantity
               </Label>
-              <Input id="requiredQuantity" name="requiredQuantity" type="number" className="col-span-3" required/>
+              <Input id="requiredQuantity" name="requiredQuantity" type="number" defaultValue={requirement?.requiredQuantity} className="col-span-3" required/>
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="type" className="text-right">
@@ -156,11 +175,11 @@ export function RequirementDialog({
               <Label htmlFor="remarks" className="text-right mt-2">
                 Remarks
               </Label>
-              <Textarea id="remarks" name="remarks" className="col-span-3" />
+              <Textarea id="remarks" name="remarks" defaultValue={requirement?.remarks} className="col-span-3" />
             </div>
           </div>
           <DialogFooter>
-            <Button type="submit">Add Requirement</Button>
+            <Button type="submit">{isEditing ? 'Save Changes' : 'Add Requirement'}</Button>
           </DialogFooter>
         </form>
       </DialogContent>
