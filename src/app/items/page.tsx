@@ -19,22 +19,36 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
-import { collection, deleteDoc, doc, query, orderBy } from "firebase/firestore";
+import { collection, deleteDoc, doc, query, orderBy, OrderByDirection } from "firebase/firestore";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+
+type SortOption = 'name' | 'dateOfProcurement' | 'dateOfInstallation';
 
 export default function ProcuredItemsPage() {
   const { isAdmin } = useAdminAuth();
   const firestore = useFirestore();
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [sortOption, setSortOption] = useState<SortOption>('dateOfProcurement');
+  const [sortDirection, setSortDirection] = useState<OrderByDirection>('asc');
+
+  const procuredItemsQuery = useMemoFirebase(() => {
+    let q = collection(firestore, 'procured_items');
+    
+    if (sortOption === 'dateOfInstallation') {
+        // To sort by a field that might not exist and keep all documents,
+        // Firestore requires ordering by that field first, then by a guaranteed field like the document ID.
+        return query(q, orderBy(sortOption, sortDirection), orderBy('name', 'asc'));
+    }
+    
+    return query(q, orderBy(sortOption, sortDirection));
+
+  }, [firestore, sortOption, sortDirection]);
   
-  const procuredItemsCollection = useMemoFirebase(
-    () => query(collection(firestore, 'procured_items'), orderBy('dateOfProcurement', 'asc')),
-    [firestore]
-  );
-  
-  const { data: items, isLoading } = useCollection<ProcuredItem>(procuredItemsCollection);
+  const { data: items, isLoading } = useCollection<ProcuredItem>(procuredItemsQuery);
 
   const handleDelete = () => {
     selectedItems.forEach(itemId => {
@@ -72,7 +86,7 @@ export default function ProcuredItemsPage() {
         description="Track all items procured by the department."
       >
         <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={handleDownloadPdf}>
+           <Button variant="outline" onClick={handleDownloadPdf}>
             <FileDown className="mr-2 h-4 w-4"/>
             Download PDF
           </Button>
@@ -92,6 +106,23 @@ export default function ProcuredItemsPage() {
           )}
         </div>
       </PageHeader>
+
+      <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2">
+            <Label htmlFor="sort-by" className="text-sm font-medium">Sort by</Label>
+            <Select value={sortOption} onValueChange={(value) => setSortOption(value as SortOption)}>
+                <SelectTrigger id="sort-by" className="w-[240px]">
+                    <SelectValue placeholder="Sort by..." />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="name">Name (A to Z)</SelectItem>
+                    <SelectItem value="dateOfProcurement">Procurement Date (Old to New)</SelectItem>
+                    <SelectItem value="dateOfInstallation">Installation Date (Old to New)</SelectItem>
+                </SelectContent>
+            </Select>
+        </div>
+      </div>
+
       <ItemTable 
         data={items || []} 
         selectedItems={selectedItems}
