@@ -31,6 +31,7 @@ import { useAdminAuth } from "@/hooks/use-admin-auth";
 import { Button } from "./ui/button";
 import { useSidebar } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
+import { useEffect, useState } from "react";
 
 const navItems = [
   { href: "/", label: "Home", icon: Home },
@@ -48,6 +49,11 @@ export default function AppSidebar() {
   const pathname = usePathname();
   const { isAdmin } = useAdminAuth();
   const { toggleSidebar, state } = useSidebar();
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   return (
     <>
@@ -92,7 +98,7 @@ export default function AppSidebar() {
                 </Link>
               </SidebarMenuItem>
             ))}
-            {isAdmin && adminNavItems.map((item) => (
+            {isClient && isAdmin && adminNavItems.map((item) => (
                 <SidebarMenuItem key={item.href}>
                     <Link href={item.href}>
                     <SidebarMenuButton
