@@ -76,7 +76,8 @@ export default function LoginPage() {
     }
   }, [user, isUserLoading, router, searchParams]);
 
-  if (isUserLoading || user) {
+  // While checking auth status, show a loading screen.
+  if (isUserLoading) {
      return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
         <ShieldCheck className="w-16 h-16 text-primary mb-4 animate-pulse" />
@@ -84,6 +85,18 @@ export default function LoginPage() {
       </div>
     );
   }
+
+  // If the user is already logged in, the useEffect will handle the redirect,
+  // but we can also return a loading state to prevent the form from flashing.
+  if (user) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
+        <ShieldCheck className="w-16 h-16 text-primary mb-4 animate-pulse" />
+        <p className="text-muted-foreground">Redirecting...</p>
+      </div>
+    );
+  }
+
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">

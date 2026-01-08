@@ -14,28 +14,30 @@ export function ProtectedLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
 
-  // Check if the current route is public.
   const isPublicRoute = PUBLIC_ROUTES.includes(pathname);
 
   useEffect(() => {
-    // If authentication is still loading, or if the route is public, do nothing yet.
-    if (isUserLoading || isPublicRoute) {
+    // If authentication is still loading, don't do anything yet.
+    if (isUserLoading) {
       return;
     }
 
-    // If auth has loaded, the route is not public, and there's no user, redirect to login.
-    if (!user) {
+    // If the route is protected and there's no user, redirect to login.
+    // Include the original path as a query param to redirect back after login.
+    if (!isPublicRoute && !user) {
       const redirectUrl = `/login?redirect=${encodeURIComponent(pathname)}`;
       router.replace(redirectUrl);
     }
   }, [isUserLoading, user, router, pathname, isPublicRoute]);
 
-  // If the route is public, render the content directly.
+  // For public routes, always render the content.
   if (isPublicRoute) {
     return <>{children}</>;
   }
 
-  // For protected routes, if auth is still loading or there's no user, show a loading screen.
+  // For protected routes, show a loading screen while checking auth.
+  // If auth has been checked and there is no user, the useEffect above will have already
+  // started the redirect, so this loading screen will show briefly.
   if (isUserLoading || !user) {
     return (
       <div className="flex h-screen w-full flex-col items-center justify-center bg-background">
@@ -45,6 +47,6 @@ export function ProtectedLayout({ children }: { children: ReactNode }) {
     );
   }
   
-  // If the user is authenticated, show the protected app content.
+  // If we are on a protected route and the user is authenticated, show the content.
   return <>{children}</>;
 }
