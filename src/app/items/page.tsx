@@ -25,7 +25,7 @@ import "jspdf-autotable";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 
-type SortOption = 'name' | 'dateOfProcurement' | 'dateOfInstallation';
+type SortOption = 'name' | 'dateOfProcurement';
 
 export default function ProcuredItemsPage() {
   const { isAdmin } = useAdminAuth();
@@ -37,15 +37,7 @@ export default function ProcuredItemsPage() {
 
   const procuredItemsQuery = useMemoFirebase(() => {
     let q = collection(firestore, 'procured_items');
-    
-    if (sortOption === 'dateOfInstallation') {
-        // To sort by a field that might not exist and keep all documents,
-        // Firestore requires ordering by that field first, then by a guaranteed field like the document ID.
-        return query(q, orderBy(sortOption, sortDirection), orderBy('name', 'asc'));
-    }
-    
     return query(q, orderBy(sortOption, sortDirection));
-
   }, [firestore, sortOption, sortDirection]);
   
   const { data: items, isLoading } = useCollection<ProcuredItem>(procuredItemsQuery);
@@ -117,7 +109,6 @@ export default function ProcuredItemsPage() {
                 <SelectContent>
                     <SelectItem value="name">Name (A to Z)</SelectItem>
                     <SelectItem value="dateOfProcurement">Procurement Date (Old to New)</SelectItem>
-                    <SelectItem value="dateOfInstallation">Installation Date (Old to New)</SelectItem>
                 </SelectContent>
             </Select>
         </div>
