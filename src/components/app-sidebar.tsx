@@ -38,8 +38,11 @@ const navItems = [
   { href: "/requirements", label: "Requirement List", icon: ClipboardList },
   { href: "/schedule", label: "Classes & Meetings", icon: Calendar },
   { href: "/sops", label: "SOPs", icon: BookOpen },
-  { href: "/recycle-bin", label: "Recycle Bin", icon: Recycle },
 ];
+
+const adminNavItems = [
+    { href: "/recycle-bin", label: "Recycle Bin", icon: Recycle },
+]
 
 export default function AppSidebar() {
   const pathname = usePathname();
@@ -88,6 +91,19 @@ export default function AppSidebar() {
                   </SidebarMenuButton>
                 </Link>
               </SidebarMenuItem>
+            ))}
+            {isAdmin && adminNavItems.map((item) => (
+                <SidebarMenuItem key={item.href}>
+                    <Link href={item.href}>
+                    <SidebarMenuButton
+                        isActive={pathname === item.href}
+                        className="w-full justify-start"
+                    >
+                        <item.icon className="size-4" />
+                        <span>{item.label}</span>
+                    </SidebarMenuButton>
+                    </Link>
+                </SidebarMenuItem>
             ))}
             <SidebarMenuItem>
               <a
