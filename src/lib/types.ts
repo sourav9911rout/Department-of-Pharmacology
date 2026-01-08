@@ -9,6 +9,8 @@ export interface ProcuredItem {
   dateOfInstallation: string;
   remarks?: string;
   documents?: Array<{ name: string; link: string }>;
+  deleted?: boolean;
+  deletedAt?: string;
 }
 
 export interface Requirement {
@@ -19,6 +21,8 @@ export interface Requirement {
   type: 'Primary' | 'Secondary' | 'Tertiary';
   remarks?: string;
   documents?: Array<{ name: string; link: string }>;
+  deleted?: boolean;
+  deletedAt?: string;
 }
 
 export interface ClassMeeting {
@@ -28,10 +32,18 @@ export interface ClassMeeting {
   time: string;
   conductedBy: string;
   meetLink: string;
+  deleted?: boolean;
+  deletedAt?: string;
 }
 
 export interface Sop {
   id: string;
   name: string;
   driveLink: string;
+  deleted?: boolean;
+  deletedAt?: string;
 }
+
+export type TrashedItem = (ProcuredItem | Requirement | ClassMeeting | Sop) & {
+  originalCollection: 'procured_items' | 'requirements' | 'class_meetings' | 'sops';
+};

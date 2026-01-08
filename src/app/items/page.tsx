@@ -19,7 +19,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
-import { collection, deleteDoc, doc, query, orderBy, OrderByDirection } from "firebase/firestore";
+import { collection, doc, query, orderBy, OrderByDirection, where, updateDoc } from "firebase/firestore";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -37,7 +37,8 @@ export default function ProcuredItemsPage() {
 
   const procuredItemsQuery = useMemoFirebase(() => {
     let q = collection(firestore, 'procured_items');
-    return query(q, orderBy(sortOption, sortDirection));
+    // Only fetch items that are not soft-deleted
+    return query(q, where('deleted', '!=', true), orderBy(sortOption, sortDirection));
   }, [firestore, sortOption, sortDirection]);
   
   const { data: items, isLoading } = useCollection<ProcuredItem>(procuredItemsQuery);
@@ -45,7 +46,10 @@ export default function ProcuredItemsPage() {
   const handleDelete = () => {
     selectedItems.forEach(itemId => {
       const docRef = doc(firestore, 'procured_items', itemId);
-      deleteDoc(docRef);
+      updateDoc(docRef, {
+        deleted: true,
+        deletedAt: new Date().toISOString()
+      });
     });
     setSelectedItems([]);
     setIsDeleteDialogOpen(false);
@@ -126,7 +130,7 @@ export default function ProcuredItemsPage() {
                 <AlertDialogHeader>
                     <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                     <AlertDialogDescription>
-                        This action cannot be undone. This will permanently delete the selected item(s).
+                        This action will move the selected item(s) to the trash. You can restore them later.
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>

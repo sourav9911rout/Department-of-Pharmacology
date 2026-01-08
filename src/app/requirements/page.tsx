@@ -1,3 +1,4 @@
+
 'use client';
 import PageHeader from "@/components/page-header";
 import RequirementTable from "./components/requirement-table";
@@ -18,7 +19,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
-import { collection, deleteDoc, doc, orderBy, query } from "firebase/firestore";
+import { collection, doc, orderBy, query, updateDoc, where } from "firebase/firestore";
 import { RequirementDialog } from "./components/requirement-dialog";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
@@ -29,7 +30,7 @@ export default function RequirementsPage() {
   const [activeTab, setActiveTab] = useState('primary');
   
   const requirementsCollection = useMemoFirebase(
-    () => query(collection(firestore, 'requirements'), orderBy('name', 'asc')),
+    () => query(collection(firestore, 'requirements'), where('deleted', '!=', true), orderBy('name', 'asc')),
     [firestore]
   );
   const { data: reqs, isLoading } = useCollection<Requirement>(requirementsCollection);
@@ -48,7 +49,10 @@ export default function RequirementsPage() {
   const handleDelete = () => {
     selectedReqs.forEach(reqId => {
       const docRef = doc(firestore, 'requirements', reqId);
-      deleteDoc(docRef);
+      updateDoc(docRef, {
+        deleted: true,
+        deletedAt: new Date().toISOString()
+      });
     });
     setSelectedReqs([]);
     setIsDeleteDialogOpen(false);
@@ -156,7 +160,7 @@ export default function RequirementsPage() {
                 <AlertDialogHeader>
                     <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                     <AlertDialogDescription>
-                        This action cannot be undone. This will permanently delete the selected requirement(s).
+                        This action will move the selected requirement(s) to the trash. You can restore them later.
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>

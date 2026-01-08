@@ -23,6 +23,8 @@ import {
   Unlock,
   PanelLeftClose,
   PanelLeftOpen,
+  Trash2,
+  BookOpen,
 } from "lucide-react";
 import AdminPinDialog from "./admin-pin-dialog";
 import { useAdminAuth } from "@/hooks/use-admin-auth";
@@ -35,6 +37,7 @@ const navItems = [
   { href: "/items", label: "Procured Items", icon: Package },
   { href: "/requirements", label: "Requirement List", icon: ClipboardList },
   { href: "/schedule", label: "Classes & Meetings", icon: Calendar },
+  { href: "/sops", label: "SOPs", icon: BookOpen },
 ];
 
 export default function AppSidebar() {
@@ -85,6 +88,19 @@ export default function AppSidebar() {
                 </Link>
               </SidebarMenuItem>
             ))}
+             {isAdmin && (
+              <SidebarMenuItem>
+                <Link href="/trash">
+                  <SidebarMenuButton
+                    isActive={pathname === "/trash"}
+                    className="w-full justify-start"
+                  >
+                    <Trash2 className="size-4" />
+                    <span>Trash</span>
+                  </SidebarMenuButton>
+                </Link>
+              </SidebarMenuItem>
+            )}
             <SidebarMenuItem>
               <a
                 href="https://pharmacology.vercel.app"

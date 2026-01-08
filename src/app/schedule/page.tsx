@@ -1,3 +1,4 @@
+
 'use client';
 import PageHeader from "@/components/page-header";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,7 +22,7 @@ import {
 import { ScheduleDialog } from "./components/schedule-dialog";
 import { addHours, parse } from 'date-fns';
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
-import { collection, deleteDoc, doc } from "firebase/firestore";
+import { collection, doc, query, where, updateDoc } from "firebase/firestore";
 import { Skeleton } from "@/components/ui/skeleton";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
@@ -30,7 +31,7 @@ export default function SchedulePage() {
   const { isAdmin } = useAdminAuth();
   const firestore = useFirestore();
   const scheduleCollection = useMemoFirebase(
-    () => collection(firestore, 'class_meetings'),
+    () => query(collection(firestore, 'class_meetings'), where('deleted', '!=', true)),
     [firestore]
   );
   const { data: events, isLoading } = useCollection<ClassMeeting>(scheduleCollection);
@@ -63,7 +64,10 @@ export default function SchedulePage() {
   const handleDelete = () => {
     selectedEvents.forEach(eventId => {
       const docRef = doc(firestore, 'class_meetings', eventId);
-      deleteDoc(docRef);
+      updateDoc(docRef, {
+        deleted: true,
+        deletedAt: new Date().toISOString()
+      });
     });
     setSelectedEvents([]);
     setIsDeleteDialogOpen(false);
@@ -234,7 +238,7 @@ export default function SchedulePage() {
                 <AlertDialogHeader>
                     <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                     <AlertDialogDescription>
-                        This action cannot be undone. This will permanently delete the selected event(s).
+                        This action will move the selected event(s) to the trash. You can restore them later.
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
