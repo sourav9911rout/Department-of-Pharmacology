@@ -24,7 +24,7 @@ import jsPDF from "jspdf";
 import "jspdf-autotable";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
-type SortOption = 'name' | 'dateOfProcurement';
+type SortOption = 'name' | 'dateOfProcurement' | 'dateOfInstallation';
 
 export default function ProcuredItemsPage() {
   const { isAdmin } = useAdminAuth();
@@ -82,6 +82,7 @@ export default function ProcuredItemsPage() {
     switch (sortBy) {
         case 'name': return 'Name (A-Z)';
         case 'dateOfProcurement': return 'Procurement Date';
+        case 'dateOfInstallation': return 'Installation Date';
         default: return 'Sort by';
     }
   }
@@ -103,6 +104,9 @@ export default function ProcuredItemsPage() {
             <DropdownMenuContent align="end">
               <DropdownMenuItem onSelect={() => setSortBy('dateOfProcurement')}>
                 Procurement Date (Old to New)
+              </DropdownMenuItem>
+               <DropdownMenuItem onSelect={() => setSortBy('dateOfInstallation')}>
+                Installation Date (Old to New)
               </DropdownMenuItem>
               <DropdownMenuItem onSelect={() => setSortBy('name')}>
                 Name (A to Z)
