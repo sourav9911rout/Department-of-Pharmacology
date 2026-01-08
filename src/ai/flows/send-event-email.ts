@@ -6,7 +6,7 @@
  * - SendEventEmailSchema - The input type for the sendEventEmail function.
  */
 import { ai } from '@/ai/genkit';
-import { z } from 'genkit/zod';
+import { z } from 'zod';
 import { Resend } from 'resend';
 import EventNotificationEmail from '@/components/emails/event-notification-email';
 
