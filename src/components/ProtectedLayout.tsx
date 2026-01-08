@@ -12,12 +12,22 @@ export function ProtectedLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
 
   useEffect(() => {
+    // If we are on the login page, do nothing.
+    if (pathname === '/login') {
+      return;
+    }
+
     if (!isUserLoading && !user) {
       const redirectUrl = `/login?redirect=${encodeURIComponent(pathname)}`;
       router.replace(redirectUrl);
     }
   }, [isUserLoading, user, router, pathname]);
   
+  // If we are on the login page, just render the children.
+  if (pathname === '/login') {
+    return <>{children}</>;
+  }
+
   if (isUserLoading || !user) {
     return (
       <div className="flex h-screen w-full flex-col items-center justify-center bg-background">
