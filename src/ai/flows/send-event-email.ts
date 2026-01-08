@@ -61,7 +61,10 @@ const sendEventEmailFlow = ai.defineFlow(
       });
     } catch (error) {
         console.error("Error sending email with Resend:", error);
-        throw new Error("Failed to send email. Please check your Resend configuration and API key.");
+        if (error instanceof Error) {
+            throw new Error(`Failed to send email: ${error.message}`);
+        }
+        throw new Error("Failed to send email due to an unknown error. Please check your Resend configuration and API key.");
     }
   }
 );
