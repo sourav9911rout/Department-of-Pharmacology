@@ -85,7 +85,7 @@ export function ItemDialog({
       dateOfProcurement: formData.get('dateOfProcurement') as string,
       installationStatus: installationStatus as ProcuredItem['installationStatus'],
       remarks: formData.get('remarks') as string,
-      dateOfInstallation: installationStatus === 'Installed' ? (formData.get('dateOfInstallation') as string) : '',
+      dateOfInstallation: installationStatus === 'Installed' ? (formData.get('dateOfInstallation') as string) : undefined,
       documents: filteredDocuments,
     };
 
