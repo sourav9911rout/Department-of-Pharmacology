@@ -28,6 +28,7 @@ export interface ClassMeeting {
   time: string;
   conductedBy: string;
   meetLink: string;
+  invitees?: string[];
 }
 
 export interface Sop {

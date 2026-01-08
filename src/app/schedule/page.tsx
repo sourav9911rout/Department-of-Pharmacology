@@ -80,10 +80,6 @@ export default function SchedulePage() {
     setIsDeleteDialogOpen(false);
   };
 
-  const handleSaveEvent = (event: Omit<ClassMeeting, 'id'>) => {
-    // This is handled by the dialog now
-  };
-  
   const handleDownloadPdf = () => {
     const doc = new jsPDF();
     doc.text("Upcoming Classes & Meetings", 14, 16);
@@ -143,7 +139,7 @@ export default function SchedulePage() {
                 Delete ({selectedEvents.length})
             </Button>
             )}
-            <ScheduleDialog onSave={handleSaveEvent}>
+            <ScheduleDialog>
                 <Button>
                     <PlusCircle className="mr-2 h-4 w-4" />
                     Add Event
@@ -187,13 +183,18 @@ export default function SchedulePage() {
                         <p className="font-semibold">{format(getEventDateTime(event), 'EEEE, MMMM d, yyyy')}</p>
                         <p className="text-muted-foreground">{format(getEventDateTime(event), 'p')}</p>
                     </CardContent>
-                    <CardFooter>
+                    <CardFooter className="flex gap-2">
                         <Button asChild className="w-full">
                             <a href={event.meetLink} target="_blank" rel="noopener noreferrer">
                                 <Video className="mr-2 h-4 w-4"/>
                                 Join Google Meet
                             </a>
                         </Button>
+                        {isAdmin && (
+                            <ScheduleDialog event={event}>
+                                <Button variant="outline">Edit</Button>
+                            </ScheduleDialog>
+                        )}
                     </CardFooter>
                 </Card>
             )) : <p className="text-muted-foreground col-span-full">No upcoming events scheduled.</p>}
@@ -233,6 +234,13 @@ export default function SchedulePage() {
                          <p className="font-semibold">{format(getEventDateTime(event), 'MMMM d, yyyy')}</p>
                         <p className="text-muted-foreground">{format(getEventDateTime(event), 'p')}</p>
                     </CardContent>
+                     {isAdmin && (
+                        <CardFooter>
+                            <ScheduleDialog event={event}>
+                                <Button variant="outline" className="w-full">Edit</Button>
+                            </ScheduleDialog>
+                        </CardFooter>
+                     )}
                 </Card>
             ))}
              {!isLoading && pastEvents.length === 0 && (

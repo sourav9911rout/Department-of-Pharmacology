@@ -178,6 +178,14 @@
           "type": "string",
           "description": "The Google Meet link for the class/meeting.",
           "format": "uri"
+        },
+        "invitees": {
+          "type": "array",
+          "description": "A list of email addresses of the invitees.",
+          "items": {
+            "type": "string",
+            "format": "email"
+          }
         }
       },
       "required": [
