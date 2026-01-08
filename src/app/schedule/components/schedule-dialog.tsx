@@ -13,13 +13,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAdminAuth } from '@/hooks/use-admin-auth';
 import type { ClassMeeting } from '@/lib/types';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useFirestore } from '@/firebase';
 import { addDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { collection, doc } from 'firebase/firestore';
-import { Textarea } from '@/components/ui/textarea';
 import { sendEventEmail } from '@/ai/flows/send-event-email';
 import { useToast } from '@/hooks/use-toast';
+import { PlusCircle, Trash2 } from 'lucide-react';
 
 export function ScheduleDialog({
   children,
@@ -31,14 +31,40 @@ export function ScheduleDialog({
   const { isAdmin } = useAdminAuth();
   const firestore = useFirestore();
   const [open, setOpen] = useState(false);
+  const [invitees, setInvitees] = useState(['']);
   const isEditing = !!event;
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (open) {
+      setInvitees(event?.invitees && event.invitees.length > 0 ? event.invitees : ['']);
+    }
+  }, [open, event]);
+
+  const handleInviteeChange = (index: number, value: string) => {
+    const newInvitees = [...invitees];
+    newInvitees[index] = value;
+    setInvitees(newInvitees);
+  };
+
+  const addInviteeField = () => {
+    setInvitees([...invitees, '']);
+  };
+
+  const removeInviteeField = (index: number) => {
+    if (invitees.length > 1) {
+      const newInvitees = invitees.filter((_, i) => i !== index);
+      setInvitees(newInvitees);
+    } else {
+      setInvitees(['']);
+    }
+  };
+
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
-    const inviteesString = (formData.get('invitees') as string) || '';
-    const invitees = inviteesString.split(',').map(email => email.trim()).filter(email => email);
+    const validInvitees = invitees.map(email => email.trim()).filter(email => email);
 
     const newEventData = {
       topic: formData.get('topic') as string,
@@ -46,7 +72,7 @@ export function ScheduleDialog({
       time: formData.get('time') as string,
       conductedBy: formData.get('conductedBy') as string,
       meetLink: formData.get('meetLink') as string,
-      invitees: invitees,
+      invitees: validInvitees,
     };
     
     if (isEditing && event) {
@@ -57,7 +83,7 @@ export function ScheduleDialog({
       addDocumentNonBlocking(collectionRef, newEventData);
     }
 
-    if(invitees.length > 0) {
+    if(validInvitees.length > 0) {
       toast({
         title: "Sending Invitations",
         description: "The event invitations are being sent to the invitees.",
@@ -75,7 +101,7 @@ export function ScheduleDialog({
         toast({
           variant: "destructive",
           title: "Email Error",
-          description: "Could not send invitations. Please check the email addresses and your API key.",
+          description: error instanceof Error ? error.message : "Could not send invitations. Please check the email addresses and your API key.",
         });
       }
     }
@@ -129,11 +155,29 @@ export function ScheduleDialog({
               </Label>
               <Input id="meetLink" name="meetLink" defaultValue={event?.meetLink} className="col-span-3" required />
             </div>
-             <div className="grid grid-cols-4 items-start gap-4">
-              <Label htmlFor="invitees" className="text-right mt-2">
-                Invitees
-              </Label>
-              <Textarea id="invitees" name="invitees" defaultValue={event?.invitees?.join(', ')} className="col-span-3" placeholder="Enter comma-separated email addresses" />
+            <div className="grid grid-cols-4 items-start gap-4">
+                <Label htmlFor="invitees" className="text-right mt-2">
+                    Invitees
+                </Label>
+                <div className="col-span-3 space-y-2">
+                    {invitees.map((email, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                        <Input
+                        type="email"
+                        placeholder="email@example.com"
+                        value={email}
+                        onChange={(e) => handleInviteeChange(index, e.target.value)}
+                        className="flex-1"
+                        />
+                        <Button type="button" variant="ghost" size="icon" onClick={() => removeInviteeField(index)}>
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                    </div>
+                    ))}
+                    <Button type="button" variant="outline" size="sm" onClick={addInviteeField}>
+                    <PlusCircle className="mr-2 h-4 w-4" /> Add Invitee
+                    </Button>
+                </div>
             </div>
           </div>
           <DialogFooter>
