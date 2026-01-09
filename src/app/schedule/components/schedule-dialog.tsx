@@ -223,7 +223,7 @@ export function ScheduleDialog({
                 <CommandInput placeholder="Search contacts..." />
                 <CommandList>
                   <CommandEmpty>No contacts found.</CommandEmpty>
-                  <ScrollArea className="h-[150px]">
+                  <ScrollArea className="h-[250px]">
                   <CommandGroup>
                     {contactsLoading ? (
                       <CommandItem>Loading...</CommandItem>
@@ -232,6 +232,12 @@ export function ScheduleDialog({
                         <CommandItem
                           key={contact.id}
                           onSelect={() => handleContactSelect(contact.email, !selectedInvitees.includes(contact.email))}
+                          onKeyDown={(e) => {
+                            if (e.key === ' ' || e.key === 'Enter') {
+                              e.preventDefault();
+                              handleContactSelect(contact.email, !selectedInvitees.includes(contact.email));
+                            }
+                          }}
                           className="flex items-center justify-between"
                         >
                           <div className="flex items-center gap-2">
