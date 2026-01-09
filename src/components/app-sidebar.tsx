@@ -25,7 +25,6 @@ import {
   PanelLeftOpen,
   BookOpen,
   Recycle,
-  Contact,
 } from "lucide-react";
 import AdminPinDialog from "./admin-pin-dialog";
 import { useAdminAuth } from "@/hooks/use-admin-auth";
@@ -43,7 +42,6 @@ const navItems = [
 ];
 
 const adminNavItems = [
-    { href: "/contacts", label: "Contacts", icon: Contact },
     { href: "/recycle-bin", label: "Recycle Bin", icon: Recycle },
 ]
 

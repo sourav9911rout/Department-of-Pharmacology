@@ -37,17 +37,10 @@ export interface Sop {
   driveLink: string;
 }
 
-export interface Contact {
-  id: string;
-  name: string;
-  email: string;
-  designation?: string;
-}
-
 export interface TrashedItemDocument {
     id: string;
     originalId: string;
-    originalCollection: 'procured_items' | 'requirements' | 'class_meetings' | 'sops' | 'contacts';
+    originalCollection: 'procured_items' | 'requirements' | 'class_meetings' | 'sops';
     deletedAt: string; 
-    data: ProcuredItem | Requirement | ClassMeeting | Sop | Contact;
+    data: ProcuredItem | Requirement | ClassMeeting | Sop;
 }

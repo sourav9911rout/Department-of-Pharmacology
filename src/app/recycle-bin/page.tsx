@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/table";
 import { useAdminAuth } from "@/hooks/use-admin-auth";
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
-import type { TrashedItemDocument, ProcuredItem, Requirement, ClassMeeting, Sop, Contact } from "@/lib/types";
+import type { TrashedItemDocument, ProcuredItem, Requirement, ClassMeeting, Sop } from "@/lib/types";
 import { collection, doc, orderBy, query, deleteDoc, setDoc, getDoc } from "firebase/firestore";
 import { useState } from "react";
 import { format, parseISO } from "date-fns";
@@ -89,7 +89,6 @@ export default function RecycleBinPage() {
       case 'requirements': return 'bg-yellow-100 text-yellow-800 border-yellow-300 dark:bg-yellow-900/50 dark:text-yellow-300 dark:border-yellow-700';
       case 'class_meetings': return 'bg-purple-100 text-purple-800 border-purple-300 dark:bg-purple-900/50 dark:text-purple-300 dark:border-purple-700';
       case 'sops': return 'bg-pink-100 text-pink-800 border-pink-300 dark:bg-pink-900/50 dark:text-pink-300 dark:border-pink-700';
-      case 'contacts': return 'bg-teal-100 text-teal-800 border-teal-300 dark:bg-teal-900/50 dark:text-teal-300 dark:border-teal-700';
       default: return 'bg-gray-100 text-gray-800 border-gray-300';
     }
   };
