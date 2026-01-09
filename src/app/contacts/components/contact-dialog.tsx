@@ -22,11 +22,9 @@ import { collection, doc } from 'firebase/firestore';
 export function ContactDialog({
   children,
   contact,
-  onOpenChange,
 }: {
   children: React.ReactNode;
   contact?: Contact;
-  onOpenChange?: (open: boolean) => void;
 }) {
   const { isAdmin } = useAdminAuth();
   const firestore = useFirestore();
@@ -34,12 +32,6 @@ export function ContactDialog({
   const [open, setOpen] = useState(false);
   
   const isEditing = !!contact;
-  
-  useEffect(() => {
-    if (onOpenChange) {
-      onOpenChange(open);
-    }
-  }, [open, onOpenChange]);
 
 
   if (!isAdmin) {
