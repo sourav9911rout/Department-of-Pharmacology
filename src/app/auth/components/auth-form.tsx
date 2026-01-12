@@ -73,8 +73,9 @@ export default function AuthForm() {
           });
         }
       } else {
-        setErrorMessage('This is not a valid sign-in link.');
-        setStatus('error');
+        // This is not a valid sign-in link, but it could be that the page
+        // was just loaded without any parameters. We can just redirect to login.
+        router.push('/login');
       }
     };
 
