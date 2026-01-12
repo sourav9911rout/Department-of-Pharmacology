@@ -1,8 +1,9 @@
+
 'use client';
 
 import { useState } from 'react';
-import { useAuth } from '@/firebase';
-import { sendSignInLinkToEmail } from 'firebase/auth';
+import { useFirestore } from '@/firebase';
+import { addDoc, collection, getDocs, query, where } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -15,39 +16,60 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Mail } from 'lucide-react';
+import { Mail, ShieldCheck } from 'lucide-react';
+import type { AppUser } from '@/lib/types';
 
 export default function LoginPage() {
-  const auth = useAuth();
+  const firestore = useFirestore();
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isLinkSent, setIsLinkSent] = useState(false);
+  const [isRequestSent, setIsRequestSent] = useState(false);
   const { toast } = useToast();
 
-  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleLoginRequest = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (!firestore) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Database service is not available. Please try again later.',
+      });
+      return;
+    }
     setIsLoading(true);
 
-    const actionCodeSettings = {
-      url: `${window.location.origin}/auth`,
-      handleCodeInApp: true,
-    };
-
     try {
-      await sendSignInLinkToEmail(auth, email, actionCodeSettings);
-      window.localStorage.setItem('emailForSignIn', email);
-      setIsLinkSent(true);
-      toast({
-        title: 'Check your email',
-        description: `A sign-in link has been sent to ${email}.`,
-      });
+      const usersRef = collection(firestore, 'users');
+      const q = query(usersRef, where('email', '==', email));
+      const querySnapshot = await getDocs(q);
+
+      if (!querySnapshot.empty) {
+        // User already exists
+        const existingUser = querySnapshot.docs[0].data() as AppUser;
+        toast({
+          title: 'Request Already Submitted',
+          description: `Your access request with email ${email} is currently in '${existingUser.status}' state.`,
+        });
+        setIsRequestSent(true);
+      } else {
+        // New user, add to pending list
+        await addDoc(usersRef, {
+          email: email,
+          status: 'pending',
+        });
+        setIsRequestSent(true);
+        toast({
+          title: 'Request Sent for Approval',
+          description: `Your request has been submitted. You will receive an email once the admin approves it.`,
+        });
+      }
     } catch (error: any) {
-      console.error('Error sending sign-in link:', error);
+      console.error('Error submitting access request:', error);
       toast({
         variant: 'destructive',
         title: 'Uh oh! Something went wrong.',
         description:
-          error.message || 'There was a problem sending the sign-in link.',
+          error.message || 'There was a problem submitting your request.',
       });
     } finally {
       setIsLoading(false);
@@ -56,24 +78,24 @@ export default function LoginPage() {
 
   return (
     <Card className="w-full max-w-sm">
-      <form onSubmit={handleLogin}>
+      <form onSubmit={handleLoginRequest}>
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold">
             Department Portal
           </CardTitle>
           <CardDescription>
-            {isLinkSent
-              ? 'A sign-in link has been sent to your email.'
-              : 'Enter your email to sign in.'}
+            {isRequestSent
+              ? 'Your access request has been submitted.'
+              : 'Enter your email to request access or sign in.'}
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4">
-          {isLinkSent ? (
+          {isRequestSent ? (
             <div className="flex flex-col items-center justify-center text-center p-4 rounded-md bg-muted">
-                <Mail className="w-12 h-12 text-primary mb-4" />
-                <p className="font-semibold">Check your inbox</p>
+                <ShieldCheck className="w-12 h-12 text-primary mb-4" />
+                <p className="font-semibold">Awaiting Approval</p>
                 <p className="text-sm text-muted-foreground mt-1">
-                    Follow the link we sent to <span className="font-medium text-foreground">{email}</span> to complete your sign-in.
+                    Once an administrator approves your request for <span className="font-medium text-foreground">{email}</span>, you will receive a sign-in link via email.
                 </p>
             </div>
           ) : (
@@ -91,10 +113,10 @@ export default function LoginPage() {
             </div>
           )}
         </CardContent>
-        {!isLinkSent && (
+        {!isRequestSent && (
             <CardFooter>
                 <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? 'Sending Link...' : 'Send Sign-In Link'}
+                {isLoading ? 'Submitting...' : 'Request Access'}
                 </Button>
             </CardFooter>
         )}
