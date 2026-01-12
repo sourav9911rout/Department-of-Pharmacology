@@ -13,29 +13,24 @@ import { AdminAuthProvider } from '@/contexts/admin-auth-context';
 
 function ProtectedRoutes({ children }: { children: React.ReactNode }) {
     const { user, isUserLoading } = useUser();
-    const { isAdmin } = useAdminAuth();
+    const { isApproved } = useAdminAuth();
     const pathname = usePathname();
     const router = useRouter();
 
     const isAuthRoute = pathname.startsWith('/login') || pathname.startsWith('/auth');
+    const isHomePage = pathname === '/';
 
     useEffect(() => {
         if (!isUserLoading) {
-            // If user is not logged in and not on an auth route, redirect to login
-            if (!user && !isAuthRoute) {
+            // If user is not approved and not on an auth route or the home page,
+            // redirect them to the login page.
+            if (!isApproved && !isAuthRoute && !isHomePage) {
                 router.push('/login');
             }
-            // If user is logged in, but is not an admin, and tries to access a non-home page,
-            // check their approval status. For this simple case, we just keep them on the home page.
-            // A more complex app would check Firestore for the user's 'approved' status.
-            if(user && !isAdmin && pathname !== '/') {
-                 // A simple check to redirect non-admins from other pages.
-                 // In a real app, you would fetch user's role from Firestore here.
-                 // For now, we assume if they are logged in but not the admin, they are a regular user.
-            }
         }
-    }, [user, isUserLoading, isAdmin, pathname, router, isAuthRoute]);
+    }, [user, isUserLoading, isApproved, pathname, router, isAuthRoute, isHomePage]);
 
+    // Show a loading spinner while we check the user's status, unless it's an auth route.
     if (isUserLoading && !isAuthRoute) {
         return (
             <div className="flex h-screen w-full items-center justify-center">
@@ -44,7 +39,8 @@ function ProtectedRoutes({ children }: { children: React.ReactNode }) {
         );
     }
     
-    if (!user && !isAuthRoute) {
+    // If the routes are protected and the user isn't approved, show a redirecting message.
+    if (!isApproved && !isAuthRoute && !isHomePage) {
          return (
             <div className="flex h-screen w-full items-center justify-center">
                 <p>Redirecting to login...</p>
@@ -53,6 +49,7 @@ function ProtectedRoutes({ children }: { children: React.ReactNode }) {
         );
     }
 
+    // Otherwise, render the requested page content.
     return <>{children}</>;
 }
 
@@ -63,19 +60,19 @@ export default function Entry({ children }: { children: React.ReactNode }) {
 
     return (
         <FirebaseClientProvider>
+          <AdminAuthProvider>
             {isAuthRoute ? (
-                 children
+                children
             ) : (
-                <AdminAuthProvider>
-                    <ProtectedRoutes>
-                        <SidebarProvider>
-                            <AppSidebar />
-                            <SidebarInset className='p-4 md:p-8'>{children}</SidebarInset>
-                            <Toaster />
-                        </SidebarProvider>
-                    </ProtectedRoutes>
-                </AdminAuthProvider>
+                <ProtectedRoutes>
+                    <SidebarProvider>
+                        <AppSidebar />
+                        <SidebarInset className='p-4 md:p-8'>{children}</SidebarInset>
+                        <Toaster />
+                    </SidebarProvider>
+                </ProtectedRoutes>
             )}
+          </AdminAuthProvider>
         </FirebaseClientProvider>
     )
 }

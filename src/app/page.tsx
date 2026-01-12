@@ -10,6 +10,23 @@ import Link from 'next/link';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection } from 'firebase/firestore';
 import type { ProcuredItem, Requirement, ClassMeeting } from '@/lib/types';
+import { useAdminAuth } from '@/hooks/use-admin-auth';
+
+function DashboardCard({ href, children, isProtected = false }: { href: string, children: React.ReactNode, isProtected?: boolean }) {
+    const { isApproved } = useAdminAuth();
+
+    // If the route is protected and the user isn't approved, link to the login page instead.
+    const linkHref = isProtected && !isApproved ? '/login' : href;
+
+    return (
+        <Link href={linkHref} className="block">
+             <Card className="h-full hover:bg-primary/5 hover:border-primary/40 transition-colors">
+                {children}
+            </Card>
+        </Link>
+    )
+}
+
 
 export default function Dashboard() {
   const firestore = useFirestore();
@@ -58,8 +75,7 @@ export default function Dashboard() {
         </div>
       </header>
       <main className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        <Link href="/items" className="block">
-          <Card className="h-full hover:bg-primary/5 hover:border-primary/40 transition-colors">
+        <DashboardCard href="/items" isProtected>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Total Procured Items
@@ -72,10 +88,8 @@ export default function Dashboard() {
                 {installedItems} installed, {pendingInstallationItems} pending
               </p>
             </CardContent>
-          </Card>
-        </Link>
-        <Link href="/requirements" className="block">
-          <Card className="h-full hover:bg-primary/5 hover:border-primary/40 transition-colors">
+        </DashboardCard>
+        <DashboardCard href="/requirements" isProtected>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Pending Requirements
@@ -88,10 +102,8 @@ export default function Dashboard() {
                 {pendingPrimary} Primary, {pendingSecondary} Secondary, {pendingTertiary} Tertiary
               </p>
             </CardContent>
-          </Card>
-        </Link>
-        <Link href="/schedule" className="block">
-          <Card className="h-full hover:bg-primary/5 hover:border-primary/40 transition-colors">
+        </DashboardCard>
+        <DashboardCard href="/schedule" isProtected>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Upcoming Classes/Meetings
@@ -104,8 +116,7 @@ export default function Dashboard() {
                 scheduled in the near future
               </p>
             </CardContent>
-          </Card>
-        </Link>
+        </DashboardCard>
         <Card className="bg-primary/10 border-primary/40 hover:bg-primary/20 transition-colors">
           <Link
             href="https://pharmacology.vercel.app"

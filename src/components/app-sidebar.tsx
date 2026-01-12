@@ -50,7 +50,7 @@ const adminNavItems = [
 ]
 
 function UserStatus() {
-    const { isAdmin } = useAdminAuth();
+    const { isAdmin, isApproved } = useAdminAuth();
     const auth = useAuth();
     const router = useRouter();
     const { user, isUserLoading } = useUser();
@@ -64,12 +64,12 @@ function UserStatus() {
         )
     }
     
-     if (user) {
+     if (user && isApproved) {
         return (
              <div className="flex flex-col gap-2 p-2 w-full text-left">
                 <div className="text-sm font-medium truncate">{user.email}</div>
                 <div className="text-xs text-green-500 font-semibold">
-                    {isAdmin ? 'Admin' : 'User'}
+                    {isAdmin ? 'Admin' : 'Approved'}
                 </div>
                 <Button variant="ghost" size="sm" className="w-full justify-start mt-2" onClick={async () => { await signOut(auth); router.push('/login');}}>
                     <LogOut className="mr-2 h-4 w-4" />
@@ -83,7 +83,7 @@ function UserStatus() {
         <Link href="/login" className="p-2 w-full">
             <Button variant="ghost" className="w-full justify-start">
                 <LogIn className="mr-2 h-4 w-4" />
-                Request Access
+                Request Access / Login
             </Button>
         </Link>
     )
@@ -92,13 +92,15 @@ function UserStatus() {
 
 export default function AppSidebar() {
   const pathname = usePathname();
-  const { isAdmin } = useAdminAuth();
+  const { isAdmin, isApproved } = useAdminAuth();
   const { toggleSidebar, state } = useSidebar();
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
   }, []);
+  
+  const canSeeAllTabs = isClient && isApproved;
 
   return (
     <>
@@ -130,20 +132,23 @@ export default function AppSidebar() {
         </SidebarHeader>
         <SidebarContent className="p-2">
           <SidebarMenu>
-            {navItems.map((item) => (
-              <SidebarMenuItem key={item.href}>
-                <Link href={item.href}>
-                  <SidebarMenuButton
-                    isActive={pathname === item.href}
-                    className="w-full justify-start"
-                  >
-                    <item.icon className="size-4" />
-                    <span>{item.label}</span>
-                  </SidebarMenuButton>
-                </Link>
-              </SidebarMenuItem>
-            ))}
-            {isClient && isAdmin && adminNavItems.map((item) => (
+            {navItems.map((item) => {
+              if (item.href !== '/' && !canSeeAllTabs) return null;
+              return (
+                <SidebarMenuItem key={item.href}>
+                  <Link href={item.href}>
+                    <SidebarMenuButton
+                      isActive={pathname === item.href}
+                      className="w-full justify-start"
+                    >
+                      <item.icon className="size-4" />
+                      <span>{item.label}</span>
+                    </SidebarMenuButton>
+                  </Link>
+                </SidebarMenuItem>
+              )
+            })}
+            {isAdmin && canSeeAllTabs && adminNavItems.map((item) => (
                 <SidebarMenuItem key={item.href}>
                     <Link href={item.href}>
                     <SidebarMenuButton
