@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from '@/hooks/use-toast';
 import { sendLoginCode } from '@/ai/flows/send-login-code';
 import { verifyLoginCode } from '@/ai/flows/verify-login-code';
-import { useAdminAuth } from '@/hooks/use-admin-auth';
+import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -17,7 +17,7 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [codeSent, setCodeSent] = useState(false);
   const { toast } = useToast();
-  const { login } = useAdminAuth();
+  const router = useRouter();
 
   const handleLoginRequest = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,7 +58,8 @@ export default function LoginPage() {
           title: "Login Successful",
           description: "Welcome back!",
         });
-        login(email);
+        // On successful verification, redirect to the auth callback page
+        router.push(`/auth?email=${encodeURIComponent(email)}`);
       } else {
         toast({
           variant: "destructive",

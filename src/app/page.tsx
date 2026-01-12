@@ -11,6 +11,7 @@ import Link from 'next/link';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection } from 'firebase/firestore';
 import type { ProcuredItem, Requirement, ClassMeeting } from '@/lib/types';
+import { useAdminAuth } from '@/hooks/use-admin-auth';
 
 function DashboardCard({ href, children }: { href: string, children: React.ReactNode }) {
     return (
@@ -25,6 +26,7 @@ function DashboardCard({ href, children }: { href: string, children: React.React
 
 export default function Dashboard() {
   const firestore = useFirestore();
+  const { user } = useAdminAuth();
 
   const procuredItemsCollection = useMemoFirebase(
     () => firestore ? collection(firestore, 'procured_items') : null,
@@ -58,6 +60,8 @@ export default function Dashboard() {
   const upcomingClasses = scheduledEvents?.filter(
     (e) => new Date(e.date) >= new Date()
   ).length ?? 0;
+
+  if (!user) return null;
 
   return (
     <div className="flex flex-col gap-8">

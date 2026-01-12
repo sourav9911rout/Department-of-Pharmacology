@@ -17,16 +17,8 @@ const SendLoginCodeSchema = z.object({
 
 export type SendLoginCodeInput = z.infer<typeof SendLoginCodeSchema>;
 
-const sendLoginCodeFlow = ai.defineFlow(
-  {
-    name: 'sendLoginCodeFlow',
-    inputSchema: SendLoginCodeSchema,
-    outputSchema: z.object({
-      success: z.boolean(),
-      message: z.string(),
-    }),
-  },
-  async ({ email }) => {
+export async function sendLoginCode(input: SendLoginCodeInput) {
+    const { email } = input;
     const firestore = getFirestoreServer();
     const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL;
 
@@ -102,9 +94,4 @@ const sendLoginCodeFlow = ai.defineFlow(
             message: 'Your access has been revoked. Please contact the administrator.'
         }
     }
-  }
-);
-
-export async function sendLoginCode(input: SendLoginCodeInput) {
-  return await sendLoginCodeFlow(input);
 }

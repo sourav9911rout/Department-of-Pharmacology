@@ -14,7 +14,6 @@ function AuthComponent() {
     const email = searchParams.get('email');
     if (email) {
       login(email);
-      router.push('/');
     } else {
       // Handle cases where email is missing
       console.error("Email missing in auth callback");

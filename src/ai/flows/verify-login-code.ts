@@ -3,7 +3,6 @@
 /**
  * @fileOverview A flow for verifying a one-time login code.
  */
-import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 import { getFirestoreServer } from '@/firebase/server-init';
 import { collection, query, where, getDocs, Timestamp, deleteDoc, doc } from 'firebase/firestore';
@@ -15,16 +14,8 @@ const VerifyLoginCodeSchema = z.object({
 
 export type VerifyLoginCodeInput = z.infer<typeof VerifyLoginCodeSchema>;
 
-const verifyLoginCodeFlow = ai.defineFlow(
-  {
-    name: 'verifyLoginCodeFlow',
-    inputSchema: VerifyLoginCodeSchema,
-    outputSchema: z.object({
-      success: z.boolean(),
-      message: z.string(),
-    }),
-  },
-  async ({ email, code }) => {
+
+export async function verifyLoginCode({ email, code }: VerifyLoginCodeInput) {
     const firestore = getFirestoreServer();
     const otpsRef = collection(firestore, 'otps');
 
@@ -53,9 +44,4 @@ const verifyLoginCodeFlow = ai.defineFlow(
     await deleteDoc(doc(firestore, 'otps', otpDoc.id));
     
     return { success: true, message: 'Login successful!' };
-  }
-);
-
-export async function verifyLoginCode(input: VerifyLoginCodeInput) {
-  return await verifyLoginCodeFlow(input);
 }

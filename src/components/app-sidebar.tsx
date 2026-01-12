@@ -2,7 +2,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   Sidebar,
   SidebarHeader,
@@ -23,14 +23,13 @@ import {
   PanelLeftOpen,
   BookOpen,
   Recycle,
-  Shield,
   Users,
+  LogOut,
 } from "lucide-react";
 import { useAdminAuth } from "@/hooks/use-admin-auth";
 import { Button } from "./ui/button";
 import { useSidebar } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
-import AdminPinDialog from "./admin-pin-dialog";
 
 const navItems = [
   { href: "/", label: "Home", icon: Home },
@@ -41,13 +40,24 @@ const navItems = [
 ];
 
 const adminNavItems = [
+    { href: "/user-management", label: "User Management", icon: Users },
     { href: "/recycle-bin", label: "Recycle Bin", icon: Recycle },
 ]
 
 export default function AppSidebar() {
   const pathname = usePathname();
-  const { isAdmin } = useAdminAuth();
+  const { user, isAdmin, logout } = useAdminAuth();
   const { toggleSidebar, state } = useSidebar();
+  const router = useRouter();
+
+  const handleLogout = () => {
+    logout();
+    router.push('/login');
+  };
+
+  if (!user) {
+    return null; // Don't render sidebar if not logged in
+  }
 
   return (
     <>
@@ -120,15 +130,18 @@ export default function AppSidebar() {
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarContent>
-        <SidebarFooter className="p-2 border-t">
-          <AdminPinDialog>
-            <Button variant={isAdmin ? "destructive" : "outline"} className="w-full">
-              <Shield className="mr-2 h-4 w-4" />
-              {isAdmin ? "Exit Admin Mode" : "Admin Login"}
+        <SidebarFooter className="p-2 border-t flex-col gap-2">
+            <div className="text-center text-xs p-2 text-muted-foreground">
+                <p className="font-semibold">{user.email}</p>
+                <p>{isAdmin ? 'Administrator' : 'User'}</p>
+            </div>
+            <Button variant="outline" className="w-full" onClick={handleLogout}>
+              <LogOut className="mr-2 h-4 w-4" />
+              Logout
             </Button>
-          </AdminPinDialog>
         </SidebarFooter>
       </Sidebar>
     </>
   );
 }
+
