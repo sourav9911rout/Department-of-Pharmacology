@@ -1,3 +1,4 @@
+
 'use client';
 import {
   Card,
@@ -12,14 +13,9 @@ import { collection } from 'firebase/firestore';
 import type { ProcuredItem, Requirement, ClassMeeting } from '@/lib/types';
 import { useAdminAuth } from '@/hooks/use-admin-auth';
 
-function DashboardCard({ href, children, isProtected = false }: { href: string, children: React.ReactNode, isProtected?: boolean }) {
-    const { isApproved } = useAdminAuth();
-
-    // If the route is protected and the user isn't approved, link to the login page instead.
-    const linkHref = isProtected && !isApproved ? '/login' : href;
-
+function DashboardCard({ href, children }: { href: string, children: React.ReactNode }) {
     return (
-        <Link href={linkHref} className="block">
+        <Link href={href} className="block">
              <Card className="h-full hover:bg-primary/5 hover:border-primary/40 transition-colors">
                 {children}
             </Card>
@@ -32,19 +28,19 @@ export default function Dashboard() {
   const firestore = useFirestore();
 
   const procuredItemsCollection = useMemoFirebase(
-    () => collection(firestore, 'procured_items'),
+    () => firestore ? collection(firestore, 'procured_items') : null,
     [firestore]
   );
   const { data: procuredItems } = useCollection<ProcuredItem>(procuredItemsCollection);
   
   const requirementsCollection = useMemoFirebase(
-    () => collection(firestore, 'requirements'),
+    () => firestore ? collection(firestore, 'requirements') : null,
     [firestore]
   );
   const { data: requirements } = useCollection<Requirement>(requirementsCollection);
 
   const scheduleCollection = useMemoFirebase(
-    () => collection(firestore, 'class_meetings'),
+    () => firestore ? collection(firestore, 'class_meetings') : null,
     [firestore]
   );
   const { data: scheduledEvents } = useCollection<ClassMeeting>(scheduleCollection);
@@ -68,14 +64,14 @@ export default function Dashboard() {
     <div className="flex flex-col gap-8">
       <header className="flex items-center gap-4">
         <div>
-          <h1 className="text-4xl font-headline font-bold tracking-tight">
+          <h1 className="text-4xl font.headline font-bold tracking-tight">
             Department of Pharmacology
           </h1>
           <p className="text-muted-foreground mt-1">AIIMS CAPFIMS</p>
         </div>
       </header>
       <main className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        <DashboardCard href="/items" isProtected>
+        <DashboardCard href="/items">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Total Procured Items
@@ -89,7 +85,7 @@ export default function Dashboard() {
               </p>
             </CardContent>
         </DashboardCard>
-        <DashboardCard href="/requirements" isProtected>
+        <DashboardCard href="/requirements">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Pending Requirements
@@ -103,7 +99,7 @@ export default function Dashboard() {
               </p>
             </CardContent>
         </DashboardCard>
-        <DashboardCard href="/schedule" isProtected>
+        <DashboardCard href="/schedule">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Upcoming Classes/Meetings

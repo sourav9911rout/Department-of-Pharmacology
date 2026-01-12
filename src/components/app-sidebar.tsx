@@ -32,8 +32,6 @@ import { Button } from "./ui/button";
 import { useSidebar } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
-import { useAuth, useUser } from "@/firebase";
-import { signOut } from "firebase/auth";
 import { useRouter } from "next/navigation";
 
 const navItems = [
@@ -50,21 +48,10 @@ const adminNavItems = [
 ]
 
 function UserStatus() {
-    const auth = useAuth();
-    const { user, isUserLoading } = useUser();
-    const { isAdmin, isApproved } = useAdminAuth();
+    const { userEmail, isAdmin, isApproved, logout } = useAdminAuth();
     const router = useRouter();
 
-    if (isUserLoading && !isAdmin) { // In admin dev mode, don't show loading
-        return (
-            <div className="flex flex-col gap-2 p-2 w-full text-left">
-                <div className="text-sm font-medium truncate">Loading...</div>
-                <div className="text-xs text-muted-foreground">Checking status...</div>
-            </div>
-        )
-    }
-
-    if (!isAdmin && (!user || !isApproved)) {
+    if (!isApproved) {
         return (
             <div className="flex flex-col gap-2 p-2 w-full text-left">
                  <div className="text-sm font-medium truncate">Not Logged In</div>
@@ -78,11 +65,11 @@ function UserStatus() {
 
     return (
          <div className="flex flex-col gap-2 p-2 w-full text-left">
-            <div className="text-sm font-medium truncate">sourav.9911rout@gmail.com</div>
-            <div className="text-xs font-semibold text-green-500">
-                Admin
+            <div className="text-sm font-medium truncate">{userEmail}</div>
+            <div className={`text-xs font-semibold ${isAdmin ? 'text-green-500' : 'text-blue-500'}`}>
+                {isAdmin ? 'Admin' : 'Approved User'}
             </div>
-            <Button variant="ghost" size="sm" className="w-full justify-start mt-2" onClick={async () => { if(auth) {await signOut(auth);} router.push('/login');}}>
+            <Button variant="ghost" size="sm" className="w-full justify-start mt-2" onClick={logout}>
                 <LogOut className="mr-2 h-4 w-4" />
                 Logout
             </Button>

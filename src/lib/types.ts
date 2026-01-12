@@ -52,3 +52,10 @@ export interface AppUser {
   email: string;
   status: 'pending' | 'approved' | 'revoked';
 }
+
+export interface Otp {
+  id: string;
+  email: string;
+  code: string;
+  expiresAt: Timestamp;
+}

@@ -1,0 +1,297 @@
+
+{
+  "entities": {
+    "ProcuredItem": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "ProcuredItem",
+      "type": "object",
+      "description": "Represents an item that has been procured by the department.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Procured Item."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the procured item."
+        },
+        "category": {
+          "type": "string",
+          "enum": [
+            "Electronics",
+            "Furniture",
+            "Stationery",
+            "Miscellaneous"
+          ],
+          "description": "The category of the procured item (e.g., 'Electronics', 'Supplies')."
+        },
+        "quantity": {
+          "type": "number",
+          "description": "The quantity of the item currently available."
+        },
+        "dateOfProcurement": {
+          "type": "string",
+          "description": "The date when the item was procured.",
+          "format": "date"
+        },
+        "installationStatus": {
+          "type": "string",
+          "enum": [
+            "Pending",
+            "Installed",
+            "Not Applicable"
+          ],
+          "description": "The installation status of the procured item."
+        },
+        "dateOfInstallation": {
+          "type": "string",
+          "description": "The date when the item was installed.",
+          "format": "date"
+        },
+        "remarks": {
+          "type": "string",
+          "description": "Any additional remarks or notes about the procured item."
+        },
+        "documents": {
+          "type": "array",
+          "description": "A list of related documents, like manuals or receipts.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "The display name of the document."
+              },
+              "link": {
+                "type": "string",
+                "description": "A URL pointing to the document.",
+                "format": "uri"
+              }
+            },
+            "required": ["name", "link"]
+          }
+        }
+      },
+      "required": [
+        "name",
+        "category",
+        "quantity",
+        "dateOfProcurement",
+        "installationStatus"
+      ]
+    },
+    "Requirement": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Requirement",
+      "type": "object",
+      "description": "Represents a requirement for an item, either primary or secondary.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Requirement."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the item required."
+        },
+        "requiredQuantity": {
+          "type": "number",
+          "description": "The quantity of the item required."
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "Pending",
+            "Procured"
+          ],
+          "description": "The status of the requirement (e.g., 'Pending', 'Procured')."
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "Primary",
+            "Secondary",
+            "Tertiary"
+          ],
+          "description": "The type of the requirement (Primary or Secondary)."
+        },
+        "remarks": {
+          "type": "string",
+          "description": "Any additional remarks or notes about the requirement."
+        },
+        "documents": {
+          "type": "array",
+          "description": "A list of related documents, like manuals or receipts.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "The display name of the document."
+              },
+              "link": {
+                "type": "string",
+                "description": "A URL pointing to the document.",
+                "format": "uri"
+              }
+            },
+            "required": ["name", "link"]
+          }
+        }
+      },
+      "required": [
+        "name",
+        "requiredQuantity",
+        "status",
+        "type"
+      ]
+    },
+    "ClassMeeting": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "ClassMeeting",
+      "type": "object",
+      "description": "Represents a scheduled class or meeting.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Class/Meeting."
+        },
+        "topic": {
+          "type": "string",
+          "description": "The topic or name of the class/meeting."
+        },
+        "date": {
+          "type": "string",
+          "description": "The date of the class/meeting.",
+          "format": "date"
+        },
+        "time": {
+          "type": "string",
+          "description": "The time of the class/meeting.",
+          "format": "time"
+        },
+        "conductedBy": {
+          "type": "string",
+          "description": "The name of the person conducting the class/meeting."
+        },
+        "meetLink": {
+          "type": "string",
+          "description": "The Google Meet link for the class/meeting.",
+          "format": "uri"
+        },
+        "invitees": {
+          "type": "array",
+          "description": "A list of email addresses of the invitees.",
+          "items": {
+            "type": "string",
+            "format": "email"
+          }
+        }
+      },
+      "required": [
+        "topic",
+        "date",
+        "time",
+        "conductedBy",
+        "meetLink"
+      ]
+    },
+    "Sop": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Sop",
+      "type": "object",
+      "description": "Represents a Standard Operating Procedure document.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the SOP."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name or title of the SOP."
+        },
+        "driveLink": {
+          "type": "string",
+          "description": "A Google Drive link to the SOP document.",
+          "format": "uri"
+        }
+      },
+      "required": ["name", "driveLink"]
+    },
+    "AppUser": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "AppUser",
+      "type": "object",
+      "description": "Represents an application user with an approval status.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the user (document ID)."
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "The user's email address."
+        },
+        "status": {
+          "type": "string",
+          "enum": ["pending", "approved", "revoked"],
+          "description": "The approval status of the user."
+        }
+      },
+      "required": ["email", "status"]
+    },
+     "Otp": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Otp",
+      "type": "object",
+      "description": "Represents a one-time password for email verification.",
+      "properties": {
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "The user's email address."
+        },
+        "code": {
+          "type": "string",
+          "description": "The 6-digit one-time password."
+        },
+        "expiresAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The expiration date and time of the OTP."
+        }
+      },
+      "required": ["email", "code", "expiresAt"]
+    }
+  },
+  "auth": {
+    "providers": []
+  },
+  "firestore": {
+    "/procured_items/{procuredItemId}": {
+      "schema": { "$ref": "#/entities/ProcuredItem" },
+      "description": "Stores information about procured items. Only admins can create, update, or delete documents in this collection."
+    },
+    "/requirements/{requirementId}": {
+      "schema": { "$ref": "#/entities/Requirement" },
+      "description": "Stores the general requirements. Only admins can create, update, or delete documents in this collection."
+    },
+    "/class_meetings/{classMeetingId}": {
+      "schema": { "$ref": "#/entities/ClassMeeting" },
+      "description": "Stores information about scheduled class meetings. Only admins can create, update, or delete documents in this collection."
+    },
+    "/sops/{sopId}": {
+      "schema": { "$ref": "#/entities/Sop" },
+      "description": "Stores Standard Operating Procedures. Only admins can create, update, or delete documents."
+    },
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/AppUser" },
+      "description": "Stores application user information and their approval status. Admins manage this collection."
+    },
+    "/otps/{otpId}": {
+        "schema": { "$ref": "#/entities/Otp" },
+        "description": "Stores temporary One-Time Passwords for user login. Documents have a TTL policy."
+    }
+  }
+}

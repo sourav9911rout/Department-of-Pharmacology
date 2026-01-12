@@ -1,70 +1,89 @@
 
 "use client";
 
-import { createContext, useState, ReactNode, useEffect } from "react";
-import { useUser, useFirestore, useMemoFirebase } from "@/firebase";
-import { collection, query, where, doc } from 'firebase/firestore';
-import { useCollection, useDoc } from "@/firebase";
-import type { AppUser } from "@/lib/types";
+import { createContext, useState, ReactNode, useEffect, useCallback } from "react";
+import { usePathname, useRouter } from "next/navigation";
 
 interface AdminAuthContextType {
   isAdmin: boolean;
   isApproved: boolean;
+  userEmail: string | null;
+  login: (email: string, isAdmin: boolean) => void;
+  logout: () => void;
 }
 
 export const AdminAuthContext = createContext<AdminAuthContextType>({
   isAdmin: false,
   isApproved: false,
+  userEmail: null,
+  login: () => {},
+  logout: () => {},
 });
 
-const ADMIN_EMAIL = process.env.NEXT_PUBLIC_ADMIN_EMAIL;
+const AUTH_STORAGE_KEY = "pharma_app_auth";
 
 export function AdminAuthProvider({ children }: { children: ReactNode }) {
-  const { user, isUserLoading } = useUser();
-  const firestore = useFirestore();
-  const [isAdmin, setIsAdmin] = useState(true);
-  const [isApproved, setIsApproved] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [isApproved, setIsApproved] = useState(false);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // This effect is now bypassed by the default true state, but kept for easy switching back.
+  const router = useRouter();
+  const pathname = usePathname();
+
   useEffect(() => {
-    // In dev mode, we are always admin.
-    if (process.env.NODE_ENV === 'development') {
-        setIsAdmin(true);
-        setIsApproved(true);
-        return;
+    try {
+      const storedAuth = localStorage.getItem(AUTH_STORAGE_KEY);
+      if (storedAuth) {
+        const { email, admin } = JSON.parse(storedAuth);
+        if (email) {
+          setUserEmail(email);
+          setIsAdmin(admin);
+          setIsApproved(true);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to parse auth from localStorage", error);
+      localStorage.removeItem(AUTH_STORAGE_KEY);
+    }
+    setIsLoading(false);
+  }, []);
+
+  const login = useCallback((email: string, admin: boolean) => {
+    const authData = { email, admin };
+    localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authData));
+    setUserEmail(email);
+    setIsAdmin(admin);
+    setIsApproved(true);
+  }, []);
+
+  const logout = useCallback(() => {
+    localStorage.removeItem(AUTH_STORAGE_KEY);
+    setUserEmail(null);
+    setIsAdmin(false);
+    setIsApproved(false);
+    router.push('/login');
+  }, [router]);
+
+  // Protection logic
+  useEffect(() => {
+    if (isLoading) return;
+
+    const isAuthRoute = pathname.startsWith('/login');
+    
+    if (!isApproved && !isAuthRoute) {
+      router.push('/login');
     }
     
-    if (!isUserLoading && user) {
-      // Check for admin status
-      if (user.email === ADMIN_EMAIL) {
-        setIsAdmin(true);
-        setIsApproved(true);
-      } else {
-        setIsAdmin(false);
-        // Check for approval status from Firestore
-        const userDocRef = doc(firestore, 'users', user.uid);
-        // This is not ideal, but we'll fetch the doc once.
-        // A proper implementation might use useDoc here, but that adds complexity.
-        const getStatus = async () => {
-          const { getDoc } = await import('firebase/firestore');
-          const docSnap = await getDoc(userDocRef);
-          if (docSnap.exists()) {
-            const appUser = docSnap.data() as AppUser;
-            setIsApproved(appUser.status === 'approved');
-          } else {
-            setIsApproved(false);
-          }
-        }
-        getStatus();
-      }
-    } else {
-      setIsAdmin(false);
-      setIsApproved(false);
+    if (isApproved && isAuthRoute) {
+      router.push('/');
     }
-  }, [user, isUserLoading, firestore]);
+
+  }, [isLoading, isApproved, pathname, router]);
+
 
   return (
-    <AdminAuthContext.Provider value={{ isAdmin: true, isApproved: true }}>
+    <AdminAuthContext.Provider value={{ isAdmin, isApproved, userEmail, login, logout }}>
       {children}
     </AdminAuthContext.Provider>
   );

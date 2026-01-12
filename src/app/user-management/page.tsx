@@ -18,58 +18,27 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { updateDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { useAuth } from "@/firebase";
-import { sendSignInLinkToEmail } from "firebase/auth";
 import { useToast } from "@/hooks/use-toast";
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:9002';
 
 export default function UserManagementPage() {
   const { isAdmin } = useAdminAuth();
   const firestore = useFirestore();
-  const auth = useAuth();
   const { toast } = useToast();
 
   const usersQuery = useMemoFirebase(
-    () => query(collection(firestore, 'users'), orderBy('email', 'asc')),
+    () => firestore ? query(collection(firestore, 'users'), orderBy('email', 'asc')) : null,
     [firestore]
   );
   const { data: users, isLoading } = useCollection<AppUser>(usersQuery);
   
   const handleStatusChange = async (user: AppUser, status: AppUser['status']) => {
     const docRef = doc(firestore, 'users', user.id);
-    
-    // Only send email if status is changing to 'approved' for the first time
-    const shouldSendEmail = user.status !== 'approved' && status === 'approved';
-
     updateDocumentNonBlocking(docRef, { status });
-
-    if (shouldSendEmail) {
-       toast({
-        title: "Sending Sign-In Link...",
-        description: `An email is being sent to ${user.email}.`,
-      });
-      try {
-        const actionCodeSettings = {
-          url: `${BASE_URL}/auth`,
-          handleCodeInApp: true,
-        };
-        await sendSignInLinkToEmail(auth, user.email, actionCodeSettings);
-        toast({
-          title: "Sign-In Link Sent!",
-          description: `${user.email} has been approved and notified.`,
-        });
-      } catch (error: any) {
-        console.error("Error sending sign-in link:", error);
-        toast({
-          variant: "destructive",
-          title: "Failed to Send Email",
-          description: error.message || "Could not send the sign-in link.",
-        });
-        // Optional: revert status change if email fails
-        updateDocumentNonBlocking(docRef, { status: user.status });
-      }
-    }
+    toast({
+        title: "User Status Updated",
+        description: `${user.email}'s status has been set to ${status}.`
+    })
   }
 
   const getStatusBadgeClass = (status: AppUser['status']) => {
