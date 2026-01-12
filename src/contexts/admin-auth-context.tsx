@@ -26,6 +26,7 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
   const [isAdmin, setIsAdmin] = useState(false);
   const [isApproved, setIsApproved] = useState(false);
 
+  // Firestore query to get the app-specific user profile
   const userDocRef = useMemoFirebase(
     () => (user ? doc(firestore, 'users', user.uid) : null),
     [user, firestore]
@@ -33,10 +34,31 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
   const { data: appUser } = useDoc<AppUser>(userDocRef);
 
   useEffect(() => {
-    // Always grant admin access for development.
-    setIsAdmin(true);
-    setIsApproved(true);
-  }, []);
+    if (isUserLoading) return;
+
+    if (user) {
+      // Check if the logged-in user is the designated admin
+      const isAdminUser = user.email === ADMIN_EMAIL;
+      if (isAdminUser) {
+        setIsAdmin(true);
+        setIsApproved(true);
+        return; 
+      }
+      
+      // For non-admin users, check their status from the Firestore document
+      if (appUser) {
+        setIsApproved(appUser.status === 'approved');
+      } else {
+        setIsApproved(false);
+      }
+      setIsAdmin(false);
+
+    } else {
+      // No user is logged in
+      setIsAdmin(false);
+      setIsApproved(false);
+    }
+  }, [user, isUserLoading, appUser, firestore]);
 
   return (
     <AdminAuthContext.Provider value={{ isAdmin, isApproved }}>

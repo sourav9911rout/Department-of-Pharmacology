@@ -12,23 +12,22 @@ import { Loader2 } from 'lucide-react';
 import { AdminAuthProvider } from '@/contexts/admin-auth-context';
 
 function ProtectedRoutes({ children }: { children: React.ReactNode }) {
-    const { user, isUserLoading } = useUser();
+    const { isUserLoading } = useUser();
     const { isApproved } = useAdminAuth();
     const pathname = usePathname();
     const router = useRouter();
 
     const isAuthRoute = pathname.startsWith('/login') || pathname.startsWith('/auth');
-    const isHomePage = pathname === '/';
 
     useEffect(() => {
         if (!isUserLoading) {
-            // If user is not approved and not on an auth route or the home page,
+            // If user is not approved and not on an auth route,
             // redirect them to the login page.
-            if (!isApproved && !isAuthRoute && !isHomePage) {
+            if (!isApproved && !isAuthRoute) {
                 router.push('/login');
             }
         }
-    }, [user, isUserLoading, isApproved, pathname, router, isAuthRoute, isHomePage]);
+    }, [isUserLoading, isApproved, pathname, router, isAuthRoute]);
 
     // Show a loading spinner while we check the user's status, unless it's an auth route.
     if (isUserLoading && !isAuthRoute) {
@@ -40,7 +39,7 @@ function ProtectedRoutes({ children }: { children: React.ReactNode }) {
     }
     
     // If the routes are protected and the user isn't approved, show a redirecting message.
-    if (!isApproved && !isAuthRoute && !isHomePage) {
+    if (!isApproved && !isAuthRoute) {
          return (
             <div className="flex h-screen w-full items-center justify-center">
                 <p>Redirecting to login...</p>
@@ -62,7 +61,10 @@ export default function Entry({ children }: { children: React.ReactNode }) {
         <FirebaseClientProvider>
           <AdminAuthProvider>
             {isAuthRoute ? (
-                children
+                // For auth routes, render children directly without the main layout
+                <div className="flex min-h-screen items-center justify-center bg-background">
+                    {children}
+                </div>
             ) : (
                 <ProtectedRoutes>
                     <SidebarProvider>

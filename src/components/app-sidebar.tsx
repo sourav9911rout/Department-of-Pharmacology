@@ -51,16 +51,31 @@ const adminNavItems = [
 
 function UserStatus() {
     const { isAdmin, isApproved } = useAdminAuth();
+    const { user, isUserLoading } = useUser();
     const auth = useAuth();
     const router = useRouter();
 
-    // Always show admin user for development
+    if (isUserLoading) {
+      return null;
+    }
+    
+    if (!user || !isApproved) {
+        return (
+             <Button variant="ghost" size="sm" className="w-full justify-start mt-2" onClick={() => router.push('/login')}>
+                <LogIn className="mr-2 h-4 w-4" />
+                Login
+            </Button>
+        )
+    }
+
     return (
          <div className="flex flex-col gap-2 p-2 w-full text-left">
-            <div className="text-sm font-medium truncate">sourav.9911rout@gmail.com</div>
-            <div className="text-xs text-green-500 font-semibold">
-                Admin
-            </div>
+            <div className="text-sm font-medium truncate">{user.email}</div>
+            {isAdmin && (
+                <div className="text-xs text-green-500 font-semibold">
+                    Admin
+                </div>
+            )}
             <Button variant="ghost" size="sm" className="w-full justify-start mt-2" onClick={async () => { await signOut(auth); router.push('/login');}}>
                 <LogOut className="mr-2 h-4 w-4" />
                 Logout
