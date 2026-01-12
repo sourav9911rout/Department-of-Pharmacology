@@ -71,7 +71,7 @@ const sendLoginCodeFlow = ai.defineFlow(
       const emailHtml = render(LoginCodeEmail({ validationCode }));
 
       const mailOptions = {
-        from: process.env.GMAIL_EMAIL,
+        from: `"Department of Pharmacology" <${process.env.GMAIL_EMAIL}>`,
         to: email,
         subject: `Your Login Code: ${validationCode}`,
         html: emailHtml,
