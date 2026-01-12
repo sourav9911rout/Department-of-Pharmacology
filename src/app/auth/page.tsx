@@ -27,6 +27,11 @@ export default function AuthPage() {
   const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
+    // Return early if auth is not yet initialized
+    if (!auth) {
+      return;
+    }
+      
     const signIn = async () => {
       if (isSignInWithEmailLink(auth, window.location.href)) {
         let email = window.localStorage.getItem('emailForSignIn');
