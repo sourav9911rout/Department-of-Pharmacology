@@ -218,7 +218,7 @@
       },
       "required": ["name", "driveLink"]
     },
-    "AppUser": {
+     "AppUser": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "AppUser",
       "type": "object",
@@ -285,7 +285,7 @@
       "schema": { "$ref": "#/entities/Sop" },
       "description": "Stores Standard Operating Procedures. Only admins can create, update, or delete documents."
     },
-    "/users/{userId}": {
+     "/users/{userId}": {
       "schema": { "$ref": "#/entities/AppUser" },
       "description": "Stores application user information and their approval status. Admins manage this collection."
     },

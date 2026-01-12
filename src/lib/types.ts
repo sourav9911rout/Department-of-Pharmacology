@@ -42,7 +42,13 @@ export interface Sop {
 export interface TrashedItemDocument {
     id: string;
     originalId: string;
-    originalCollection: 'procured_items' | 'requirements' | 'class_meetings' | 'sops';
+    originalCollection: 'procured_items' | 'requirements' | 'class_meetings' | 'sops' | 'users';
     deletedAt: Timestamp; 
-    data: ProcuredItem | Requirement | ClassMeeting | Sop;
+    data: ProcuredItem | Requirement | ClassMeeting | Sop | AppUser;
+}
+
+export interface AppUser {
+  id: string;
+  email: string;
+  status: 'pending' | 'approved' | 'revoked';
 }

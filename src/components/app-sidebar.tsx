@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from "next/link";
@@ -24,13 +23,13 @@ import {
   BookOpen,
   Recycle,
   Users,
-  Shield,
+  LogOut,
 } from "lucide-react";
 import { useAdminAuth } from "@/hooks/use-admin-auth";
-import AdminPinDialog from "./admin-pin-dialog";
 import { Button } from "./ui/button";
 import { useSidebar } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
+import { useRouter } from "next/navigation";
 
 const navItems = [
   { href: "/", label: "Home", icon: Home },
@@ -41,13 +40,24 @@ const navItems = [
 ];
 
 const adminNavItems = [
+    { href: "/user-management", label: "User Management", icon: Users },
     { href: "/recycle-bin", label: "Recycle Bin", icon: Recycle },
 ]
 
 export default function AppSidebar() {
   const pathname = usePathname();
-  const { isAdmin } = useAdminAuth();
+  const { isAdmin, isApproved, userEmail, logout } = useAdminAuth();
   const { toggleSidebar, state } = useSidebar();
+  const router = useRouter();
+
+  if (!isAdmin && !isApproved) {
+    return null;
+  }
+  
+  const handleLogout = () => {
+    logout();
+    router.push('/login');
+  }
 
   return (
     <>
@@ -67,11 +77,16 @@ export default function AppSidebar() {
       </div>
       <Sidebar collapsible="offcanvas" variant="sidebar">
         <SidebarHeader className="p-4 flex justify-between items-center">
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col gap-2">
             <div className="flex flex-col">
               <h2 className="text-lg font.headline font-semibold">Dept. of Pharmacology</h2>
               <p className="text-xs text-muted-foreground">AIIMS CAPFIMS</p>
             </div>
+             {userEmail && (
+              <p className="text-xs font-medium text-muted-foreground bg-primary/10 px-2 py-1 rounded-md border border-primary/20">
+                Logged in as: {userEmail}
+              </p>
+            )}
           </div>
            <Button variant="ghost" size="icon" className="h-8 w-8 hidden md:flex" onClick={() => toggleSidebar()}>
               <PanelLeftClose className="w-5 h-5" />
@@ -121,12 +136,10 @@ export default function AppSidebar() {
           </SidebarMenu>
         </SidebarContent>
         <SidebarFooter className="p-2 border-t">
-          <AdminPinDialog>
-              <Button variant={isAdmin ? "destructive" : "outline"} className="w-full">
-                  <Shield className="mr-2 h-4 w-4" />
-                  {isAdmin ? 'Revoke Admin' : 'Admin Login'}
-              </Button>
-          </AdminPinDialog>
+          <Button variant={"outline"} className="w-full" onClick={handleLogout}>
+              <LogOut className="mr-2 h-4 w-4" />
+              Logout
+          </Button>
         </SidebarFooter>
       </Sidebar>
     </>
