@@ -34,7 +34,7 @@ const sendLoginCodeFlow = ai.defineFlow(
   async ({ email }) => {
     if (!process.env.GMAIL_EMAIL || !process.env.GMAIL_APP_PASSWORD) {
       console.error("Gmail credentials are not set in environment variables.");
-      throw new Error("Email service is not configured.");
+      throw new Error("Email service is not configured. Missing GMAIL_EMAIL or GMAIL_APP_PASSWORD in environment variables.");
     }
     
     const { firestore } = initializeServerFirebase();
@@ -82,7 +82,13 @@ const sendLoginCodeFlow = ai.defineFlow(
             return { canLogin: true, message: 'Login code sent to your email.' };
         } catch (error) {
             console.error("Error sending login code email:", error);
-            throw new Error("Failed to send login code. Please try again later.");
+            if (error instanceof Error) {
+                if ('code' in error && (error as any).code === 'EAUTH') {
+                     throw new Error('Failed to send email: Authentication error. Please double-check GMAIL_EMAIL and GMAIL_APP_PASSWORD in your Vercel environment variables.');
+                }
+                throw new Error(`Failed to send email: ${error.message}`);
+            }
+            throw new Error("Failed to send login code due to an unknown error.");
         }
 
     } else {
