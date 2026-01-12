@@ -20,9 +20,37 @@ export const AdminAuthContext = createContext<AdminAuthContextType>({
 const ADMIN_EMAIL = process.env.NEXT_PUBLIC_ADMIN_EMAIL;
 
 export function AdminAuthProvider({ children }: { children: ReactNode }) {
-  // Development override: always be admin
-  const isAdmin = true;
-  const isApproved = true;
+  const { user, isUserLoading } = useUser();
+  const firestore = useFirestore();
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [isApproved, setIsApproved] = useState(false);
+
+  const userDocRef = useMemoFirebase(
+    () => (firestore && user ? doc(firestore, 'users', user.uid) : null),
+    [firestore, user]
+  );
+  const { data: appUser } = useDoc<AppUser>(userDocRef);
+
+  useEffect(() => {
+    if (!isUserLoading && user) {
+      // Check for admin status
+      if (user.email === ADMIN_EMAIL) {
+        setIsAdmin(true);
+        setIsApproved(true);
+      } else {
+        setIsAdmin(false);
+        // Check for approval status from Firestore
+        if (appUser) {
+          setIsApproved(appUser.status === 'approved');
+        } else {
+          setIsApproved(false);
+        }
+      }
+    } else {
+      setIsAdmin(false);
+      setIsApproved(false);
+    }
+  }, [user, appUser, isUserLoading]);
 
   return (
     <AdminAuthContext.Provider value={{ isAdmin, isApproved }}>

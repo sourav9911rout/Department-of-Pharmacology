@@ -51,13 +51,36 @@ const adminNavItems = [
 
 function UserStatus() {
     const auth = useAuth();
+    const { user, isUserLoading } = useUser();
+    const { isAdmin, isApproved } = useAdminAuth();
     const router = useRouter();
+
+    if (isUserLoading) {
+        return (
+            <div className="flex flex-col gap-2 p-2 w-full text-left">
+                <div className="text-sm font-medium truncate">Loading...</div>
+                <div className="text-xs text-muted-foreground">Checking status...</div>
+            </div>
+        )
+    }
+
+    if (!user || !isApproved) {
+        return (
+            <div className="flex flex-col gap-2 p-2 w-full text-left">
+                 <div className="text-sm font-medium truncate">Not Logged In</div>
+                <Button variant="outline" size="sm" className="w-full justify-start mt-2" onClick={() => router.push('/login')}>
+                    <LogIn className="mr-2 h-4 w-4" />
+                    Login
+                </Button>
+            </div>
+        )
+    }
 
     return (
          <div className="flex flex-col gap-2 p-2 w-full text-left">
-            <div className="text-sm font-medium truncate">sourav.9911rout@gmail.com</div>
-            <div className="text-xs text-green-500 font-semibold">
-                Admin
+            <div className="text-sm font-medium truncate">{user.email}</div>
+            <div className={`text-xs font-semibold ${isAdmin ? 'text-green-500' : 'text-primary'}`}>
+                {isAdmin ? "Admin" : "Approved"}
             </div>
             <Button variant="ghost" size="sm" className="w-full justify-start mt-2" onClick={async () => { if(auth) {await signOut(auth);} router.push('/login');}}>
                 <LogOut className="mr-2 h-4 w-4" />
