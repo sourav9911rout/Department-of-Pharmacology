@@ -26,13 +26,17 @@ import {
   BookOpen,
   Recycle,
   Users,
+  LogOut,
+  LogIn,
 } from "lucide-react";
-import AdminPinDialog from "./admin-pin-dialog";
 import { useAdminAuth } from "@/hooks/use-admin-auth";
 import { Button } from "./ui/button";
 import { useSidebar } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
+import { useAuth, useUser } from "@/firebase";
+import { signOut } from "firebase/auth";
+import { useRouter } from "next/navigation";
 
 const navItems = [
   { href: "/", label: "Home", icon: Home },
@@ -46,6 +50,52 @@ const adminNavItems = [
     { href: "/user-management", label: "User Management", icon: Users },
     { href: "/recycle-bin", label: "Recycle Bin", icon: Recycle },
 ]
+
+function UserStatus() {
+    const { user, isUserLoading } = useUser();
+    const { isAdmin } = useAdminAuth();
+    const auth = useAuth();
+    const router = useRouter();
+
+    const handleLogout = async () => {
+        await signOut(auth);
+        router.push('/');
+    };
+
+    if (isUserLoading) {
+        return (
+            <div className="flex items-center gap-2 p-2">
+                <div className="h-7 w-7 rounded-full bg-muted animate-pulse" />
+                <div className="h-4 w-24 rounded-md bg-muted animate-pulse" />
+            </div>
+        )
+    }
+
+    if (user) {
+        return (
+             <div className="flex flex-col gap-2 p-2 w-full text-left">
+                <div className="text-sm font-medium truncate">{user.email}</div>
+                <div className="text-xs text-muted-foreground">
+                    {isAdmin ? 'Administrator' : 'Approved User'}
+                </div>
+                <Button variant="ghost" size="sm" className="w-full justify-start mt-2" onClick={handleLogout}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Logout
+                </Button>
+            </div>
+        )
+    }
+
+    return (
+        <Link href="/login" className="p-2 w-full">
+            <Button variant="ghost" className="w-full justify-start">
+                <LogIn className="mr-2 h-4 w-4" />
+                Login
+            </Button>
+        </Link>
+    )
+}
+
 
 export default function AppSidebar() {
   const pathname = usePathname();
@@ -127,17 +177,8 @@ export default function AppSidebar() {
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarContent>
-        <SidebarFooter className="p-2">
-          <AdminPinDialog>
-            <Button variant="ghost" className="w-full justify-start gap-2">
-              {isAdmin ? (
-                <Unlock className="size-4 text-accent" />
-              ) : (
-                <Lock className="size-4" />
-              )}
-              <span>{isAdmin ? "Admin Access" : "Admin Login"}</span>
-            </Button>
-          </AdminPinDialog>
+        <SidebarFooter className="p-2 border-t">
+          <UserStatus />
         </SidebarFooter>
       </Sidebar>
     </>
