@@ -15,7 +15,7 @@ import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
 import type { TrashedItemDocument } from "@/lib/types";
 import { collection, doc, orderBy, query, deleteDoc, setDoc, writeBatch } from "firebase/firestore";
 import { useState } from "react";
-import { format, parseISO } from "date-fns";
+import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   AlertDialog,
@@ -31,6 +31,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RotateCcw, Trash2 } from "lucide-react";
+import { Timestamp } from "firebase/firestore";
 
 export default function RecycleBinPage() {
   const { isAdmin } = useAdminAuth();
@@ -192,7 +193,7 @@ export default function RecycleBinPage() {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      {item.deletedAt ? format(parseISO(item.deletedAt as unknown as string), "MMM d, yyyy 'at' p") : 'N/A'}
+                      {item.deletedAt instanceof Timestamp ? format(item.deletedAt.toDate(), "MMM d, yyyy 'at' p") : 'N/A'}
                     </TableCell>
                     <TableCell className="text-right">
                       <Button variant="ghost" size="sm" onClick={() => handleRestore([item])}>
