@@ -33,25 +33,10 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
   const { data: appUser } = useDoc<AppUser>(userDocRef);
 
   useEffect(() => {
-    if (!isUserLoading && user) {
-        // Admin check
-      if (user.email === ADMIN_EMAIL) {
-        setIsAdmin(true);
-        setIsApproved(true); // Admins are always approved
-      } else {
-        setIsAdmin(false);
-        // Regular user approval check
-        if (appUser) {
-            setIsApproved(appUser.status === 'approved');
-        } else {
-            setIsApproved(false);
-        }
-      }
-    } else {
-      setIsAdmin(false);
-      setIsApproved(false);
-    }
-  }, [user, isUserLoading, appUser]);
+    // Always grant admin access for development.
+    setIsAdmin(true);
+    setIsApproved(true);
+  }, []);
 
   return (
     <AdminAuthContext.Provider value={{ isAdmin, isApproved }}>

@@ -53,39 +53,19 @@ function UserStatus() {
     const { isAdmin, isApproved } = useAdminAuth();
     const auth = useAuth();
     const router = useRouter();
-    const { user, isUserLoading } = useUser();
 
-    if (isUserLoading) {
-        return (
-            <div className="flex items-center gap-2 p-2">
-                <div className="h-7 w-7 rounded-full bg-muted animate-pulse" />
-                <div className="h-4 w-24 rounded-md bg-muted animate-pulse" />
-            </div>
-        )
-    }
-    
-     if (user && isApproved) {
-        return (
-             <div className="flex flex-col gap-2 p-2 w-full text-left">
-                <div className="text-sm font-medium truncate">{user.email}</div>
-                <div className="text-xs text-green-500 font-semibold">
-                    {isAdmin ? 'Admin' : 'Approved'}
-                </div>
-                <Button variant="ghost" size="sm" className="w-full justify-start mt-2" onClick={async () => { await signOut(auth); router.push('/login');}}>
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Logout
-                </Button>
-            </div>
-        )
-    }
-
+    // Always show admin user for development
     return (
-        <Link href="/login" className="p-2 w-full">
-            <Button variant="ghost" className="w-full justify-start">
-                <LogIn className="mr-2 h-4 w-4" />
-                Request Access / Login
+         <div className="flex flex-col gap-2 p-2 w-full text-left">
+            <div className="text-sm font-medium truncate">sourav.9911rout@gmail.com</div>
+            <div className="text-xs text-green-500 font-semibold">
+                Admin
+            </div>
+            <Button variant="ghost" size="sm" className="w-full justify-start mt-2" onClick={async () => { await signOut(auth); router.push('/login');}}>
+                <LogOut className="mr-2 h-4 w-4" />
+                Logout
             </Button>
-        </Link>
+        </div>
     )
 }
 
