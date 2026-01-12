@@ -6,7 +6,6 @@
  * - sendEventEmail - A function that handles sending an email for a class/meeting event.
  * - SendEventEmailSchema - The input type for the sendEventEmail function.
  */
-import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 import { transporter } from '@/ai/nodemailer';
 import EventNotificationEmail from '@/components/emails/event-notification-email';
@@ -24,13 +23,7 @@ const SendEventEmailSchema = z.object({
 
 export type SendEventEmailInput = z.infer<typeof SendEventEmailSchema>;
 
-const sendEventEmailFlow = ai.defineFlow(
-  {
-    name: 'sendEventEmailFlow',
-    inputSchema: SendEventEmailSchema,
-    outputSchema: z.void(),
-  },
-  async (input) => {
+export async function sendEventEmail(input: SendEventEmailInput): Promise<void> {
     // 1. Pre-flight check for credentials
     if (!process.env.GMAIL_EMAIL || !process.env.GMAIL_APP_PASSWORD) {
         console.error("GMAIL_EMAIL or GMAIL_APP_PASSWORD environment variables are not set.");
@@ -75,9 +68,4 @@ const sendEventEmailFlow = ai.defineFlow(
         // Fallback for unknown errors
         throw new Error("Failed to send email due to an unknown error. Check the Vercel function logs for more details.");
     }
-  }
-);
-
-export async function sendEventEmail(input: SendEventEmailInput): Promise<void> {
-  await sendEventEmailFlow(input);
 }
