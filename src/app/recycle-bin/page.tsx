@@ -88,6 +88,8 @@ export default function RecycleBinPage() {
     });
     await batch.commit();
     setItemToPermanentlyDelete([]);
+    // also remove from selected items if they are there
+    setSelectedItems(prev => prev.filter(id => !itemToPermanentlyDelete.includes(id)));
   };
   
   const openDeleteDialog = (ids: string[]) => {
@@ -100,6 +102,7 @@ export default function RecycleBinPage() {
       case 'requirements': return 'bg-yellow-100 text-yellow-800 border-yellow-300 dark:bg-yellow-900/50 dark:text-yellow-300 dark:border-yellow-700';
       case 'class_meetings': return 'bg-purple-100 text-purple-800 border-purple-300 dark:bg-purple-900/50 dark:text-purple-300 dark:border-purple-700';
       case 'sops': return 'bg-pink-100 text-pink-800 border-pink-300 dark:bg-pink-900/50 dark:text-pink-300 dark:border-pink-700';
+      case 'users': return 'bg-indigo-100 text-indigo-800 border-indigo-300 dark:bg-indigo-900/50 dark:text-indigo-300 dark:border-indigo-700';
       default: return 'bg-gray-100 text-gray-800 border-gray-300';
     }
   };
@@ -109,7 +112,7 @@ export default function RecycleBinPage() {
 
   const getItemName = (item: TrashedItemDocument) => {
     const data = item.data as any;
-    return data.name || data.topic || 'Unknown';
+    return data.name || data.topic || data.email || 'Unknown';
   }
   
     const formatDeletedAt = (deletedAt: any): string => {
@@ -200,7 +203,7 @@ export default function RecycleBinPage() {
                       {getItemName(item)}
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline" className={cn("font-normal", getCollectionBadgeClass(item.originalCollection))}>
+                      <Badge variant="outline" className={cn("font-normal capitalize", getCollectionBadgeClass(item.originalCollection))}>
                         {item.originalCollection.replace(/_/g, ' ')}
                       </Badge>
                     </TableCell>

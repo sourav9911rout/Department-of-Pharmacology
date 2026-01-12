@@ -1,4 +1,3 @@
-
 'use client';
 import PageHeader from "@/components/page-header";
 import { Button } from "@/components/ui/button";
@@ -87,7 +86,10 @@ export default function UserManagementPage() {
   
   const handleSelectAll = (checked: boolean | 'indeterminate') => {
     if (checked === true) {
-      setSelectedUsers((users || []).map(user => user.id));
+      const allUserIds = (users || [])
+        .filter(user => user.email.toLowerCase() !== process.env.NEXT_PUBLIC_ADMIN_EMAIL?.toLowerCase())
+        .map(user => user.id);
+      setSelectedUsers(allUserIds);
     } else {
       setSelectedUsers([]);
     }
@@ -102,8 +104,10 @@ export default function UserManagementPage() {
     }
   };
 
-  const isAllSelected = (users?.length || 0) > 0 && selectedUsers.length === users?.length;
-  const isSomeSelected = selectedUsers.length > 0 && selectedUsers.length < (users?.length || 0);
+  const filteredUsers = users?.filter(user => user.email.toLowerCase() !== process.env.NEXT_PUBLIC_ADMIN_EMAIL?.toLowerCase());
+  
+  const isAllSelected = (filteredUsers?.length || 0) > 0 && selectedUsers.length === filteredUsers?.length;
+  const isSomeSelected = selectedUsers.length > 0 && selectedUsers.length < (filteredUsers?.length || 0);
   
   if (!isAdmin) {
     return (
@@ -141,7 +145,7 @@ export default function UserManagementPage() {
                 <Checkbox
                   checked={isAllSelected || (isSomeSelected ? 'indeterminate' : false)}
                   onCheckedChange={handleSelectAll}
-                  disabled={!users || users.length === 0}
+                  disabled={!filteredUsers || filteredUsers.length === 0}
                 />
               </TableHead>
               <TableHead>Email</TableHead>
@@ -160,16 +164,18 @@ export default function UserManagementPage() {
             ) : users && users.length > 0 ? (
               users.map((user) => (
                 <TableRow key={user.id}>
-                  <TableCell>
-                    <Checkbox
-                      checked={selectedUsers.includes(user.id)}
-                      onCheckedChange={(checked) => handleSelect(user.id, !!checked)}
-                    />
+                   <TableCell>
+                    {user.email.toLowerCase() !== process.env.NEXT_PUBLIC_ADMIN_EMAIL?.toLowerCase() ? (
+                      <Checkbox
+                        checked={selectedUsers.includes(user.id)}
+                        onCheckedChange={(checked) => handleSelect(user.id, !!checked)}
+                      />
+                    ) : null}
                   </TableCell>
                   <TableCell className="font-medium">{user.email}</TableCell>
                   <TableCell>
                     {user.email.toLowerCase() === process.env.NEXT_PUBLIC_ADMIN_EMAIL?.toLowerCase() ? (
-                        <Badge variant="outline" className="font-normal bg-blue-100 text-blue-800 border-blue-300">Admin</Badge>
+                        <Badge variant="outline" className="font-normal bg-blue-100 text-blue-800 border-blue-300 dark:bg-blue-900/50 dark:text-blue-300 dark:border-blue-700">Admin</Badge>
                     ) : (
                         <Select
                         defaultValue={user.status}
