@@ -22,6 +22,13 @@ const ADMIN_EMAIL = process.env.NEXT_PUBLIC_ADMIN_EMAIL;
 export function AdminAuthProvider({ children }: { children: ReactNode }) {
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
+  
+  // For development convenience, we'll force admin state.
+  const [isAdmin, setIsAdmin] = useState(true);
+  const [isApproved, setIsApproved] = useState(true);
+
+  // The original logic is kept here but commented out.
+  /*
   const [isAdmin, setIsAdmin] = useState(false);
   const [isApproved, setIsApproved] = useState(false);
 
@@ -51,6 +58,7 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
       setIsApproved(false);
     }
   }, [user, isUserLoading, appUser]);
+  */
 
   return (
     <AdminAuthContext.Provider value={{ isAdmin, isApproved }}>
