@@ -53,30 +53,8 @@ function UserStatus() {
     const { isAdmin } = useAdminAuth();
     const auth = useAuth();
     const router = useRouter();
-
-    const handleLogout = async () => {
-        // In a real app, you'd re-enable the full auth flow.
-        // For now, this button doesn't need to do anything in the mocked admin state.
-        alert("Logout functionality is disabled in dev admin mode.");
-    };
-
-    if (isAdmin) {
-        return (
-             <div className="flex flex-col gap-2 p-2 w-full text-left">
-                <div className="text-sm font-medium truncate">sourav.9911rout@gmail.com</div>
-                <div className="text-xs text-green-500 font-semibold">
-                    Admin
-                </div>
-                <Button variant="ghost" size="sm" className="w-full justify-start mt-2" onClick={handleLogout}>
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Logout
-                </Button>
-            </div>
-        )
-    }
-
-    // This part is now effectively unused but kept for completeness
     const { user, isUserLoading } = useUser();
+
     if (isUserLoading) {
         return (
             <div className="flex items-center gap-2 p-2">
@@ -90,8 +68,8 @@ function UserStatus() {
         return (
              <div className="flex flex-col gap-2 p-2 w-full text-left">
                 <div className="text-sm font-medium truncate">{user.email}</div>
-                <div className="text-xs text-muted-foreground">
-                    User
+                <div className="text-xs text-green-500 font-semibold">
+                    {isAdmin ? 'Admin' : 'User'}
                 </div>
                 <Button variant="ghost" size="sm" className="w-full justify-start mt-2" onClick={async () => { await signOut(auth); router.push('/login');}}>
                     <LogOut className="mr-2 h-4 w-4" />

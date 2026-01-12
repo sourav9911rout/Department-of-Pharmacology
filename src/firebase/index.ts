@@ -26,11 +26,6 @@ export function initializeFirebase() {
       firebaseApp = initializeApp(firebaseConfig);
     }
     
-    const auth = getAuth(firebaseApp);
-    // Sign in anonymously by default for read-only access.
-    // This can be replaced with a proper auth provider later.
-    signInAnonymously(auth);
-
     return getSdks(firebaseApp);
   }
 
