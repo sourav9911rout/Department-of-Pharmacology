@@ -33,11 +33,11 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(false);
   }, []);
 
-  const login = (email: string) => {
+  const login = useCallback((email: string) => {
     sessionStorage.setItem('userEmail', email);
     setUser({ email });
     router.push('/');
-  };
+  }, [router]);
 
   const logout = useCallback(() => {
     sessionStorage.removeItem('userEmail');
