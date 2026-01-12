@@ -69,15 +69,6 @@ export function ScheduleDialog({
     const formData = new FormData(e.currentTarget);
     const finalInvitees = invitees.map(i => i.trim()).filter(Boolean);
     
-    if (finalInvitees.length === 0) {
-        toast({
-            variant: "destructive",
-            title: "No Invitees",
-            description: "Please add at least one invitee email.",
-        });
-        return;
-    }
-
     const newEventData = {
       topic: formData.get('topic') as string,
       date: formData.get('date') as string,
@@ -111,7 +102,7 @@ export function ScheduleDialog({
         toast({
           variant: "destructive",
           title: "Email Error",
-          description: error instanceof Error ? error.message : "Could not send invitations. Please check your email settings and credentials in the .env file.",
+          description: error instanceof Error ? error.message : "Could not send invitations. Please check server logs.",
         });
       }
     }
