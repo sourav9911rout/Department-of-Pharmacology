@@ -22,6 +22,8 @@ import { useAuth } from "@/firebase";
 import { sendSignInLinkToEmail } from "firebase/auth";
 import { useToast } from "@/hooks/use-toast";
 
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:9002';
+
 export default function UserManagementPage() {
   const { isAdmin } = useAdminAuth();
   const firestore = useFirestore();
@@ -49,7 +51,7 @@ export default function UserManagementPage() {
       });
       try {
         const actionCodeSettings = {
-          url: `${window.location.origin}/auth`,
+          url: `${BASE_URL}/auth`,
           handleCodeInApp: true,
         };
         await sendSignInLinkToEmail(auth, user.email, actionCodeSettings);

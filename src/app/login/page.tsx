@@ -20,7 +20,9 @@ import { Mail, ShieldCheck } from 'lucide-react';
 import type { AppUser } from '@/lib/types';
 import { sendSignInLinkToEmail } from 'firebase/auth';
 
-const ADMIN_EMAIL = "sourav.9911rout@gmail.com";
+const ADMIN_EMAIL = process.env.NEXT_PUBLIC_ADMIN_EMAIL;
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:9002';
+
 
 export default function LoginPage() {
   const firestore = useFirestore();
@@ -44,7 +46,7 @@ export default function LoginPage() {
     setIsLoading(true);
     
     const actionCodeSettings = {
-        url: `${window.location.origin}/auth`,
+        url: `${BASE_URL}/auth`,
         handleCodeInApp: true,
     };
 
