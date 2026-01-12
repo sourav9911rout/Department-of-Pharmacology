@@ -112,6 +112,18 @@ export default function RecycleBinPage() {
     return data.name || data.topic || 'Unknown';
   }
   
+    const formatDeletedAt = (deletedAt: any): string => {
+        if (!deletedAt) return 'N/A';
+        if (deletedAt instanceof Timestamp) {
+            return format(deletedAt.toDate(), "MMM d, yyyy 'at' p");
+        }
+        if (typeof deletedAt === 'object' && 'seconds' in deletedAt && 'nanoseconds' in deletedAt) {
+            const date = new Date(deletedAt.seconds * 1000 + deletedAt.nanoseconds / 1000000);
+            return format(date, "MMM d, yyyy 'at' p");
+        }
+        return 'Invalid Date';
+  };
+  
   if (!isAdmin) {
     return (
       <div className="flex flex-col gap-8">
@@ -193,7 +205,7 @@ export default function RecycleBinPage() {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      {item.deletedAt instanceof Timestamp ? format(item.deletedAt.toDate(), "MMM d, yyyy 'at' p") : 'N/A'}
+                      {formatDeletedAt(item.deletedAt)}
                     </TableCell>
                     <TableCell className="text-right">
                       <Button variant="ghost" size="sm" onClick={() => handleRestore([item])}>
