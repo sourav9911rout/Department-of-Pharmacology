@@ -6,7 +6,7 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 import { transporter } from '@/ai/nodemailer';
-import { initializeFirebase } from '@/firebase';
+import { initializeServerFirebase } from '@/firebase/server-init';
 import { collection, query, where, getDocs, addDoc, serverTimestamp, Timestamp } from 'firebase/firestore';
 import { render } from '@react-email/components';
 import LoginCodeEmail from '@/components/emails/login-code-email';
@@ -37,7 +37,7 @@ const sendLoginCodeFlow = ai.defineFlow(
       throw new Error("Email service is not configured.");
     }
     
-    const { firestore } = initializeFirebase();
+    const { firestore } = initializeServerFirebase();
     const usersRef = collection(firestore, 'users');
     const q = query(usersRef, where('email', '==', email));
     const querySnapshot = await getDocs(q);
@@ -45,7 +45,11 @@ const sendLoginCodeFlow = ai.defineFlow(
     let userStatus: 'approved' | 'pending' | 'revoked' | 'new' = 'new';
     let canLogin = false;
 
-    if (email.toLowerCase() === ADMIN_EMAIL) {
+    if (!email) {
+      throw new Error("Email is required.");
+    }
+
+    if (email.toLowerCase() === ADMIN_EMAIL?.toLowerCase()) {
         canLogin = true;
     } else if (!querySnapshot.empty) {
         const userDoc = querySnapshot.docs[0].data();
@@ -62,7 +66,7 @@ const sendLoginCodeFlow = ai.defineFlow(
 
         // Store OTP in Firestore
         const otpsRef = collection(firestore, 'otps');
-        await addDoc(otpsRef, { email, code, expiresAt });
+        await addDoc(otpsRef, { email, code, expiresAt, createdAt: serverTimestamp() });
 
         // Send email
         const emailHtml = render(LoginCodeEmail({ validationCode: code }));

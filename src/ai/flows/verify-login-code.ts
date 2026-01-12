@@ -5,9 +5,8 @@
  */
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
-import { initializeFirebase } from '@/firebase';
+import { initializeServerFirebase } from '@/firebase/server-init';
 import { collection, query, where, getDocs, orderBy, limit, deleteDoc } from 'firebase/firestore';
-import { Timestamp } from 'firebase/firestore';
 
 const VerifyLoginCodeSchema = z.object({
   email: z.string().email().describe('The user\'s email address.'),
@@ -32,7 +31,7 @@ const verifyLoginCodeFlow = ai.defineFlow(
     outputSchema: VerifyLoginCodeOutputSchema,
   },
   async ({ email, code }) => {
-    const { firestore } = initializeFirebase();
+    const { firestore } = initializeServerFirebase();
     const otpsRef = collection(firestore, 'otps');
     
     const q = query(
@@ -59,7 +58,10 @@ const verifyLoginCodeFlow = ai.defineFlow(
         return { success: false, isAdmin: false, message: 'Your code has expired. Please request a new one.' };
     }
     
-    const isAdmin = email.toLowerCase() === ADMIN_EMAIL;
+    if (!email) {
+        return { success: false, isAdmin: false, message: 'Email not provided.'}
+    }
+    const isAdmin = email.toLowerCase() === ADMIN_EMAIL?.toLowerCase();
 
     return { success: true, isAdmin, message: 'Login successful!' };
   }
