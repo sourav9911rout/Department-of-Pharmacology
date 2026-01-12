@@ -22,7 +22,7 @@ import {
 import { ScheduleDialog } from "./components/schedule-dialog";
 import { addHours, parse } from 'date-fns';
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
-import { collection, doc, query, deleteDoc, getDoc, setDoc, Timestamp } from "firebase/firestore";
+import { collection, doc, query, deleteDoc, writeBatch, Timestamp } from "firebase/firestore";
 import { Skeleton } from "@/components/ui/skeleton";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
@@ -31,7 +31,7 @@ export default function SchedulePage() {
   const { isAdmin } = useAdminAuth();
   const firestore = useFirestore();
   const scheduleCollection = useMemoFirebase(
-    () => query(collection(firestore, 'class_meetings')),
+    () => firestore ? query(collection(firestore, 'class_meetings')) : null,
     [firestore]
   );
   const { data: events, isLoading } = useCollection<ClassMeeting>(scheduleCollection);
@@ -62,20 +62,25 @@ export default function SchedulePage() {
   };
 
   const handleDelete = async () => {
-    for (const eventId of selectedEvents) {
-      const originalDocRef = doc(firestore, 'class_meetings', eventId);
-      const originalDoc = await getDoc(originalDocRef);
-      if (originalDoc.exists()) {
-        const trashDocRef = doc(collection(firestore, 'trash'));
-        await setDoc(trashDocRef, {
-          originalId: eventId,
-          originalCollection: 'class_meetings',
-          deletedAt: Timestamp.now().toDate().toISOString(),
-          data: originalDoc.data(),
-        });
-        await deleteDoc(originalDocRef);
-      }
-    }
+    if (!firestore) return;
+    const batch = writeBatch(firestore);
+
+    selectedEvents.forEach(eventId => {
+        const originalDocRef = doc(firestore, 'class_meetings', eventId);
+        const eventData = events?.find(e => e.id === eventId);
+        if(eventData) {
+            const trashDocRef = doc(collection(firestore, 'trash'));
+            batch.set(trashDocRef, {
+                originalId: eventId,
+                originalCollection: 'class_meetings',
+                deletedAt: Timestamp.now(),
+                data: eventData,
+            });
+            batch.delete(originalDocRef);
+        }
+    });
+
+    await batch.commit();
     setSelectedEvents([]);
     setIsDeleteDialogOpen(false);
   };

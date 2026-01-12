@@ -19,11 +19,12 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
-import { collection, doc, query, orderBy, OrderByDirection, deleteDoc, getDoc, setDoc, Timestamp } from "firebase/firestore";
+import { collection, doc, query, orderBy, OrderByDirection, deleteDoc, writeBatch } from "firebase/firestore";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { Timestamp } from "firebase/firestore";
 
 type SortOption = 'name' | 'dateOfProcurement';
 
@@ -36,26 +37,34 @@ export default function ProcuredItemsPage() {
   const [sortDirection, setSortDirection] = useState<OrderByDirection>('asc');
 
   const procuredItemsQuery = useMemoFirebase(() => {
+    if (!firestore) return null;
     return query(collection(firestore, 'procured_items'), orderBy(sortOption, sortDirection));
   }, [firestore, sortOption, sortDirection]);
   
   const { data: items, isLoading } = useCollection<ProcuredItem>(procuredItemsQuery);
 
   const handleDelete = async () => {
-    for (const itemId of selectedItems) {
+    if (!firestore) return;
+    const batch = writeBatch(firestore);
+    
+    selectedItems.forEach(itemId => {
       const originalDocRef = doc(firestore, 'procured_items', itemId);
-      const originalDoc = await getDoc(originalDocRef);
-      if (originalDoc.exists()) {
-        const trashDocRef = doc(collection(firestore, 'trash'));
-        await setDoc(trashDocRef, {
+      const trashDocRef = doc(collection(firestore, 'trash'));
+      
+      const itemData = items?.find(i => i.id === itemId);
+      
+      if (itemData) {
+        batch.set(trashDocRef, {
           originalId: itemId,
           originalCollection: 'procured_items',
-          deletedAt: Timestamp.now().toDate().toISOString(),
-          data: originalDoc.data(),
+          deletedAt: Timestamp.now(),
+          data: itemData,
         });
-        await deleteDoc(originalDocRef);
+        batch.delete(originalDocRef);
       }
-    }
+    });
+
+    await batch.commit();
     setSelectedItems([]);
     setIsDeleteDialogOpen(false);
   };

@@ -219,27 +219,27 @@
       "required": ["name", "driveLink"]
     },
     "AppUser": {
-        "$schema": "http://json-schema.org/draft-07/schema#",
-        "title": "AppUser",
-        "type": "object",
-        "description": "Represents an application user with an approval status.",
-        "properties": {
-            "id": {
-                "type": "string",
-                "description": "Unique identifier for the user (matches Firebase Auth UID)."
-            },
-            "email": {
-                "type": "string",
-                "format": "email",
-                "description": "The user's email address."
-            },
-            "status": {
-                "type": "string",
-                "enum": ["pending", "approved", "revoked"],
-                "description": "The approval status of the user."
-            }
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "AppUser",
+      "type": "object",
+      "description": "Represents an application user with an approval status.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the user (matches Firebase Auth UID)."
         },
-        "required": ["email", "status"]
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "The user's email address."
+        },
+        "status": {
+          "type": "string",
+          "enum": ["pending", "approved", "revoked"],
+          "description": "The approval status of the user."
+        }
+      },
+      "required": ["email", "status"]
     }
   },
   "auth": {
@@ -248,103 +248,25 @@
     ]
   },
   "firestore": {
-    "structure": [
-      {
-        "path": "/procured_items/{procuredItemId}",
-        "definition": {
-          "entityName": "ProcuredItem",
-          "schema": {
-            "$ref": "#/backend/entities/ProcuredItem"
-          },
-          "description": "Stores information about procured items. Only admins can create, update, or delete documents in this collection.",
-          "params": [
-            {
-              "name": "procuredItemId",
-              "description": "The unique identifier for the procured item."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/requirements/{requirementId}",
-        "definition": {
-          "entityName": "Requirement",
-          "schema": {
-            "$ref": "#/backend/entities/Requirement"
-          },
-          "description": "Stores the general requirements. Only admins can create, update, or delete documents in this collection.",
-          "params": [
-            {
-              "name": "requirementId",
-              "description": "The unique identifier for the requirement item."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/class_meetings/{classMeetingId}",
-        "definition": {
-          "entityName": "ClassMeeting",
-          "schema": {
-            "$ref": "#/backend/entities/ClassMeeting"
-          },
-          "description": "Stores information about scheduled class meetings. Only admins can create, update, or delete documents in this collection.",
-          "params": [
-            {
-              "name": "classMeetingId",
-              "description": "The unique identifier for the class meeting."
-            }
-          ]
-        }
-      },
-       {
-        "path": "/sops/{sopId}",
-        "definition": {
-          "entityName": "Sop",
-          "schema": {
-            "$ref": "#/backend/entities/Sop"
-          },
-          "description": "Stores Standard Operating Procedures. Only admins can create, update, or delete documents.",
-          "params": [
-            {
-              "name": "sopId",
-              "description": "The unique identifier for the SOP."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/roles_admin/{userId}",
-        "definition": {
-          "entityName": "user",
-          "schema": {
-            "$ref": "#/backend/entities/user"
-          },
-          "description": "Indicates admin privileges. Document existence grants admin rights. Supports authorization independence.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier for the user."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/users/{userId}",
-        "definition": {
-          "entityName": "AppUser",
-          "schema": {
-            "$ref": "#/backend/entities/AppUser"
-          },
-          "description": "Stores application user information and their approval status. Admins manage this collection.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier for the user (matches Firebase Auth UID)."
-            }
-          ]
-        }
-      }
-    ]
+    "/procured_items/{procuredItemId}": {
+      "schema": { "$ref": "#/entities/ProcuredItem" },
+      "description": "Stores information about procured items. Only admins can create, update, or delete documents in this collection."
+    },
+    "/requirements/{requirementId}": {
+      "schema": { "$ref": "#/entities/Requirement" },
+      "description": "Stores the general requirements. Only admins can create, update, or delete documents in this collection."
+    },
+    "/class_meetings/{classMeetingId}": {
+      "schema": { "$ref": "#/entities/ClassMeeting" },
+      "description": "Stores information about scheduled class meetings. Only admins can create, update, or delete documents in this collection."
+    },
+    "/sops/{sopId}": {
+      "schema": { "$ref": "#/entities/Sop" },
+      "description": "Stores Standard Operating Procedures. Only admins can create, update, or delete documents."
+    },
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/AppUser" },
+      "description": "Stores application user information and their approval status. Admins manage this collection."
+    }
   }
 }

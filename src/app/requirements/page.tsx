@@ -19,7 +19,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
-import { collection, doc, orderBy, query, deleteDoc, getDoc, setDoc, Timestamp } from "firebase/firestore";
+import { collection, doc, orderBy, query, deleteDoc, writeBatch, Timestamp } from "firebase/firestore";
 import { RequirementDialog } from "./components/requirement-dialog";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
@@ -30,7 +30,7 @@ export default function RequirementsPage() {
   const [activeTab, setActiveTab] = useState('primary');
   
   const requirementsCollection = useMemoFirebase(
-    () => query(collection(firestore, 'requirements'), orderBy('name', 'asc')),
+    () => firestore ? query(collection(firestore, 'requirements'), orderBy('name', 'asc')) : null,
     [firestore]
   );
   const { data: reqs, isLoading } = useCollection<Requirement>(requirementsCollection);
@@ -47,25 +47,30 @@ export default function RequirementsPage() {
   ) || [];
   
   const handleDelete = async () => {
-    for (const reqId of selectedReqs) {
+    if (!firestore) return;
+    const batch = writeBatch(firestore);
+
+    selectedReqs.forEach(reqId => {
       const originalDocRef = doc(firestore, 'requirements', reqId);
-      const originalDoc = await getDoc(originalDocRef);
-      if (originalDoc.exists()) {
+      const reqData = reqs?.find(r => r.id === reqId);
+      
+      if (reqData) {
         const trashDocRef = doc(collection(firestore, 'trash'));
-        await setDoc(trashDocRef, {
+        batch.set(trashDocRef, {
           originalId: reqId,
           originalCollection: 'requirements',
-          deletedAt: Timestamp.now().toDate().toISOString(),
-          data: originalDoc.data(),
+          deletedAt: Timestamp.now(),
+          data: reqData,
         });
-        await deleteDoc(originalDocRef);
+        batch.delete(originalDocRef);
       }
-    }
+    });
+
+    await batch.commit();
     setSelectedReqs([]);
     setIsDeleteDialogOpen(false);
   };
   
-  // Combine selection from all tabs
   const handleSelectionChange = (ids: string[], type: 'Primary' | 'Secondary' | 'Tertiary') => {
     const otherTypeIds = selectedReqs.filter(id => reqs?.find(r => r.id === id)?.type !== type);
     setSelectedReqs([...otherTypeIds, ...ids]);

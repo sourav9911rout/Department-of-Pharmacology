@@ -7,7 +7,7 @@ import { useAdminAuth } from "@/hooks/use-admin-auth";
 import { BookOpen, PlusCircle, Link as LinkIcon, Trash2 } from "lucide-react";
 import { SopDialog } from "./components/sop-dialog";
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
-import { collection, doc, query, deleteDoc, getDoc, setDoc, Timestamp } from "firebase/firestore";
+import { collection, doc, query, deleteDoc, writeBatch, Timestamp } from "firebase/firestore";
 import type { Sop } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
@@ -22,7 +22,7 @@ export default function SopsPage() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   const sopsCollection = useMemoFirebase(
-    () => query(collection(firestore, 'sops')),
+    () => firestore ? query(collection(firestore, 'sops')) : null,
     [firestore]
   );
   const { data: sops, isLoading } = useCollection<Sop>(sopsCollection);
@@ -34,20 +34,26 @@ export default function SopsPage() {
   };
   
   const handleDelete = async () => {
-    for (const sopId of selectedSops) {
+    if (!firestore) return;
+    const batch = writeBatch(firestore);
+    
+    selectedSops.forEach(sopId => {
       const originalDocRef = doc(firestore, 'sops', sopId);
-      const originalDoc = await getDoc(originalDocRef);
-      if (originalDoc.exists()) {
+      const sopData = sops?.find(s => s.id === sopId);
+
+      if(sopData) {
         const trashDocRef = doc(collection(firestore, 'trash'));
-        await setDoc(trashDocRef, {
-          originalId: sopId,
-          originalCollection: 'sops',
-          deletedAt: Timestamp.now().toDate().toISOString(),
-          data: originalDoc.data(),
+        batch.set(trashDocRef, {
+            originalId: sopId,
+            originalCollection: 'sops',
+            deletedAt: Timestamp.now(),
+            data: sopData,
         });
-        await deleteDoc(originalDocRef);
+        batch.delete(originalDocRef);
       }
-    }
+    });
+
+    await batch.commit();
     setSelectedSops([]);
     setIsDeleteDialogOpen(false);
   };

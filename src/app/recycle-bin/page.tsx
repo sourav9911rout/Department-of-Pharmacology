@@ -12,8 +12,8 @@ import {
 } from "@/components/ui/table";
 import { useAdminAuth } from "@/hooks/use-admin-auth";
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
-import type { TrashedItemDocument, ProcuredItem, Requirement, ClassMeeting, Sop } from "@/lib/types";
-import { collection, doc, orderBy, query, deleteDoc, setDoc, getDoc } from "firebase/firestore";
+import type { TrashedItemDocument } from "@/lib/types";
+import { collection, doc, orderBy, query, deleteDoc, setDoc, writeBatch } from "firebase/firestore";
 import { useState } from "react";
 import { format, parseISO } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -36,10 +36,10 @@ export default function RecycleBinPage() {
   const { isAdmin } = useAdminAuth();
   const firestore = useFirestore();
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
-  const [itemToPermanentlyDelete, setItemToPermanentlyDelete] = useState<string | null>(null);
+  const [itemToPermanentlyDelete, setItemToPermanentlyDelete] = useState<string[]>([]);
 
   const trashQuery = useMemoFirebase(
-    () => query(collection(firestore, 'trash'), orderBy('deletedAt', 'desc')),
+    () => firestore ? query(collection(firestore, 'trash'), orderBy('deletedAt', 'desc')) : null,
     [firestore]
   );
   const { data: trashedItems, isLoading } = useCollection<TrashedItemDocument>(trashQuery);
@@ -60,28 +60,38 @@ export default function RecycleBinPage() {
     }
   };
 
-  const handleRestore = async (item: TrashedItemDocument) => {
-    const originalDocRef = doc(firestore, item.originalCollection, item.originalId);
-    await setDoc(originalDocRef, item.data);
-    const trashDocRef = doc(firestore, 'trash', item.id);
-    await deleteDoc(trashDocRef);
+  const handleRestore = async (itemsToRestore: TrashedItemDocument[]) => {
+    if (!firestore) return;
+    const batch = writeBatch(firestore);
+    itemsToRestore.forEach(item => {
+        const originalDocRef = doc(firestore, item.originalCollection, item.originalId);
+        batch.set(originalDocRef, item.data);
+        const trashDocRef = doc(firestore, 'trash', item.id);
+        batch.delete(trashDocRef);
+    });
+    await batch.commit();
+    setSelectedItems([]);
   };
   
   const handleBulkRestore = async () => {
-    const itemsToRestore = trashedItems?.filter(item => selectedItems.includes(item.id)) || [];
-    for (const item of itemsToRestore) {
-        await handleRestore(item);
-    }
-    setSelectedItems([]);
+    const items = trashedItems?.filter(item => selectedItems.includes(item.id)) || [];
+    await handleRestore(items);
   };
 
   const handlePermanentDelete = async () => {
-    if (itemToPermanentlyDelete) {
-      const trashDocRef = doc(firestore, 'trash', itemToPermanentlyDelete);
-      await deleteDoc(trashDocRef);
-      setItemToPermanentlyDelete(null);
-    }
+    if (!firestore || itemToPermanentlyDelete.length === 0) return;
+    const batch = writeBatch(firestore);
+    itemToPermanentlyDelete.forEach(id => {
+        const trashDocRef = doc(firestore, 'trash', id);
+        batch.delete(trashDocRef);
+    });
+    await batch.commit();
+    setItemToPermanentlyDelete([]);
   };
+  
+  const openDeleteDialog = (ids: string[]) => {
+    setItemToPermanentlyDelete(ids);
+  }
 
   const getCollectionBadgeClass = (collectionName: string) => {
     switch (collectionName) {
@@ -101,7 +111,6 @@ export default function RecycleBinPage() {
     return data.name || data.topic || 'Unknown';
   }
 
-
   return (
     <div className="flex flex-col gap-8">
       <PageHeader
@@ -109,10 +118,16 @@ export default function RecycleBinPage() {
         description="View and manage deleted items."
       >
         {isAdmin && selectedItems.length > 0 && (
-            <Button onClick={handleBulkRestore}>
-                <RotateCcw className="mr-2 h-4 w-4" />
-                Restore ({selectedItems.length})
-            </Button>
+            <div className="flex items-center gap-2">
+                <Button onClick={handleBulkRestore}>
+                    <RotateCcw className="mr-2 h-4 w-4" />
+                    Restore ({selectedItems.length})
+                </Button>
+                <Button variant="destructive" onClick={() => openDeleteDialog(selectedItems)}>
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Delete Forever ({selectedItems.length})
+                </Button>
+            </div>
         )}
       </PageHeader>
       
@@ -165,13 +180,13 @@ export default function RecycleBinPage() {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      {format(parseISO(item.deletedAt), "MMM d, yyyy 'at' p")}
+                      {item.deletedAt ? format(parseISO(item.deletedAt as unknown as string), "MMM d, yyyy 'at' p") : 'N/A'}
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button variant="ghost" size="sm" onClick={() => handleRestore(item)}>
+                      <Button variant="ghost" size="sm" onClick={() => handleRestore([item])}>
                         <RotateCcw className="mr-2 h-4 w-4"/> Restore
                       </Button>
-                      <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive" onClick={() => setItemToPermanentlyDelete(item.id)}>
+                      <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive" onClick={() => openDeleteDialog([item.id])}>
                         <Trash2 className="mr-2 h-4 w-4"/> Delete Permanently
                       </Button>
                     </TableCell>
@@ -189,12 +204,12 @@ export default function RecycleBinPage() {
         </div>
       )}
 
-      <AlertDialog open={!!itemToPermanentlyDelete} onOpenChange={(open) => !open && setItemToPermanentlyDelete(null)}>
+      <AlertDialog open={itemToPermanentlyDelete.length > 0} onOpenChange={(open) => !open && setItemToPermanentlyDelete([])}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the item from the database.
+              This action cannot be undone. This will permanently delete the item(s) from the database.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
