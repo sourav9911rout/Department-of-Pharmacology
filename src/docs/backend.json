@@ -217,52 +217,6 @@
         }
       },
       "required": ["name", "driveLink"]
-    },
-     "AppUser": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "AppUser",
-      "type": "object",
-      "description": "Represents an application user with an approval status.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the user (document ID)."
-        },
-        "email": {
-          "type": "string",
-          "format": "email",
-          "description": "The user's email address."
-        },
-        "status": {
-          "type": "string",
-          "enum": ["pending", "approved", "revoked"],
-          "description": "The approval status of the user."
-        }
-      },
-      "required": ["email", "status"]
-    },
-     "Otp": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Otp",
-      "type": "object",
-      "description": "Represents a one-time password for email verification.",
-      "properties": {
-        "email": {
-          "type": "string",
-          "format": "email",
-          "description": "The user's email address."
-        },
-        "code": {
-          "type": "string",
-          "description": "The 6-digit one-time password."
-        },
-        "expiresAt": {
-          "type": "string",
-          "format": "date-time",
-          "description": "The expiration date and time of the OTP."
-        }
-      },
-      "required": ["email", "code", "expiresAt"]
     }
   },
   "auth": {
@@ -284,14 +238,6 @@
     "/sops/{sopId}": {
       "schema": { "$ref": "#/entities/Sop" },
       "description": "Stores Standard Operating Procedures. Only admins can create, update, or delete documents."
-    },
-     "/users/{userId}": {
-      "schema": { "$ref": "#/entities/AppUser" },
-      "description": "Stores application user information and their approval status. Admins manage this collection."
-    },
-    "/otps/{otpId}": {
-        "schema": { "$ref": "#/entities/Otp" },
-        "description": "Stores temporary One-Time Passwords for user login. Documents have a TTL policy."
     }
   }
 }
