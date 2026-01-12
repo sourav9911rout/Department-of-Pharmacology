@@ -25,6 +25,7 @@ import {
   PanelLeftOpen,
   BookOpen,
   Recycle,
+  Users,
 } from "lucide-react";
 import AdminPinDialog from "./admin-pin-dialog";
 import { useAdminAuth } from "@/hooks/use-admin-auth";
