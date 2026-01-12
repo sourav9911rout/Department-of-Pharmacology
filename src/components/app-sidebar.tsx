@@ -24,6 +24,7 @@ import {
   BookOpen,
   Recycle,
   Shield,
+  Users,
 } from "lucide-react";
 import { useAdminAuth } from "@/hooks/use-admin-auth";
 import { Button } from "./ui/button";
