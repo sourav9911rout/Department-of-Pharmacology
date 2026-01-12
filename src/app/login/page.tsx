@@ -42,14 +42,15 @@ export default function LoginPage() {
       return;
     }
     setIsLoading(true);
+    
+    const actionCodeSettings = {
+        url: `${window.location.origin}/auth`,
+        handleCodeInApp: true,
+    };
 
     if (email.toLowerCase() === ADMIN_EMAIL) {
       // Admin login flow
       try {
-        const actionCodeSettings = {
-            url: `${window.location.origin}/auth`,
-            handleCodeInApp: true,
-        };
         window.localStorage.setItem('emailForSignIn', email);
         await sendSignInLinkToEmail(auth, email, actionCodeSettings);
         setIsAdminLogin(true);
@@ -76,12 +77,24 @@ export default function LoginPage() {
 
         if (!querySnapshot.empty) {
           const existingUser = querySnapshot.docs[0].data() as AppUser;
-          toast({
-            title: 'Request Already Submitted',
-            description: `Your access request is currently in '${existingUser.status}' state.`,
-          });
-          setIsRequestSent(true);
+          if (existingUser.status === 'approved') {
+            // If user is already approved, send them a sign-in link directly
+            window.localStorage.setItem('emailForSignIn', email);
+            await sendSignInLinkToEmail(auth, email, actionCodeSettings);
+            toast({
+                title: 'Sign-In Link Sent',
+                description: 'You are an approved user. Please check your email for the sign-in link.',
+            });
+          } else {
+            // If user exists but is not approved
+            toast({
+                title: 'Request Already Submitted',
+                description: `Your access request is currently in '${existingUser.status}' state.`,
+            });
+            setIsRequestSent(true);
+          }
         } else {
+          // If user does not exist, create a new request
           await addDoc(usersRef, {
             email: email,
             status: 'pending',
