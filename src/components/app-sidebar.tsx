@@ -43,6 +43,7 @@ const navItems = [
 ];
 
 const adminNavItems = [
+    { href: "/user-management", label: "User Management", icon: Users },
     { href: "/recycle-bin", label: "Recycle Bin", icon: Recycle },
 ]
 

@@ -44,3 +44,9 @@ export interface TrashedItemDocument {
     deletedAt: string; 
     data: ProcuredItem | Requirement | ClassMeeting | Sop;
 }
+
+export interface AppUser {
+  id: string;
+  email: string;
+  status: 'pending' | 'approved' | 'revoked';
+}

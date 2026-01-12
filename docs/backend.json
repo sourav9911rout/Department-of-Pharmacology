@@ -217,6 +217,29 @@
         }
       },
       "required": ["name", "driveLink"]
+    },
+    "AppUser": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "title": "AppUser",
+        "type": "object",
+        "description": "Represents an application user with an approval status.",
+        "properties": {
+            "id": {
+                "type": "string",
+                "description": "Unique identifier for the user (matches Firebase Auth UID)."
+            },
+            "email": {
+                "type": "string",
+                "format": "email",
+                "description": "The user's email address."
+            },
+            "status": {
+                "type": "string",
+                "enum": ["pending", "approved", "revoked"],
+                "description": "The approval status of the user."
+            }
+        },
+        "required": ["email", "status"]
     }
   },
   "auth": {
@@ -302,6 +325,22 @@
             {
               "name": "userId",
               "description": "The unique identifier for the user."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "AppUser",
+          "schema": {
+            "$ref": "#/backend/entities/AppUser"
+          },
+          "description": "Stores application user information and their approval status. Admins manage this collection.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user (matches Firebase Auth UID)."
             }
           ]
         }
