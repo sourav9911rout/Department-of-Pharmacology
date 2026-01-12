@@ -46,16 +46,3 @@ export interface TrashedItemDocument {
     deletedAt: Timestamp; 
     data: ProcuredItem | Requirement | ClassMeeting | Sop;
 }
-
-export interface AppUser {
-  id: string;
-  email: string;
-  status: 'pending' | 'approved' | 'revoked';
-}
-
-export interface Otp {
-  id: string;
-  email: string;
-  code: string;
-  expiresAt: Timestamp;
-}

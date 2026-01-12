@@ -24,15 +24,13 @@ import {
   BookOpen,
   Recycle,
   Users,
-  LogOut,
-  LogIn,
+  Shield,
 } from "lucide-react";
 import { useAdminAuth } from "@/hooks/use-admin-auth";
+import AdminPinDialog from "./admin-pin-dialog";
 import { Button } from "./ui/button";
 import { useSidebar } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 
 const navItems = [
   { href: "/", label: "Home", icon: Home },
@@ -43,52 +41,13 @@ const navItems = [
 ];
 
 const adminNavItems = [
-    { href: "/user-management", label: "User Management", icon: Users },
     { href: "/recycle-bin", label: "Recycle Bin", icon: Recycle },
 ]
 
-function UserStatus() {
-    const { userEmail, isAdmin, isApproved, logout } = useAdminAuth();
-    const router = useRouter();
-
-    if (!isApproved) {
-        return (
-            <div className="flex flex-col gap-2 p-2 w-full text-left">
-                 <div className="text-sm font-medium truncate">Not Logged In</div>
-                <Button variant="outline" size="sm" className="w-full justify-start mt-2" onClick={() => router.push('/login')}>
-                    <LogIn className="mr-2 h-4 w-4" />
-                    Login
-                </Button>
-            </div>
-        )
-    }
-
-    return (
-         <div className="flex flex-col gap-2 p-2 w-full text-left">
-            <div className="text-sm font-medium truncate">{userEmail}</div>
-            <div className={`text-xs font-semibold ${isAdmin ? 'text-green-500' : 'text-blue-500'}`}>
-                {isAdmin ? 'Admin' : 'Approved User'}
-            </div>
-            <Button variant="ghost" size="sm" className="w-full justify-start mt-2" onClick={logout}>
-                <LogOut className="mr-2 h-4 w-4" />
-                Logout
-            </Button>
-        </div>
-    )
-}
-
-
 export default function AppSidebar() {
   const pathname = usePathname();
-  const { isAdmin, isApproved } = useAdminAuth();
+  const { isAdmin } = useAdminAuth();
   const { toggleSidebar, state } = useSidebar();
-  const [isClient, setIsClient] = useState(false);
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
-  
-  const canSeeAllTabs = isClient && isApproved;
 
   return (
     <>
@@ -120,9 +79,7 @@ export default function AppSidebar() {
         </SidebarHeader>
         <SidebarContent className="p-2">
           <SidebarMenu>
-            {navItems.map((item) => {
-              if (item.href !== '/' && !canSeeAllTabs) return null;
-              return (
+            {navItems.map((item) => (
                 <SidebarMenuItem key={item.href}>
                   <Link href={item.href}>
                     <SidebarMenuButton
@@ -135,8 +92,8 @@ export default function AppSidebar() {
                   </Link>
                 </SidebarMenuItem>
               )
-            })}
-            {isAdmin && canSeeAllTabs && adminNavItems.map((item) => (
+            )}
+            {isAdmin && adminNavItems.map((item) => (
                 <SidebarMenuItem key={item.href}>
                     <Link href={item.href}>
                     <SidebarMenuButton
@@ -164,7 +121,12 @@ export default function AppSidebar() {
           </SidebarMenu>
         </SidebarContent>
         <SidebarFooter className="p-2 border-t">
-          <UserStatus />
+          <AdminPinDialog>
+              <Button variant={isAdmin ? "destructive" : "outline"} className="w-full">
+                  <Shield className="mr-2 h-4 w-4" />
+                  {isAdmin ? 'Revoke Admin' : 'Admin Login'}
+              </Button>
+          </AdminPinDialog>
         </SidebarFooter>
       </Sidebar>
     </>

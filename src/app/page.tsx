@@ -11,7 +11,6 @@ import Link from 'next/link';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection } from 'firebase/firestore';
 import type { ProcuredItem, Requirement, ClassMeeting } from '@/lib/types';
-import { useAdminAuth } from '@/hooks/use-admin-auth';
 
 function DashboardCard({ href, children }: { href: string, children: React.ReactNode }) {
     return (

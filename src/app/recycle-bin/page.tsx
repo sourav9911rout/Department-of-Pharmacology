@@ -110,6 +110,21 @@ export default function RecycleBinPage() {
     const data = item.data as any;
     return data.name || data.topic || 'Unknown';
   }
+  
+  if (!isAdmin) {
+    return (
+      <div className="flex flex-col gap-8">
+        <PageHeader
+          title="Recycle Bin"
+          description="View and manage deleted items."
+        />
+        <p className="text-muted-foreground text-center mt-8">
+          You need admin privileges to access the Recycle Bin.
+        </p>
+      </div>
+    );
+  }
+
 
   return (
     <div className="flex flex-col gap-8">
@@ -117,7 +132,7 @@ export default function RecycleBinPage() {
         title="Recycle Bin"
         description="View and manage deleted items."
       >
-        {isAdmin && selectedItems.length > 0 && (
+        {selectedItems.length > 0 && (
             <div className="flex items-center gap-2">
                 <Button onClick={handleBulkRestore}>
                     <RotateCcw className="mr-2 h-4 w-4" />
@@ -131,9 +146,6 @@ export default function RecycleBinPage() {
         )}
       </PageHeader>
       
-      {!isAdmin ? (
-        <p className="text-muted-foreground">You do not have permission to view this page.</p>
-      ) : (
         <div className="border rounded-lg">
           <Table>
             <TableHeader>
@@ -202,7 +214,6 @@ export default function RecycleBinPage() {
             </TableBody>
           </Table>
         </div>
-      )}
 
       <AlertDialog open={itemToPermanentlyDelete.length > 0} onOpenChange={(open) => !open && setItemToPermanentlyDelete([])}>
         <AlertDialogContent>
