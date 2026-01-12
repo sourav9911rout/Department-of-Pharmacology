@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview A flow for sending event notification emails using Nodemailer.
@@ -31,12 +32,13 @@ const sendEventEmailFlow = ai.defineFlow(
   },
   async (input) => {
     if (!input.invitees || input.invitees.length === 0) {
-      console.log('No invitees to send email to.');
+      console.log('No invitees to send email to. Skipping email flow.');
       return;
     }
     
     if (!process.env.GMAIL_EMAIL || !process.env.GMAIL_APP_PASSWORD) {
-        throw new Error("Gmail credentials are not set in the environment variables. Please add GMAIL_EMAIL and GMAIL_APP_PASSWORD to your .env file.");
+        console.error("GMAIL_EMAIL or GMAIL_APP_PASSWORD environment variables are not set.");
+        throw new Error("Email service is not configured. Missing credentials in environment variables.");
     }
 
     const emailHtml = render(EventNotificationEmail({
@@ -55,14 +57,21 @@ const sendEventEmailFlow = ai.defineFlow(
     };
 
     try {
-      await transporter.sendMail(mailOptions);
-      console.log('Event notification emails sent successfully.');
+      const info = await transporter.sendMail(mailOptions);
+      console.log('Event notification email sent successfully. Message ID:', info.messageId);
     } catch (error) {
+        // Log the detailed error from Nodemailer
         console.error("Error sending email with Nodemailer:", error);
+        
+        // Re-throw a more informative error to be caught by the UI/caller
         if (error instanceof Error) {
+            // Check for common authentication errors
+            if ('code' in error && (error as any).code === 'EAUTH') {
+                 throw new Error('Failed to send email: Authentication error. Please double-check GMAIL_EMAIL and GMAIL_APP_PASSWORD in your Vercel environment variables.');
+            }
             throw new Error(`Failed to send email: ${error.message}`);
         }
-        throw new Error("Failed to send email due to an unknown error. Please check your Nodemailer configuration and credentials.");
+        throw new Error("Failed to send email due to an unknown error. Check the Vercel function logs for more details.");
     }
   }
 );
