@@ -45,8 +45,7 @@ export async function sendLoginCode(input: SendLoginCodeInput) {
   // Case 1: New user
   if (!userDoc) {
     const isFirstUserAdmin = lowerCaseEmail === adminEmail.toLowerCase();
-    const newUser: AppUser = {
-      id: '', // Firestore will generate
+    const newUser: Omit<AppUser, 'id'> = {
       email: lowerCaseEmail,
       role: isFirstUserAdmin ? 'admin' : 'user',
       status: isFirstUserAdmin ? 'approved' : 'pending',
@@ -105,7 +104,7 @@ export async function sendLoginCode(input: SendLoginCodeInput) {
   } catch (error: any) {
     console.error("Fatal: Error sending login code email with Nodemailer. The most likely cause is incorrect GMAIL_EMAIL or GMAIL_APP_PASSWORD environment variables. Please verify them. Full error:", error);
     if (error.code === 'EAUTH') {
-        throw new Error("Failed to send email: Authentication error. Please double-check GMAIL_EMAIL and GMAIL_APP_PASSWORD in your Vercel environment variables.");
+        throw new Error("Failed to send email: Authentication error. Please double-check GMAIL_EMAIL and GMAIL_APP_PASSWORD in your environment variables.");
     }
     throw new Error("The email service is not configured correctly on the server. Please contact an administrator.");
   }

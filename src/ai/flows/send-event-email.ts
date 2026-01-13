@@ -1,4 +1,3 @@
-
 'use server';
 /**
  * @fileOverview A flow for sending event notification emails using Nodemailer.
@@ -24,7 +23,13 @@ const SendEventEmailSchema = z.object({
 export type SendEventEmailInput = z.infer<typeof SendEventEmailSchema>;
 
 export async function sendEventEmail(input: SendEventEmailInput): Promise<void> {
-    // Note: The main check for credentials is now in nodemailer.ts for a hard fail on startup.
+    const email = process.env.GMAIL_EMAIL;
+    const pass = process.env.GMAIL_APP_PASSWORD;
+
+    if (!email || !pass) {
+        throw new Error('FATAL ERROR: Gmail credentials are not set. Email functionality will be disabled. Please set GMAIL_EMAIL and GMAIL_APP_PASSWORD in your environment variables.');
+    }
+
     if (!input.invitees || input.invitees.length === 0) {
       console.log('No invitees to send email to. Skipping email flow.');
       return;
@@ -49,7 +54,7 @@ export async function sendEventEmail(input: SendEventEmailInput): Promise<void> 
       const info = await transporter.sendMail(mailOptions);
       console.log('Event notification email sent successfully. Message ID:', info.messageId);
     } catch (error: any) {
-        console.error("Fatal: Error sending event email with Nodemailer. The most likely cause is incorrect GMAIL_EMAIL or GMAIL_APP_PASSWORD environment variables. Please verify them. Full error:", error);
+        console.error("Fatal: Error sending event email with Nodemailer. The most likely cause is incorrect GMAIL_EMAIL or GMAIL_APP_PASSWORD environment variables. Full error:", error);
         // Provide a user-friendly message without exposing server details.
         throw new Error("The email service is not configured correctly on the server. Please contact an administrator.");
     }
