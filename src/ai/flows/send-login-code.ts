@@ -91,7 +91,7 @@ export async function sendLoginCode(input: SendLoginCodeInput) {
       } catch (error) {
         console.error("Error sending login code email:", error);
          if (error instanceof Error && 'code' in error && (error as any).code === 'EAUTH') {
-             throw new Error('Failed to send email: Authentication error. Please double-check your credentials.');
+             throw new Error('Failed to send email: Authentication error. Please double-check GMAIL_EMAIL and GMAIL_APP_PASSWORD in your Vercel environment variables.');
         }
         throw new Error("Failed to send login code. Please try again later.");
       }
