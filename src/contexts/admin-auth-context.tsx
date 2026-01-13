@@ -61,7 +61,9 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
   }, [user, pathname, router, isLoading]);
 
 
-  const isAdmin = currentUserData?.role === 'admin';
+  const isRoleAdmin = currentUserData?.role === 'admin';
+  const isSuperUser = !!(user?.email && user.email.toLowerCase() === process.env.NEXT_PUBLIC_ADMIN_EMAIL?.toLowerCase());
+  const isAdmin = isRoleAdmin || isSuperUser;
 
   const value = {
     user,
