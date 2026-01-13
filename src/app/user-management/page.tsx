@@ -1,3 +1,4 @@
+
 'use client';
 import PageHeader from "@/components/page-header";
 import { Button } from "@/components/ui/button";
@@ -161,36 +162,30 @@ export default function UserManagementPage() {
                   <TableCell><Skeleton className="h-8 w-32" /></TableCell>
                 </TableRow>
               ))
-            ) : users && users.length > 0 ? (
-              users.map((user) => (
+            ) : filteredUsers && filteredUsers.length > 0 ? (
+              filteredUsers.map((user) => (
                 <TableRow key={user.id}>
                    <TableCell>
-                    {user.email.toLowerCase() !== process.env.NEXT_PUBLIC_ADMIN_EMAIL?.toLowerCase() ? (
                       <Checkbox
                         checked={selectedUsers.includes(user.id)}
                         onCheckedChange={(checked) => handleSelect(user.id, !!checked)}
                       />
-                    ) : null}
                   </TableCell>
                   <TableCell className="font-medium">{user.email}</TableCell>
                   <TableCell>
-                    {user.email.toLowerCase() === process.env.NEXT_PUBLIC_ADMIN_EMAIL?.toLowerCase() ? (
-                        <Badge variant="outline" className="font-normal bg-blue-100 text-blue-800 border-blue-300 dark:bg-blue-900/50 dark:text-blue-300 dark:border-blue-700">Admin</Badge>
-                    ) : (
-                        <Select
-                        defaultValue={user.status}
-                        onValueChange={(value) => handleStatusChange(user.id, value as AppUser['status'])}
-                        >
-                        <SelectTrigger className={cn("w-[120px] h-8 text-xs", getStatusBadgeClass(user.status))}>
-                            <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="pending">Pending</SelectItem>
-                            <SelectItem value="approved">Approved</SelectItem>
-                            <SelectItem value="revoked">Revoked</SelectItem>
-                        </SelectContent>
-                        </Select>
-                    )}
+                    <Select
+                    defaultValue={user.status}
+                    onValueChange={(value) => handleStatusChange(user.id, value as AppUser['status'])}
+                    >
+                    <SelectTrigger className={cn("w-[120px] h-8 text-xs", getStatusBadgeClass(user.status))}>
+                        <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="pending">Pending</SelectItem>
+                        <SelectItem value="approved">Approved</SelectItem>
+                        <SelectItem value="revoked">Revoked</SelectItem>
+                    </SelectContent>
+                    </Select>
                   </TableCell>
                 </TableRow>
               ))
