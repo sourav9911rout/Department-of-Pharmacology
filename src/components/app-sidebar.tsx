@@ -22,14 +22,15 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   BookOpen,
-  Lock,
+  Users,
+  LogOut,
   Recycle,
 } from "lucide-react";
-import AdminPinDialog from "@/components/admin-pin-dialog";
 import { useAdminAuth } from "@/hooks/use-admin-auth";
 import { Button } from "./ui/button";
 import { useSidebar } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
+import { Avatar, AvatarFallback } from "./ui/avatar";
 
 const navItems = [
   { href: "/", label: "Home", icon: Home },
@@ -37,13 +38,22 @@ const navItems = [
   { href: "/requirements", label: "Requirement List", icon: ClipboardList },
   { href: "/schedule", label: "Classes & Meetings", icon: Calendar },
   { href: "/sops", label: "SOPs", icon: BookOpen },
-  { href: "/recycle-bin", label: "Recycle Bin", icon: Recycle },
 ];
+
+const adminNavItems = [
+    { href: "/user-management", label: "User Management", icon: Users },
+    { href: "/recycle-bin", label: "Recycle Bin", icon: Recycle },
+]
 
 export default function AppSidebar() {
   const pathname = usePathname();
-  const { isAdmin } = useAdminAuth();
+  const { isAdmin, user, logout } = useAdminAuth();
   const { toggleSidebar, state } = useSidebar();
+
+  const getInitials = (email: string | undefined) => {
+    if (!email) return "?";
+    return email.charAt(0).toUpperCase();
+  };
 
   return (
     <>
@@ -76,7 +86,6 @@ export default function AppSidebar() {
         <SidebarContent className="p-2">
           <SidebarMenu>
             {navItems.map((item) => (
-              item.href === "/recycle-bin" && !isAdmin ? null : (
                 <SidebarMenuItem key={item.href}>
                   <Link href={item.href}>
                     <SidebarMenuButton
@@ -88,8 +97,20 @@ export default function AppSidebar() {
                     </SidebarMenuButton>
                   </Link>
                 </SidebarMenuItem>
-              )
             ))}
+             {isAdmin && adminNavItems.map((item) => (
+                <SidebarMenuItem key={item.href}>
+                  <Link href={item.href}>
+                    <SidebarMenuButton
+                      isActive={pathname === item.href}
+                      className="w-full justify-start"
+                    >
+                      <item.icon className="size-4" />
+                      <span>{item.label}</span>
+                    </SidebarMenuButton>
+                  </Link>
+                </SidebarMenuItem>
+             ))}
             <SidebarMenuItem>
               <a
                 href="https://pharmacology.vercel.app"
@@ -105,12 +126,20 @@ export default function AppSidebar() {
           </SidebarMenu>
         </SidebarContent>
         <SidebarFooter className="p-2 border-t">
-          <AdminPinDialog>
-            <Button variant="outline" className="w-full">
-              <Lock className="mr-2 h-4 w-4" />
-              {isAdmin ? "Admin Controls" : "Admin Login"}
-            </Button>
-          </AdminPinDialog>
+           {user && (
+              <div className="flex items-center gap-2 p-2 rounded-md bg-sidebar-accent">
+                   <Avatar className="h-8 w-8">
+                       <AvatarFallback>{getInitials(user.email)}</AvatarFallback>
+                   </Avatar>
+                   <div className="flex flex-col truncate">
+                       <span className="text-sm font-medium truncate">{user.email}</span>
+                       <span className="text-xs text-muted-foreground">{isAdmin ? 'Administrator' : 'User'}</span>
+                   </div>
+                   <Button variant="ghost" size="icon" className="ml-auto h-8 w-8 shrink-0" onClick={logout}>
+                       <LogOut className="h-4 w-4"/>
+                   </Button>
+              </div>
+           )}
         </SidebarFooter>
       </Sidebar>
     </>

@@ -11,7 +11,7 @@ export function useCurrentUser(email?: string | null) {
   const firestore = useFirestore();
 
   useEffect(() => {
-    if (!email) {
+    if (!email || !firestore) {
       setCurrentUserData(null);
       setIsLoading(false);
       return;
@@ -19,7 +19,7 @@ export function useCurrentUser(email?: string | null) {
 
     setIsLoading(true);
     const usersRef = collection(firestore, 'users');
-    const q = query(usersRef, where('email', '==', email));
+    const q = query(usersRef, where('email', '==', email.toLowerCase()));
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
       if (!snapshot.empty) {

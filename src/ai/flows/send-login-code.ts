@@ -3,13 +3,13 @@
 /**
  * @fileOverview A flow for generating and sending a one-time login code.
  */
-import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 import { transporter } from '@/ai/nodemailer';
 import LoginCodeEmail from '@/components/emails/login-code-email';
 import { render } from '@react-email/components';
 import { getFirestoreServer } from '@/firebase/server-init';
-import { collection, addDoc, query, where, getDocs, Timestamp } from 'firebase/firestore';
+import { collection, addDoc, query, where, getDocs, Timestamp, doc, updateDoc } from 'firebase/firestore';
+import type { AppUser } from '@/lib/types';
 
 const SendLoginCodeSchema = z.object({
   email: z.string().email().describe('The email to send the login code to.'),
@@ -19,40 +19,51 @@ export type SendLoginCodeInput = z.infer<typeof SendLoginCodeSchema>;
 
 export async function sendLoginCode(input: SendLoginCodeInput) {
     const { email } = input;
+    const lowerCaseEmail = email.toLowerCase();
     const firestore = getFirestoreServer();
-    const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL;
+    const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL?.toLowerCase();
 
-    let userStatus: 'approved' | 'pending' | 'revoked' = 'pending';
-    let userRole: 'user' | 'admin' = 'user';
-    let userExists = false;
-
+    let userStatus: AppUser['status'] = 'pending';
+    let userRole: AppUser['role'] = 'user';
+    
     const usersRef = collection(firestore, 'users');
-    const q = query(usersRef, where('email', '==', email.toLowerCase()));
+    const q = query(usersRef, where('email', '==', lowerCaseEmail));
     const querySnapshot = await getDocs(q);
     
+    let userDoc;
     if (!querySnapshot.empty) {
-        const userDoc = querySnapshot.docs[0];
-        const userData = userDoc.data();
+        userDoc = querySnapshot.docs[0];
+        const userData = userDoc.data() as AppUser;
         userStatus = userData.status;
         userRole = userData.role;
-        userExists = true;
+
+        // Ensure admin email from env always has admin role in DB
+        if (lowerCaseEmail === adminEmail && userData.role !== 'admin') {
+            await updateDoc(doc(firestore, 'users', userDoc.id), { role: 'admin', status: 'approved' });
+            userRole = 'admin';
+            userStatus = 'approved';
+        }
     } else {
-        // User does not exist, add them as pending
-        await addDoc(usersRef, { 
-            email: email.toLowerCase(), 
-            status: 'pending',
-            role: 'user' // Default role
-        });
+        // User does not exist, add them
+        const isNewAdmin = lowerCaseEmail === adminEmail;
+        const newUser: Omit<AppUser, 'id'> = { 
+            email: lowerCaseEmail, 
+            status: isNewAdmin ? 'approved' : 'pending',
+            role: isNewAdmin ? 'admin' : 'user'
+        };
+        await addDoc(usersRef, newUser);
+        userStatus = newUser.status;
+        userRole = newUser.role;
     }
     
+    // Only send code if user is approved or is the admin
     if (userStatus === 'approved' || userRole === 'admin') {
-      // Generate code and send email
       const validationCode = Math.floor(100000 + Math.random() * 900000).toString();
       const expiresAt = Timestamp.fromMillis(Date.now() + 10 * 60 * 1000); // 10 minutes from now
 
       const otpsRef = collection(firestore, 'otps');
       await addDoc(otpsRef, {
-        email: email.toLowerCase(),
+        email: lowerCaseEmail,
         code: validationCode,
         expiresAt,
       });
@@ -80,7 +91,7 @@ export async function sendLoginCode(input: SendLoginCodeInput) {
       } catch (error) {
         console.error("Error sending login code email:", error);
          if (error instanceof Error && 'code' in error && (error as any).code === 'EAUTH') {
-             throw new Error('Failed to send email: Authentication error. Please double-check GMAIL_EMAIL and GMAIL_APP_PASSWORD in your Vercel environment variables.');
+             throw new Error('Failed to send email: Authentication error. Please double-check your credentials.');
         }
         throw new Error("Failed to send login code. Please try again later.");
       }

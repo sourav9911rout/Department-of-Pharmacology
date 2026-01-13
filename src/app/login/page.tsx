@@ -10,6 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { sendLoginCode } from '@/ai/flows/send-login-code';
 import { verifyLoginCode } from '@/ai/flows/verify-login-code';
 import { useRouter } from 'next/navigation';
+import { useAdminAuth } from '@/hooks/use-admin-auth';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -17,7 +18,7 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [codeSent, setCodeSent] = useState(false);
   const { toast } = useToast();
-  const router = useRouter();
+  const { login } = useAdminAuth();
 
   const handleLoginRequest = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,8 +59,7 @@ export default function LoginPage() {
           title: "Login Successful",
           description: "Welcome back!",
         });
-        // On successful verification, redirect to the auth callback page
-        router.push(`/auth?email=${encodeURIComponent(email)}`);
+        login(email);
       } else {
         toast({
           variant: "destructive",
@@ -80,8 +80,8 @@ export default function LoginPage() {
 
 
   return (
-    <div className="flex h-screen items-center justify-center bg-gray-100 dark:bg-gray-900">
-      <Card className="w-full max-w-md mx-4">
+    <div className="flex h-screen items-center justify-center bg-gray-100 dark:bg-gray-900 p-4">
+      <Card className="w-full max-w-md mx-auto">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold">Dept. of Pharmacology</CardTitle>
           <CardDescription>AIIMS CAPFIMS Portal</CardDescription>

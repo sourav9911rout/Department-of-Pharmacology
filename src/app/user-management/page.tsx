@@ -10,13 +10,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useAdminAuth } from "@/hooks/use-admin-auth";
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
 import { collection, doc, query, updateDoc, writeBatch, Timestamp } from "firebase/firestore";
@@ -37,7 +30,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal } from "lucide-react";
 
 type Action = AppUser['status'] | 'make_admin' | 'demote_admin';
@@ -222,6 +215,7 @@ export default function UserManagementPage() {
                           <DropdownMenuItem onClick={() => handleAction(u.id, 'revoked')}>
                             Revoke
                           </DropdownMenuItem>
+                          <DropdownMenuSeparator />
                           {u.role === 'user' && (
                             <DropdownMenuItem onClick={() => handleAction(u.id, 'make_admin')}>
                               Promote to Admin
@@ -267,5 +261,3 @@ export default function UserManagementPage() {
     </div>
   );
 }
-
-    
