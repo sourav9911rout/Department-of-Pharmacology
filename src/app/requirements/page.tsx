@@ -19,7 +19,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
-import { collection, doc, orderBy, query, deleteDoc, writeBatch, Timestamp } from "firebase/firestore";
+import { collection, doc, orderBy, query, deleteDoc } from "firebase/firestore";
 import { RequirementDialog } from "./components/requirement-dialog";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
@@ -48,25 +48,8 @@ export default function RequirementsPage() {
   
   const handleDelete = async () => {
     if (!firestore) return;
-    const batch = writeBatch(firestore);
-
-    selectedReqs.forEach(reqId => {
-      const originalDocRef = doc(firestore, 'requirements', reqId);
-      const reqData = reqs?.find(r => r.id === reqId);
-      
-      if (reqData) {
-        const trashDocRef = doc(collection(firestore, 'trash'));
-        batch.set(trashDocRef, {
-          originalId: reqId,
-          originalCollection: 'requirements',
-          deletedAt: Timestamp.now(),
-          data: reqData,
-        });
-        batch.delete(originalDocRef);
-      }
-    });
-
-    await batch.commit();
+    const deletePromises = selectedReqs.map(id => deleteDoc(doc(firestore, 'requirements', id)));
+    await Promise.all(deletePromises);
     setSelectedReqs([]);
     setIsDeleteDialogOpen(false);
   };
@@ -172,7 +155,7 @@ export default function RequirementsPage() {
                 <AlertDialogHeader>
                     <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                     <AlertDialogDescription>
-                        This action cannot be undone. This will move the selected requirement(s) to the Recycle Bin.
+                        This action cannot be undone. This will permanently delete the selected requirement(s).
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>

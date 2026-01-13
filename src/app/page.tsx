@@ -6,12 +6,12 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Package, ClipboardList, CalendarClock, BookOpen, Sparkles, Users } from 'lucide-react';
+import { Package, ClipboardList, CalendarClock, BookOpen, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection, query, where } from 'firebase/firestore';
-import type { ProcuredItem, Requirement, ClassMeeting, AppUser } from '@/lib/types';
-import { useAdminAuth } from '@/hooks/use-admin-auth';
+import { collection } from 'firebase/firestore';
+import type { ProcuredItem, Requirement, ClassMeeting } from '@/lib/types';
+
 
 function DashboardCard({ href, children }: { href: string, children: React.ReactNode }) {
     return (
@@ -26,7 +26,6 @@ function DashboardCard({ href, children }: { href: string, children: React.React
 
 export default function Dashboard() {
   const firestore = useFirestore();
-  const { isAdmin } = useAdminAuth();
 
   const procuredItemsCollection = useMemoFirebase(
     () => firestore ? collection(firestore, 'procured_items') : null,
@@ -45,12 +44,6 @@ export default function Dashboard() {
     [firestore]
   );
   const { data: scheduledEvents } = useCollection<ClassMeeting>(scheduleCollection);
-
-  const usersCollection = useMemoFirebase(
-      () => firestore ? query(collection(firestore, 'users'), where('status', '==', 'pending')) : null,
-      [firestore]
-  );
-  const { data: pendingUsers } = useCollection<AppUser>(usersCollection);
 
   const totalProcured = procuredItems?.length ?? 0;
   const installedItems = procuredItems?.filter(item => item.installationStatus === 'Installed').length ?? 0;
@@ -121,22 +114,18 @@ export default function Dashboard() {
               </p>
             </CardContent>
         </DashboardCard>
-        {isAdmin && (
-             <DashboardCard href="/user-management">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">
-                        Pending Users
-                    </CardTitle>
-                    <Users className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                    <div className="text-2xl font-bold">{pendingUsers?.length ?? 0}</div>
-                    <p className="text-xs text-muted-foreground">
-                        requests awaiting approval
-                    </p>
-                </CardContent>
-            </DashboardCard>
-        )}
+        <DashboardCard href="/sops">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">SOPs</CardTitle>
+            <BookOpen className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">View</div>
+            <p className="text-xs text-muted-foreground">
+              Access Standard Operating Procedures
+            </p>
+          </CardContent>
+        </DashboardCard>
         <Card className="bg-primary/10 border-primary/40 hover:bg-primary/20 transition-colors">
           <Link
             href="https://pharmacology.vercel.app"

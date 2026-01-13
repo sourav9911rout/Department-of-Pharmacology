@@ -22,7 +22,7 @@ import {
 import { ScheduleDialog } from "./components/schedule-dialog";
 import { addHours, parse } from 'date-fns';
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
-import { collection, doc, query, deleteDoc, writeBatch, Timestamp } from "firebase/firestore";
+import { collection, doc, query, deleteDoc } from "firebase/firestore";
 import { Skeleton } from "@/components/ui/skeleton";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
@@ -63,24 +63,8 @@ export default function SchedulePage() {
 
   const handleDelete = async () => {
     if (!firestore) return;
-    const batch = writeBatch(firestore);
-
-    selectedEvents.forEach(eventId => {
-        const originalDocRef = doc(firestore, 'class_meetings', eventId);
-        const eventData = events?.find(e => e.id === eventId);
-        if(eventData) {
-            const trashDocRef = doc(collection(firestore, 'trash'));
-            batch.set(trashDocRef, {
-                originalId: eventId,
-                originalCollection: 'class_meetings',
-                deletedAt: Timestamp.now(),
-                data: eventData,
-            });
-            batch.delete(originalDocRef);
-        }
-    });
-
-    await batch.commit();
+    const deletePromises = selectedEvents.map(id => deleteDoc(doc(firestore, 'class_meetings', id)));
+    await Promise.all(deletePromises);
     setSelectedEvents([]);
     setIsDeleteDialogOpen(false);
   };
@@ -153,7 +137,7 @@ export default function SchedulePage() {
         </div>
       </PageHeader>
       <section>
-        <h2 className="text-2xl font-headline font-bold mb-4">Upcoming</h2>
+        <h2 className="text-2xl font.headline font-bold mb-4">Upcoming</h2>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {isLoading ? (
               Array.from({ length: 3 }).map((_, i) => (
@@ -207,7 +191,7 @@ export default function SchedulePage() {
       </section>
 
       <section>
-        <h2 className="text-2xl font-headline font-bold mb-4">Past Events</h2>
+        <h2 className="text-2xl font.headline font-bold mb-4">Past Events</h2>
          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {isLoading ? (
                Array.from({ length: 2 }).map((_, i) => (
@@ -258,7 +242,7 @@ export default function SchedulePage() {
                 <AlertDialogHeader>
                     <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                     <AlertDialogDescription>
-                        This action cannot be undone. This will move the selected event(s) to the Recycle Bin.
+                        This action cannot be undone. This will permanently delete the selected event(s).
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>

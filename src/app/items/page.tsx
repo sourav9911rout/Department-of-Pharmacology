@@ -19,12 +19,11 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
-import { collection, doc, query, orderBy, OrderByDirection, deleteDoc, writeBatch } from "firebase/firestore";
+import { collection, doc, query, orderBy, OrderByDirection, deleteDoc } from "firebase/firestore";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { Timestamp } from "firebase/firestore";
 
 type SortOption = 'name' | 'dateOfProcurement';
 
@@ -45,26 +44,11 @@ export default function ProcuredItemsPage() {
 
   const handleDelete = async () => {
     if (!firestore) return;
-    const batch = writeBatch(firestore);
     
-    selectedItems.forEach(itemId => {
-      const originalDocRef = doc(firestore, 'procured_items', itemId);
-      const trashDocRef = doc(collection(firestore, 'trash'));
-      
-      const itemData = items?.find(i => i.id === itemId);
-      
-      if (itemData) {
-        batch.set(trashDocRef, {
-          originalId: itemId,
-          originalCollection: 'procured_items',
-          deletedAt: Timestamp.now(),
-          data: itemData,
-        });
-        batch.delete(originalDocRef);
-      }
-    });
-
-    await batch.commit();
+    // In a real app, you'd move this to a 'trash' collection instead of deleting
+    const deletePromises = selectedItems.map(id => deleteDoc(doc(firestore, 'procured_items', id)));
+    await Promise.all(deletePromises);
+    
     setSelectedItems([]);
     setIsDeleteDialogOpen(false);
   };
@@ -144,7 +128,7 @@ export default function ProcuredItemsPage() {
                 <AlertDialogHeader>
                     <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                     <AlertDialogDescription>
-                        This action cannot be undone. This will move the selected item(s) to the Recycle Bin.
+                        This action cannot be undone. This will permanently delete the selected item(s).
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>

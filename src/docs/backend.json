@@ -82,31 +82,6 @@
         "driveLink": { "type": "string", "description": "A Google Drive link to the SOP document.", "format": "uri" }
       },
       "required": ["name", "driveLink"]
-    },
-    "AppUser": {
-        "$schema": "http://json-schema.org/draft-07/schema#",
-        "title": "AppUser",
-        "type": "object",
-        "description": "Represents a user of the application.",
-        "properties": {
-            "id": { "type": "string", "description": "Unique identifier for the user." },
-            "email": { "type": "string", "description": "The user's email address.", "format": "email" },
-            "status": { "type": "string", "enum": ["pending", "approved", "revoked"], "description": "The user's access status." },
-            "role": { "type": "string", "enum": ["user", "admin"], "description": "The user's role." }
-        },
-        "required": ["email", "status", "role"]
-    },
-    "Otp": {
-        "$schema": "http://json-schema.org/draft-07/schema#",
-        "title": "Otp",
-        "type": "object",
-        "description": "Represents a one-time password for login.",
-        "properties": {
-            "email": { "type": "string", "format": "email" },
-            "code": { "type": "string" },
-            "expiresAt": { "type": "string", "format": "date-time" }
-        },
-        "required": ["email", "code", "expiresAt"]
     }
   },
   "auth": { "providers": [] },
@@ -114,8 +89,6 @@
     "/procured_items/{procuredItemId}": { "schema": { "$ref": "#/entities/ProcuredItem" }, "description": "Stores information about procured items." },
     "/requirements/{requirementId}": { "schema": { "$ref": "#/entities/Requirement" }, "description": "Stores the general requirements." },
     "/class_meetings/{classMeetingId}": { "schema": { "$ref": "#/entities/ClassMeeting" }, "description": "Stores information about scheduled class meetings." },
-    "/sops/{sopId}": { "schema": { "$ref": "#/entities/Sop" }, "description": "Stores Standard Operating Procedures." },
-    "/users/{userId}": { "schema": { "$ref": "#/entities/AppUser" }, "description": "Stores user information and access control." },
-    "/otps/{otpId}": { "schema": { "$ref": "#/entities/Otp" }, "description": "Stores one-time passwords for email login." }
+    "/sops/{sopId}": { "schema": { "$ref": "#/entities/Sop" }, "description": "Stores Standard Operating Procedures." }
   }
 }
