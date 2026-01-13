@@ -22,28 +22,30 @@ export async function sendLoginCode(input: SendLoginCodeInput) {
     const firestore = getFirestoreServer();
     const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL;
 
-    let userStatus: 'approved' | 'pending' | 'revoked' | 'admin' = 'pending';
+    let userStatus: 'approved' | 'pending' | 'revoked' = 'pending';
+    let userRole: 'user' | 'admin' = 'user';
     let userExists = false;
 
-    if (email.toLowerCase() === adminEmail?.toLowerCase()) {
-        userStatus = 'admin';
+    const usersRef = collection(firestore, 'users');
+    const q = query(usersRef, where('email', '==', email.toLowerCase()));
+    const querySnapshot = await getDocs(q);
+    
+    if (!querySnapshot.empty) {
+        const userDoc = querySnapshot.docs[0];
+        const userData = userDoc.data();
+        userStatus = userData.status;
+        userRole = userData.role;
         userExists = true;
     } else {
-        const usersRef = collection(firestore, 'users');
-        const q = query(usersRef, where('email', '==', email.toLowerCase()));
-        const querySnapshot = await getDocs(q);
-        if (!querySnapshot.empty) {
-            const userDoc = querySnapshot.docs[0];
-            const userData = userDoc.data();
-            userStatus = userData.status;
-            userExists = true;
-        } else {
-            // User does not exist, add them as pending
-            await addDoc(usersRef, { email: email.toLowerCase(), status: 'pending' });
-        }
+        // User does not exist, add them as pending
+        await addDoc(usersRef, { 
+            email: email.toLowerCase(), 
+            status: 'pending',
+            role: 'user' // Default role
+        });
     }
     
-    if (userStatus === 'approved' || userStatus === 'admin') {
+    if (userStatus === 'approved' || userRole === 'admin') {
       // Generate code and send email
       const validationCode = Math.floor(100000 + Math.random() * 900000).toString();
       const expiresAt = Timestamp.fromMillis(Date.now() + 10 * 60 * 1000); // 10 minutes from now

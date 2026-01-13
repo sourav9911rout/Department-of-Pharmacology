@@ -43,6 +43,7 @@ export interface AppUser {
   id: string;
   email: string;
   status: 'pending' | 'approved' | 'revoked';
+  role: 'user' | 'admin';
 }
 
 export interface TrashedItemDocument {

@@ -237,9 +237,14 @@
                 "type": "string",
                 "enum": ["pending", "approved", "revoked"],
                 "description": "The user's access status."
+            },
+            "role": {
+                "type": "string",
+                "enum": ["user", "admin"],
+                "description": "The user's role."
             }
         },
-        "required": ["email", "status"]
+        "required": ["email", "status", "role"]
     },
     "Otp": {
         "$schema": "http://json-schema.org/draft-07/schema#",

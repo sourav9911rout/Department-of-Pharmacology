@@ -38,8 +38,10 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
+type StatusAndRole = AppUser['status'] | 'make_admin';
+
 export default function UserManagementPage() {
-  const { isAdmin } = useAdminAuth();
+  const { isAdmin, user } = useAdminAuth();
   const firestore = useFirestore();
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -50,10 +52,21 @@ export default function UserManagementPage() {
   );
   const { data: users, isLoading } = useCollection<AppUser>(usersQuery);
 
-  const handleStatusChange = async (userId: string, status: AppUser['status']) => {
+  const handleStatusChange = async (userId: string, value: StatusAndRole) => {
     if (!firestore) return;
     const userDocRef = doc(firestore, 'users', userId);
-    await updateDoc(userDocRef, { status });
+
+    if (value === 'make_admin') {
+      await updateDoc(userDocRef, { role: 'admin', status: 'approved' });
+    } else {
+      // If we are demoting an admin, set them back to user role
+      const userToUpdate = users?.find(u => u.id === userId);
+      if(userToUpdate?.role === 'admin') {
+        await updateDoc(userDocRef, { status: value, role: 'user' });
+      } else {
+        await updateDoc(userDocRef, { status: value });
+      }
+    }
   };
   
   const handleDelete = async () => {
@@ -88,8 +101,8 @@ export default function UserManagementPage() {
   const handleSelectAll = (checked: boolean | 'indeterminate') => {
     if (checked === true) {
       const allUserIds = (users || [])
-        .filter(user => user.email.toLowerCase() !== process.env.NEXT_PUBLIC_ADMIN_EMAIL?.toLowerCase())
-        .map(user => user.id);
+        .filter(u => u.email.toLowerCase() !== user?.email?.toLowerCase())
+        .map(u => u.id);
       setSelectedUsers(allUserIds);
     } else {
       setSelectedUsers([]);
@@ -104,8 +117,15 @@ export default function UserManagementPage() {
       default: return 'bg-gray-100 text-gray-800 border-gray-300';
     }
   };
+  
+  const getRoleBadgeClass = (role: AppUser['role']) => {
+      if (role === 'admin') {
+          return 'bg-purple-100 text-purple-800 border-purple-300 dark:bg-purple-900/50 dark:text-purple-300 dark:border-purple-700';
+      }
+      return 'hidden';
+  }
 
-  const filteredUsers = users?.filter(user => user.email.toLowerCase() !== process.env.NEXT_PUBLIC_ADMIN_EMAIL?.toLowerCase());
+  const filteredUsers = users?.filter(u => u.email.toLowerCase() !== user?.email?.toLowerCase());
   
   const isAllSelected = (filteredUsers?.length || 0) > 0 && selectedUsers.length === filteredUsers?.length;
   const isSomeSelected = selectedUsers.length > 0 && selectedUsers.length < (filteredUsers?.length || 0);
@@ -128,7 +148,7 @@ export default function UserManagementPage() {
     <div className="flex flex-col gap-8">
       <PageHeader
         title="User Management"
-        description="Approve or revoke access for registered users."
+        description="Approve, revoke, or promote users."
       >
         {selectedUsers.length > 0 && (
           <Button variant="destructive" onClick={() => setIsDeleteDialogOpen(true)}>
@@ -150,7 +170,8 @@ export default function UserManagementPage() {
                 />
               </TableHead>
               <TableHead>Email</TableHead>
-              <TableHead className="w-[200px]">Status</TableHead>
+              <TableHead>Role</TableHead>
+              <TableHead className="w-[200px]">Status / Action</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -159,40 +180,47 @@ export default function UserManagementPage() {
                 <TableRow key={i}>
                   <TableCell><Skeleton className="h-4 w-4" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-64" /></TableCell>
-                  <TableCell><Skeleton className="h-8 w-32" /></TableCell>
+                  <TableCell><Skeleton className="h-6 w-20" /></TableCell>
+                  <TableCell><Skeleton className="h-8 w-36" /></TableCell>
                 </TableRow>
               ))
             ) : filteredUsers && filteredUsers.length > 0 ? (
-              filteredUsers.map((user) => (
-                <TableRow key={user.id}>
+              filteredUsers.map((u) => (
+                <TableRow key={u.id}>
                    <TableCell>
                       <Checkbox
-                        checked={selectedUsers.includes(user.id)}
-                        onCheckedChange={(checked) => handleSelect(user.id, !!checked)}
+                        checked={selectedUsers.includes(u.id)}
+                        onCheckedChange={(checked) => handleSelect(u.id, !!checked)}
                       />
                   </TableCell>
-                  <TableCell className="font-medium">{user.email}</TableCell>
+                  <TableCell className="font-medium">{u.email}</TableCell>
+                   <TableCell>
+                        <Badge variant="outline" className={cn("capitalize", getRoleBadgeClass(u.role))}>
+                            {u.role}
+                        </Badge>
+                  </TableCell>
                   <TableCell>
                     <Select
-                    defaultValue={user.status}
-                    onValueChange={(value) => handleStatusChange(user.id, value as AppUser['status'])}
+                      value={u.status}
+                      onValueChange={(value) => handleStatusChange(u.id, value as StatusAndRole)}
                     >
-                    <SelectTrigger className={cn("w-[120px] h-8 text-xs", getStatusBadgeClass(user.status))}>
-                        <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="pending">Pending</SelectItem>
-                        <SelectItem value="approved">Approved</SelectItem>
-                        <SelectItem value="revoked">Revoked</SelectItem>
-                    </SelectContent>
+                      <SelectTrigger className={cn("w-[140px] h-8 text-xs", getStatusBadgeClass(u.status))}>
+                          <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                          <SelectItem value="pending">Pending</SelectItem>
+                          <SelectItem value="approved">Approved</SelectItem>
+                          <SelectItem value="revoked">Revoked</SelectItem>
+                          {u.role !== 'admin' && <SelectItem value="make_admin">Make Admin</SelectItem>}
+                      </SelectContent>
                     </Select>
                   </TableCell>
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={3} className="h-24 text-center">
-                  No users have requested access yet.
+                <TableCell colSpan={4} className="h-24 text-center">
+                  No other users found.
                 </TableCell>
               </TableRow>
             )}

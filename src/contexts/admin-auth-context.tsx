@@ -3,6 +3,7 @@
 
 import { createContext, useState, ReactNode, useEffect, useCallback } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
+import { useCurrentUser } from '@/hooks/use-current-user';
 
 interface User {
     email: string;
@@ -17,13 +18,12 @@ interface AdminAuthContextType {
 
 export const AdminAuthContext = createContext<AdminAuthContextType | undefined>(undefined);
 
-const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL;
-
 export function AdminAuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
   const pathname = usePathname();
+  const { currentUserData } = useCurrentUser(user?.email);
 
   useEffect(() => {
     const storedEmail = sessionStorage.getItem('userEmail');
@@ -61,7 +61,7 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
   }, [user, pathname, router, isLoading]);
 
 
-  const isAdmin = user?.email.toLowerCase() === adminEmail?.toLowerCase();
+  const isAdmin = currentUserData?.role === 'admin';
 
   const value = {
     user,
