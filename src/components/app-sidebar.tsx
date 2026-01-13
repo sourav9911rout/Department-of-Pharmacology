@@ -2,7 +2,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import {
   Sidebar,
   SidebarHeader,
@@ -22,10 +22,10 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   BookOpen,
+  Lock,
   Recycle,
-  Users,
-  LogOut,
 } from "lucide-react";
+import AdminPinDialog from "@/components/admin-pin-dialog";
 import { useAdminAuth } from "@/hooks/use-admin-auth";
 import { Button } from "./ui/button";
 import { useSidebar } from "@/components/ui/sidebar";
@@ -37,27 +37,13 @@ const navItems = [
   { href: "/requirements", label: "Requirement List", icon: ClipboardList },
   { href: "/schedule", label: "Classes & Meetings", icon: Calendar },
   { href: "/sops", label: "SOPs", icon: BookOpen },
+  { href: "/recycle-bin", label: "Recycle Bin", icon: Recycle },
 ];
-
-const adminNavItems = [
-    { href: "/user-management", label: "User Management", icon: Users },
-    { href: "/recycle-bin", label: "Recycle Bin", icon: Recycle },
-]
 
 export default function AppSidebar() {
   const pathname = usePathname();
-  const { user, isAdmin, logout } = useAdminAuth();
+  const { isAdmin } = useAdminAuth();
   const { toggleSidebar, state } = useSidebar();
-  const router = useRouter();
-
-  const handleLogout = () => {
-    logout();
-    router.push('/login');
-  };
-
-  if (!user) {
-    return null; // Don't render sidebar if not logged in
-  }
 
   return (
     <>
@@ -90,6 +76,7 @@ export default function AppSidebar() {
         <SidebarContent className="p-2">
           <SidebarMenu>
             {navItems.map((item) => (
+              item.href === "/recycle-bin" && !isAdmin ? null : (
                 <SidebarMenuItem key={item.href}>
                   <Link href={item.href}>
                     <SidebarMenuButton
@@ -102,19 +89,6 @@ export default function AppSidebar() {
                   </Link>
                 </SidebarMenuItem>
               )
-            )}
-            {isAdmin && adminNavItems.map((item) => (
-                <SidebarMenuItem key={item.href}>
-                    <Link href={item.href}>
-                    <SidebarMenuButton
-                        isActive={pathname === item.href}
-                        className="w-full justify-start"
-                    >
-                        <item.icon className="size-4" />
-                        <span>{item.label}</span>
-                    </SidebarMenuButton>
-                    </Link>
-                </SidebarMenuItem>
             ))}
             <SidebarMenuItem>
               <a
@@ -130,18 +104,15 @@ export default function AppSidebar() {
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarContent>
-        <SidebarFooter className="p-2 border-t flex-col gap-2">
-            <div className="text-center text-xs p-2 text-muted-foreground">
-                <p className="font-semibold">{user.email}</p>
-                <p>{isAdmin ? 'Administrator' : 'User'}</p>
-            </div>
-            <Button variant="outline" className="w-full" onClick={handleLogout}>
-              <LogOut className="mr-2 h-4 w-4" />
-              Logout
+        <SidebarFooter className="p-2 border-t">
+          <AdminPinDialog>
+            <Button variant="outline" className="w-full">
+              <Lock className="mr-2 h-4 w-4" />
+              {isAdmin ? "Admin Controls" : "Admin Login"}
             </Button>
+          </AdminPinDialog>
         </SidebarFooter>
       </Sidebar>
     </>
   );
 }
-
