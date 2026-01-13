@@ -49,7 +49,7 @@ export async function sendEventEmail(input: SendEventEmailInput): Promise<void> 
       const info = await transporter.sendMail(mailOptions);
       console.log('Event notification email sent successfully. Message ID:', info.messageId);
     } catch (error) {
-        console.error("Fatal: Error sending event email with Nodemailer:", error);
+        console.error("Fatal: Error sending event email with Nodemailer. The most likely cause is incorrect GMAIL_EMAIL or GMAIL_APP_PASSWORD environment variables. Please verify them. Full error:", error);
         // Provide a user-friendly message without exposing server details.
         throw new Error("The email service is not configured correctly on the server. Please contact an administrator.");
     }
