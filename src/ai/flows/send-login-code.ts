@@ -9,6 +9,8 @@ import { render } from '@react-email/components';
 import { getFirestoreServer } from '@/firebase/server-init';
 import { Timestamp } from 'firebase-admin/firestore';
 import type { AppUser } from '@/lib/types';
+import dotenv from 'dotenv';
+dotenv.config();
 
 const SendLoginCodeSchema = z.object({
   email: z.string().email().describe('The email to send the login code to.'),

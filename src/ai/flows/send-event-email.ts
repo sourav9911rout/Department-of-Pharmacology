@@ -9,6 +9,8 @@ import { z } from 'zod';
 import { getTransporter } from '@/ai/nodemailer';
 import EventNotificationEmail from '@/components/emails/event-notification-email';
 import { render } from '@react-email/components';
+import dotenv from 'dotenv';
+dotenv.config();
 
 
 const SendEventEmailSchema = z.object({
