@@ -24,6 +24,7 @@ import {
   PanelLeftOpen,
   BookOpen,
   LogIn,
+  Trash2,
 } from "lucide-react";
 import { useSidebar } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
@@ -86,6 +87,19 @@ export default function AppSidebar() {
                 </Link>
               </SidebarMenuItem>
             ))}
+             {isAdmin && (
+              <SidebarMenuItem>
+                <Link href="/recycle-bin">
+                  <SidebarMenuButton
+                    isActive={pathname === '/recycle-bin'}
+                    className="w-full justify-start"
+                  >
+                    <Trash2 className="size-4" />
+                    <span>Recycle Bin</span>
+                  </SidebarMenuButton>
+                </Link>
+              </SidebarMenuItem>
+            )}
             <SidebarMenuItem>
               <a
                 href="https://pharmacology.vercel.app"

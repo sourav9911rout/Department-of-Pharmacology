@@ -1,3 +1,4 @@
+
 'use client';
 import PageHeader from "@/components/page-header";
 import ItemTable from "./components/item-table";
@@ -18,17 +19,19 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
-import { collection, doc, query, orderBy, OrderByDirection, deleteDoc } from "firebase/firestore";
+import { collection, doc, query, orderBy, OrderByDirection, deleteDoc, writeBatch, Timestamp } from "firebase/firestore";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
 
 type SortOption = 'name' | 'dateOfProcurement';
 
 export default function ProcuredItemsPage() {
   const { isAdmin } = useAdminAuth();
   const firestore = useFirestore();
+  const { toast } = useToast();
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [sortOption, setSortOption] = useState<SortOption>('dateOfProcurement');
@@ -44,10 +47,31 @@ export default function ProcuredItemsPage() {
   const handleDelete = async () => {
     if (!firestore || !isAdmin) return;
     
-    // In a real app, you might move this to a 'trash' collection instead of deleting
-    const deletePromises = selectedItems.map(id => deleteDoc(doc(firestore, 'procured_items', id)));
-    await Promise.all(deletePromises);
+    const batch = writeBatch(firestore);
+    const trashCollectionRef = collection(firestore, 'trash');
+    const itemsToDelete = items?.filter(item => selectedItems.includes(item.id)) || [];
+
+    itemsToDelete.forEach(item => {
+        const originalDocRef = doc(firestore, 'procured_items', item.id);
+        const trashDocRef = doc(trashCollectionRef); // New doc in trash
+        
+        batch.set(trashDocRef, {
+            originalId: item.id,
+            originalCollection: 'procured_items',
+            deletedAt: Timestamp.now(),
+            data: item,
+            name: item.name,
+        });
+        batch.delete(originalDocRef);
+    });
+
+    await batch.commit();
     
+    toast({
+        title: `${selectedItems.length} item(s) moved to Recycle Bin`,
+        description: "You can restore them from the Recycle Bin.",
+    });
+
     setSelectedItems([]);
     setIsDeleteDialogOpen(false);
   };
@@ -125,15 +149,15 @@ export default function ProcuredItemsPage() {
        <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
             <AlertDialogContent>
                 <AlertDialogHeader>
-                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                     <AlertDialogDescription>
-                        This action cannot be undone. This will permanently delete the selected item(s).
+                        This will move the selected item(s) to the recycle bin. You can restore them later.
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
                     <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                        Delete
+                        Move to Bin
                     </AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>

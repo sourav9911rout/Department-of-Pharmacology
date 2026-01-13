@@ -38,3 +38,12 @@ export interface Sop {
   name: string;
   driveLink: string;
 }
+
+export interface TrashedItem {
+    id: string;
+    originalId: string;
+    originalCollection: string;
+    deletedAt: Timestamp;
+    data: ProcuredItem | Requirement | ClassMeeting | Sop;
+    name: string;
+}
