@@ -8,7 +8,7 @@ import { transporter } from '@/ai/nodemailer';
 import LoginCodeEmail from '@/components/emails/login-code-email';
 import { render } from '@react-email/components';
 import { getFirestoreServer } from '@/firebase/server-init';
-import { collection, addDoc, query, where, getDocs, Timestamp, doc, updateDoc } from 'firebase/firestore';
+import { collection, addDoc, query, where, getDocs, Timestamp, doc, updateDoc } from 'firebase-admin/firestore';
 import type { AppUser } from '@/lib/types';
 
 const SendLoginCodeSchema = z.object({
