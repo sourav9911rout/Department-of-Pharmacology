@@ -37,8 +37,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { MoreHorizontal } from "lucide-react";
 
-type StatusAndRole = AppUser['status'] | 'make_admin';
+type Action = AppUser['status'] | 'make_admin' | 'demote_admin';
 
 export default function UserManagementPage() {
   const { isAdmin, user } = useAdminAuth();
@@ -52,20 +54,16 @@ export default function UserManagementPage() {
   );
   const { data: users, isLoading } = useCollection<AppUser>(usersQuery);
 
-  const handleStatusChange = async (userId: string, value: StatusAndRole) => {
+  const handleAction = async (userId: string, action: Action) => {
     if (!firestore) return;
     const userDocRef = doc(firestore, 'users', userId);
 
-    if (value === 'make_admin') {
+    if (action === 'make_admin') {
       await updateDoc(userDocRef, { role: 'admin', status: 'approved' });
-    } else {
-      // If we are changing the status of an admin, set them back to user role as well
-      const userToUpdate = users?.find(u => u.id === userId);
-      if(userToUpdate?.role === 'admin') {
-        await updateDoc(userDocRef, { status: value, role: 'user' });
-      } else {
-        await updateDoc(userDocRef, { status: value });
-      }
+    } else if (action === 'demote_admin') {
+      await updateDoc(userDocRef, { role: 'user' });
+    } else { // It's a status change
+      await updateDoc(userDocRef, { status: action });
     }
   };
   
@@ -171,7 +169,8 @@ export default function UserManagementPage() {
               </TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Role</TableHead>
-              <TableHead className="w-[200px]">Status / Action</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -181,7 +180,8 @@ export default function UserManagementPage() {
                   <TableCell><Skeleton className="h-4 w-4" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-64" /></TableCell>
                   <TableCell><Skeleton className="h-6 w-20" /></TableCell>
-                  <TableCell><Skeleton className="h-8 w-36" /></TableCell>
+                  <TableCell><Skeleton className="h-6 w-24" /></TableCell>
+                  <TableCell className="text-right"><Skeleton className="h-8 w-8" /></TableCell>
                 </TableRow>
               ))
             ) : filteredUsers && filteredUsers.length > 0 ? (
@@ -200,26 +200,46 @@ export default function UserManagementPage() {
                         </Badge>
                   </TableCell>
                   <TableCell>
-                    <Select
-                      value={u.status}
-                      onValueChange={(value) => handleStatusChange(u.id, value as StatusAndRole)}
-                    >
-                      <SelectTrigger className={cn("w-[140px] h-8 text-xs", getStatusBadgeClass(u.status))}>
-                          <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                          <SelectItem value="pending">Pending</SelectItem>
-                          <SelectItem value="approved">Approved</SelectItem>
-                          <SelectItem value="revoked">Revoked</SelectItem>
-                          {u.role !== 'admin' && <SelectItem value="make_admin">Make Admin</SelectItem>}
-                      </SelectContent>
-                    </Select>
+                    <Badge variant="outline" className={cn("capitalize", getStatusBadgeClass(u.status))}>
+                        {u.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="h-8 w-8 p-0">
+                          <span className="sr-only">Open menu</span>
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => handleAction(u.id, 'approved')}>
+                            Approve
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleAction(u.id, 'pending')}>
+                            Set to Pending
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleAction(u.id, 'revoked')}>
+                            Revoke
+                          </DropdownMenuItem>
+                          {u.role === 'user' && (
+                            <DropdownMenuItem onClick={() => handleAction(u.id, 'make_admin')}>
+                              Promote to Admin
+                            </DropdownMenuItem>
+                          )}
+                          {u.role === 'admin' && (
+                            <DropdownMenuItem onClick={() => handleAction(u.id, 'demote_admin')}>
+                              Demote to User
+                            </DropdownMenuItem>
+                          )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </TableCell>
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={4} className="h-24 text-center">
+                <TableCell colSpan={5} className="h-24 text-center">
                   No other users found.
                 </TableCell>
               </TableRow>
@@ -247,3 +267,5 @@ export default function UserManagementPage() {
     </div>
   );
 }
+
+    
