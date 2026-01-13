@@ -18,11 +18,8 @@ const SendLoginCodeSchema = z.object({
 export type SendLoginCodeInput = z.infer<typeof SendLoginCodeSchema>;
 
 export async function sendLoginCode(input: SendLoginCodeInput) {
-    // 1. Pre-flight check for credentials
-    if (!process.env.GMAIL_EMAIL || !process.env.GMAIL_APP_PASSWORD) {
-        console.error("Email service is not configured. Missing GMAIL_EMAIL or GMAIL_APP_PASSWORD in environment variables.");
-        throw new Error("The email service is not configured on the server. Please contact an administrator.");
-    }
+    // Note: The main check for credentials is now in nodemailer.ts for a hard fail on startup.
+    // This provides a cleaner, more reliable way to ensure the service is configured.
 
     const { email } = input;
     const lowerCaseEmail = email.toLowerCase();
@@ -90,11 +87,9 @@ export async function sendLoginCode(input: SendLoginCodeInput) {
           message: 'A login code has been sent to your email.',
         };
       } catch (error) {
-        console.error("Error sending login code email:", error);
-         if (error instanceof Error && 'code' in error && (error as any).code === 'EAUTH') {
-             throw new Error('Failed to send email: Authentication error. Please double-check GMAIL_EMAIL and GMAIL_APP_PASSWORD in your environment variables.');
-        }
-        throw new Error("Failed to send login code. Please try again later.");
+        console.error("Fatal: Error sending login code email:", error);
+        // Provide a user-friendly message without exposing server details.
+        throw new Error("The email service is not configured correctly on the server. Please contact an administrator.");
       }
 
     } else if (userStatus === 'pending') {

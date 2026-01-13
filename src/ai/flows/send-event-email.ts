@@ -24,12 +24,7 @@ const SendEventEmailSchema = z.object({
 export type SendEventEmailInput = z.infer<typeof SendEventEmailSchema>;
 
 export async function sendEventEmail(input: SendEventEmailInput): Promise<void> {
-    // 1. Pre-flight check for credentials
-    if (!process.env.GMAIL_EMAIL || !process.env.GMAIL_APP_PASSWORD) {
-        console.error("Email service is not configured. Missing GMAIL_EMAIL or GMAIL_APP_PASSWORD in environment variables.");
-        throw new Error("Email service is not configured. Missing credentials in environment variables.");
-    }
-
+    // Note: The main check for credentials is now in nodemailer.ts for a hard fail on startup.
     if (!input.invitees || input.invitees.length === 0) {
       console.log('No invitees to send email to. Skipping email flow.');
       return;
@@ -54,18 +49,8 @@ export async function sendEventEmail(input: SendEventEmailInput): Promise<void> 
       const info = await transporter.sendMail(mailOptions);
       console.log('Event notification email sent successfully. Message ID:', info.messageId);
     } catch (error) {
-        // 2. Specific error catching
-        console.error("Error sending email with Nodemailer:", error);
-        
-        if (error instanceof Error) {
-            // Check for common authentication errors
-            if ('code' in error && (error as any).code === 'EAUTH') {
-                 throw new Error('Failed to send email: Authentication error. Please double-check GMAIL_EMAIL and GMAIL_APP_PASSWORD in your environment variables.');
-            }
-            // For other errors, re-throw a more detailed message
-            throw new Error(`Failed to send email: ${error.message}`);
-        }
-        // Fallback for unknown errors
-        throw new Error("Failed to send email due to an unknown error. Check the function logs for more details.");
+        console.error("Fatal: Error sending event email with Nodemailer:", error);
+        // Provide a user-friendly message without exposing server details.
+        throw new Error("The email service is not configured correctly on the server. Please contact an administrator.");
     }
 }
