@@ -59,7 +59,7 @@ export default function UserManagementPage() {
     if (value === 'make_admin') {
       await updateDoc(userDocRef, { role: 'admin', status: 'approved' });
     } else {
-      // If we are demoting an admin, set them back to user role
+      // If we are changing the status of an admin, set them back to user role as well
       const userToUpdate = users?.find(u => u.id === userId);
       if(userToUpdate?.role === 'admin') {
         await updateDoc(userDocRef, { status: value, role: 'user' });
@@ -122,7 +122,7 @@ export default function UserManagementPage() {
       if (role === 'admin') {
           return 'bg-purple-100 text-purple-800 border-purple-300 dark:bg-purple-900/50 dark:text-purple-300 dark:border-purple-700';
       }
-      return 'hidden';
+      return 'border-gray-300 dark:border-gray-700';
   }
 
   const filteredUsers = users?.filter(u => u.email.toLowerCase() !== user?.email?.toLowerCase());
