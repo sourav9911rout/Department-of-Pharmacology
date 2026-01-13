@@ -22,7 +22,6 @@ import Link from "next/link";
 import { Link as LinkIcon } from "lucide-react";
 import { RequirementDialog } from "./requirement-dialog";
 import { useAdminAuth } from "@/hooks/use-admin-auth";
-import { useCurrentUser } from "@/hooks/use-current-user";
 
 export default function RequirementTable({
   data,
@@ -35,12 +34,11 @@ export default function RequirementTable({
   onSelectionChange: (ids: string[]) => void;
   isLoading: boolean;
 }) {
-    const { user } = useAdminAuth();
-    const { currentUserData } = useCurrentUser(user?.email);
-    const isAdmin = currentUserData?.role === 'admin';
+    const { isAdmin } = useAdminAuth();
     const firestore = useFirestore();
 
     const handleStatusChange = (req: Requirement, status: Requirement['status']) => {
+        if (!isAdmin) return;
         const docRef = doc(firestore, 'requirements', req.id);
         if (status === 'Procured') {
             const procuredItemsCollectionRef = collection(firestore, 'procured_items');

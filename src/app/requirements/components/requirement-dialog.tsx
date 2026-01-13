@@ -20,7 +20,6 @@ import { collection, doc } from 'firebase/firestore';
 import { Textarea } from '@/components/ui/textarea';
 import { PlusCircle, Trash2 } from 'lucide-react';
 import { useAdminAuth } from '@/hooks/use-admin-auth';
-import { useCurrentUser } from '@/hooks/use-current-user';
 
 export function RequirementDialog({
   children,
@@ -29,9 +28,7 @@ export function RequirementDialog({
   children: React.ReactNode;
   requirement?: Requirement;
 }) {
-  const { user } = useAdminAuth();
-  const { currentUserData } = useCurrentUser(user?.email);
-  const isAdmin = currentUserData?.role === 'admin';
+  const { isAdmin } = useAdminAuth();
   const firestore = useFirestore();
 
   const [open, setOpen] = useState(false);

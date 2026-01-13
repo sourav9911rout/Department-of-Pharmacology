@@ -38,18 +38,3 @@ export interface Sop {
   name: string;
   driveLink: string;
 }
-
-export interface AppUser {
-    id: string;
-    email: string;
-    role: 'admin' | 'user';
-    status: 'pending' | 'approved' | 'revoked';
-}
-
-export interface TrashedItemDocument {
-  id: string;
-  originalId: string;
-  originalCollection: string;
-  deletedAt: Timestamp;
-  data: Record<string, any>;
-}

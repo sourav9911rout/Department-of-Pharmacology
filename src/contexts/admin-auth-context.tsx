@@ -1,62 +1,57 @@
 'use client';
 
 import { createContext, useState, ReactNode, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
-
-interface User {
-  email: string;
-}
 
 interface AdminAuthContextType {
-  user: User | null;
-  isLoading: boolean;
-  login: (email: string) => void;
+  isAdmin: boolean;
+  isAuthLoading: boolean;
+  login: (pin: string) => boolean;
   logout: () => void;
+  showPinDialog: boolean;
+  setShowPinDialog: (show: boolean) => void;
 }
 
 export const AdminAuthContext = createContext<AdminAuthContextType | undefined>(undefined);
 
-const AUTH_KEY = 'pharma_app_auth_v2';
+const ADMIN_AUTH_KEY = 'pharma_app_admin_auth';
+
+// It's safe to have a default fallback for the PIN.
+const ADMIN_PIN = process.env.NEXT_PUBLIC_ADMIN_PIN || '123456';
 
 export function AdminAuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const router = useRouter();
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
+  const [showPinDialog, setShowPinDialog] = useState(false);
 
   useEffect(() => {
     try {
-      const storedAuth = localStorage.getItem(AUTH_KEY);
+      const storedAuth = sessionStorage.getItem(ADMIN_AUTH_KEY);
       if (storedAuth) {
-        const authData = JSON.parse(storedAuth);
-        if (authData.email) {
-          setUser({ email: authData.email });
-        }
+        setIsAdmin(JSON.parse(storedAuth));
       }
     } catch (e) {
-      console.error("Failed to parse auth data from localStorage", e);
-      localStorage.removeItem(AUTH_KEY);
+      console.error("Failed to parse auth data from sessionStorage", e);
     }
-    setIsLoading(false);
+    setIsAuthLoading(false);
   }, []);
 
-  const login = useCallback((email: string) => {
-    const newUser = { email };
-    localStorage.setItem(AUTH_KEY, JSON.stringify(newUser));
-    setUser(newUser);
-    // Instead of reloading, we push to the home page.
-    // The AppContent component will handle rendering the correct view.
-    router.push('/');
-  }, [router]);
+  const login = useCallback((pin: string) => {
+    if (pin === ADMIN_PIN) {
+      sessionStorage.setItem(ADMIN_AUTH_KEY, 'true');
+      setIsAdmin(true);
+      setShowPinDialog(false);
+      return true;
+    }
+    return false;
+  }, []);
 
   const logout = useCallback(() => {
-    localStorage.removeItem(AUTH_KEY);
-    setUser(null);
-    // Force a reload to the login page to ensure all state is cleared
-    window.location.href = '/login';
+    sessionStorage.removeItem(ADMIN_AUTH_KEY);
+    setIsAdmin(false);
   }, []);
 
   return (
-    <AdminAuthContext.Provider value={{ user, isLoading, login, logout }}>
+    <AdminAuthContext.Provider value={{ isAdmin, isAuthLoading, login, logout, showPinDialog, setShowPinDialog }}>
       {children}
     </AdminAuthContext.Provider>
   );

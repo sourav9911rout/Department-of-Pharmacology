@@ -17,21 +17,20 @@ import { useFirestore } from '@/firebase';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { collection } from 'firebase/firestore';
 import { useAdminAuth } from '@/hooks/use-admin-auth';
-import { useCurrentUser } from '@/hooks/use-current-user';
 
 export function SopDialog({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { user } = useAdminAuth();
-  const { currentUserData } = useCurrentUser(user?.email);
-  const isAdmin = currentUserData?.role === 'admin';
+  const { isAdmin } = useAdminAuth();
   const firestore = useFirestore();
   const [open, setOpen] = useState(false);
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (!isAdmin) return;
+
     const formData = new FormData(e.currentTarget);
     const newSopData: Omit<Sop, 'id'> = {
       name: formData.get('name') as string,

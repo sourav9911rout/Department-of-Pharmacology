@@ -17,18 +17,14 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
-import { collection, doc, orderBy, query, writeBatch, Timestamp } from "firebase/firestore";
+import { collection, doc, orderBy, query, deleteDoc } from "firebase/firestore";
 import { RequirementDialog } from "./components/requirement-dialog";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 import { useAdminAuth } from "@/hooks/use-admin-auth";
-import { useCurrentUser } from "@/hooks/use-current-user";
 
 export default function RequirementsPage() {
-  const { user } = useAdminAuth();
-  const { currentUserData } = useCurrentUser(user?.email);
-  const isAdmin = currentUserData?.role === 'admin';
-
+  const { isAdmin } = useAdminAuth();
   const firestore = useFirestore();
   const [activeTab, setActiveTab] = useState('primary');
   
@@ -50,29 +46,11 @@ export default function RequirementsPage() {
   ) || [];
   
   const handleDelete = async () => {
-    if (!firestore) return;
+    if (!firestore || !isAdmin) return;
 
-    const batch = writeBatch(firestore);
-    const trashCollectionRef = collection(firestore, 'trash');
-
-    selectedReqs.forEach(id => {
-      const reqDoc = reqs?.find(r => r.id === id);
-      if (reqDoc) {
-        const originalDocRef = doc(firestore, 'requirements', id);
-        const trashDocRef = doc(trashCollectionRef);
-        
-        batch.set(trashDocRef, {
-          originalId: id,
-          originalCollection: 'requirements',
-          deletedAt: Timestamp.now(),
-          data: reqDoc
-        });
-        
-        batch.delete(originalDocRef);
-      }
-    });
+    const deletePromises = selectedReqs.map(id => deleteDoc(doc(firestore, 'requirements', id)));
+    await Promise.all(deletePromises);
     
-    await batch.commit();
     setSelectedReqs([]);
     setIsDeleteDialogOpen(false);
   };
@@ -178,13 +156,13 @@ export default function RequirementsPage() {
                 <AlertDialogHeader>
                     <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                     <AlertDialogDescription>
-                        This action cannot be undone. This will move the selected requirement(s) to the Recycle Bin.
+                        This action cannot be undone. This will permanently delete the selected requirement(s).
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
                     <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                        Move to Bin
+                        Delete
                     </AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>

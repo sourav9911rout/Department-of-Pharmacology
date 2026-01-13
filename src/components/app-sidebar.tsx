@@ -23,14 +23,12 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   BookOpen,
-  Users,
-  Trash2,
+  LogIn,
 } from "lucide-react";
 import { useSidebar } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 import { Button } from "./ui/button";
 import { useAdminAuth } from "@/hooks/use-admin-auth";
-import { useCurrentUser } from "@/hooks/use-current-user";
 
 const navItems = [
   { href: "/", label: "Home", icon: Home },
@@ -40,18 +38,10 @@ const navItems = [
   { href: "/sops", label: "SOPs", icon: BookOpen },
 ];
 
-const adminNavItems = [
-    { href: "/user-management", label: "User Management", icon: Users },
-    { href: "/recycle-bin", label: "Recycle Bin", icon: Trash2 },
-]
-
 export default function AppSidebar() {
   const pathname = usePathname();
   const { toggleSidebar, state } = useSidebar();
-  const { logout, user } = useAdminAuth();
-  const { currentUserData } = useCurrentUser(user?.email);
-  const isAdmin = currentUserData?.role === 'admin';
-
+  const { isAdmin, logout, setShowPinDialog } = useAdminAuth();
 
   return (
     <>
@@ -96,19 +86,6 @@ export default function AppSidebar() {
                 </Link>
               </SidebarMenuItem>
             ))}
-            {isAdmin && adminNavItems.map((item) => (
-                 <SidebarMenuItem key={item.href}>
-                    <Link href={item.href}>
-                    <SidebarMenuButton
-                        isActive={pathname === item.href}
-                        className="w-full justify-start"
-                    >
-                        <item.icon className="size-4" />
-                        <span>{item.label}</span>
-                    </SidebarMenuButton>
-                    </Link>
-                </SidebarMenuItem>
-            ))}
             <SidebarMenuItem>
               <a
                 href="https://pharmacology.vercel.app"
@@ -124,10 +101,17 @@ export default function AppSidebar() {
           </SidebarMenu>
         </SidebarContent>
         <SidebarFooter className="p-2 border-t">
-          <SidebarMenuButton className="w-full justify-start" onClick={logout}>
-              <LogOut className="size-4" />
-              <span>Logout</span>
-          </SidebarMenuButton>
+            {isAdmin ? (
+                 <SidebarMenuButton className="w-full justify-start" onClick={logout}>
+                    <LogOut className="size-4" />
+                    <span>Logout</span>
+                </SidebarMenuButton>
+            ) : (
+                <SidebarMenuButton className="w-full justify-start" onClick={() => setShowPinDialog(true)}>
+                    <LogIn className="size-4" />
+                    <span>Admin Login</span>
+                </SidebarMenuButton>
+            )}
         </SidebarFooter>
       </Sidebar>
     </>

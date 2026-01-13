@@ -10,8 +10,8 @@ import { getTransporter } from '@/ai/nodemailer';
 import EventNotificationEmail from '@/components/emails/event-notification-email';
 import { render } from '@react-email/components';
 import dotenv from 'dotenv';
-dotenv.config();
 
+dotenv.config();
 
 const SendEventEmailSchema = z.object({
   topic: z.string().describe('The topic of the class/meeting.'),
@@ -48,8 +48,8 @@ export async function sendEventEmail(input: SendEventEmailInput): Promise<void> 
           html: emailHtml,
         };
         
-        const info = await transporter.sendMail(mailOptions);
-        console.log('Event notification email sent successfully. Message ID:', info.messageId);
+        await transporter.sendMail(mailOptions);
+        console.log('Event notification email sent successfully.');
 
     } catch (error: any) {
         console.error("Fatal: Error sending event email with Nodemailer. The most likely cause is incorrect GMAIL_EMAIL or GMAIL_APP_PASSWORD environment variables. Full error:", error);

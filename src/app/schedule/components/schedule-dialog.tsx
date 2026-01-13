@@ -20,7 +20,6 @@ import { sendEventEmail } from '@/ai/flows/send-event-email';
 import { useToast } from '@/hooks/use-toast';
 import { PlusCircle, Trash2 } from 'lucide-react';
 import { useAdminAuth } from '@/hooks/use-admin-auth';
-import { useCurrentUser } from '@/hooks/use-current-user';
 
 export function ScheduleDialog({
   children,
@@ -29,9 +28,7 @@ export function ScheduleDialog({
   children: React.ReactNode;
   event?: ClassMeeting;
 }) {
-  const { user } = useAdminAuth();
-  const { currentUserData } = useCurrentUser(user?.email);
-  const isAdmin = currentUserData?.role === 'admin';
+  const { isAdmin } = useAdminAuth();
   const firestore = useFirestore();
   const [open, setOpen] = useState(false);
   const [invitees, setInvitees] = useState<string[]>(['']);
@@ -69,6 +66,8 @@ export function ScheduleDialog({
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (!isAdmin) return;
+    
     const formData = new FormData(e.currentTarget);
     const finalInvitees = invitees.map(i => i.trim()).filter(Boolean);
     

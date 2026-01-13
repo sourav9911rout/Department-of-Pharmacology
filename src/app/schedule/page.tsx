@@ -20,18 +20,14 @@ import {
 import { ScheduleDialog } from "./components/schedule-dialog";
 import { addHours, parse } from 'date-fns';
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
-import { collection, doc, query, writeBatch, Timestamp } from "firebase/firestore";
+import { collection, doc, query, deleteDoc } from "firebase/firestore";
 import { Skeleton } from "@/components/ui/skeleton";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 import { useAdminAuth } from "@/hooks/use-admin-auth";
-import { useCurrentUser } from "@/hooks/use-current-user";
 
 export default function SchedulePage() {
-  const { user } = useAdminAuth();
-  const { currentUserData } = useCurrentUser(user?.email);
-  const isAdmin = currentUserData?.role === 'admin';
-
+  const { isAdmin } = useAdminAuth();
   const firestore = useFirestore();
   const scheduleCollection = useMemoFirebase(
     () => firestore ? query(collection(firestore, 'class_meetings')) : null,
@@ -65,28 +61,11 @@ export default function SchedulePage() {
   };
 
   const handleDelete = async () => {
-    if (!firestore) return;
+    if (!firestore || !isAdmin) return;
 
-    const batch = writeBatch(firestore);
-    const trashCollectionRef = collection(firestore, 'trash');
-    
-    selectedEvents.forEach(id => {
-        const eventDoc = events?.find(e => e.id === id);
-        if (eventDoc) {
-            const originalDocRef = doc(firestore, 'class_meetings', id);
-            const trashDocRef = doc(trashCollectionRef);
+    const deletePromises = selectedEvents.map(id => deleteDoc(doc(firestore, 'class_meetings', id)));
+    await Promise.all(deletePromises);
 
-            batch.set(trashDocRef, {
-                originalId: id,
-                originalCollection: 'class_meetings',
-                deletedAt: Timestamp.now(),
-                data: eventDoc
-            });
-            batch.delete(originalDocRef);
-        }
-    });
-
-    await batch.commit();
     setSelectedEvents([]);
     setIsDeleteDialogOpen(false);
   };
@@ -266,13 +245,13 @@ export default function SchedulePage() {
                 <AlertDialogHeader>
                     <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                     <AlertDialogDescription>
-                        This action cannot be undone. This will move the selected event(s) to the Recycle Bin.
+                        This action cannot be undone. This will permanently delete the selected event(s).
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
                     <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                        Move to Bin
+                        Delete
                     </AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>

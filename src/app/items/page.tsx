@@ -1,4 +1,3 @@
-
 'use client';
 import PageHeader from "@/components/page-header";
 import ItemTable from "./components/item-table";
@@ -43,9 +42,9 @@ export default function ProcuredItemsPage() {
   const { data: items, isLoading } = useCollection<ProcuredItem>(procuredItemsQuery);
 
   const handleDelete = async () => {
-    if (!firestore) return;
+    if (!firestore || !isAdmin) return;
     
-    // In a real app, you'd move this to a 'trash' collection instead of deleting
+    // In a real app, you might move this to a 'trash' collection instead of deleting
     const deletePromises = selectedItems.map(id => deleteDoc(doc(firestore, 'procured_items', id)));
     await Promise.all(deletePromises);
     
