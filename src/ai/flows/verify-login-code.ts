@@ -5,7 +5,7 @@
  */
 import { z } from 'zod';
 import { getFirestoreServer } from '@/firebase/server-init';
-import { collection, query, where, getDocs, Timestamp, deleteDoc, doc } from 'firebase/firestore';
+import { Timestamp } from 'firebase-admin/firestore';
 
 const VerifyLoginCodeSchema = z.object({
   email: z.string().email().describe('The user\'s email.'),
@@ -17,15 +17,13 @@ export type VerifyLoginCodeInput = z.infer<typeof VerifyLoginCodeSchema>;
 
 export async function verifyLoginCode({ email, code }: VerifyLoginCodeInput) {
     const firestore = getFirestoreServer();
-    const otpsRef = collection(firestore, 'otps');
+    const otpsRef = firestore.collection('otps');
 
-    const q = query(
-      otpsRef,
-      where('email', '==', email.toLowerCase()),
-      where('code', '==', code)
-    );
+    const q = otpsRef
+      .where('email', '==', email.toLowerCase())
+      .where('code', '==', code);
 
-    const querySnapshot = await getDocs(q);
+    const querySnapshot = await q.get();
 
     if (querySnapshot.empty) {
       return { success: false, message: 'Invalid code. Please try again.' };
@@ -34,14 +32,14 @@ export async function verifyLoginCode({ email, code }: VerifyLoginCodeInput) {
     const otpDoc = querySnapshot.docs[0];
     const otpData = otpDoc.data();
 
-    if (Timestamp.now() > otpData.expiresAt) {
+    if (Timestamp.now().toMillis() > otpData.expiresAt.toMillis()) {
       // Clean up expired code
-      await deleteDoc(doc(firestore, 'otps', otpDoc.id));
+      await otpDoc.ref.delete();
       return { success: false, message: 'Your code has expired. Please request a new one.' };
     }
     
     // Code is valid, delete it so it can't be reused
-    await deleteDoc(doc(firestore, 'otps', otpDoc.id));
+    await otpDoc.ref.delete();
     
     return { success: true, message: 'Login successful!' };
 }

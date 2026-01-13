@@ -8,7 +8,7 @@ import { transporter } from '@/ai/nodemailer';
 import LoginCodeEmail from '@/components/emails/login-code-email';
 import { render } from '@react-email/components';
 import { getFirestoreServer } from '@/firebase/server-init';
-import { collection, addDoc, query, where, getDocs, Timestamp, doc, updateDoc } from 'firebase-admin/firestore';
+import { Timestamp } from 'firebase-admin/firestore';
 import type { AppUser } from '@/lib/types';
 
 const SendLoginCodeSchema = z.object({
@@ -26,9 +26,9 @@ export async function sendLoginCode(input: SendLoginCodeInput) {
     let userStatus: AppUser['status'] = 'pending';
     let userRole: AppUser['role'] = 'user';
     
-    const usersRef = collection(firestore, 'users');
-    const q = query(usersRef, where('email', '==', lowerCaseEmail));
-    const querySnapshot = await getDocs(q);
+    const usersRef = firestore.collection('users');
+    const q = usersRef.where('email', '==', lowerCaseEmail);
+    const querySnapshot = await q.get();
     
     let userDoc;
     if (!querySnapshot.empty) {
@@ -39,7 +39,7 @@ export async function sendLoginCode(input: SendLoginCodeInput) {
 
         // Ensure admin email from env always has admin role in DB
         if (lowerCaseEmail === adminEmail && userData.role !== 'admin') {
-            await updateDoc(doc(firestore, 'users', userDoc.id), { role: 'admin', status: 'approved' });
+            await userDoc.ref.update({ role: 'admin', status: 'approved' });
             userRole = 'admin';
             userStatus = 'approved';
         }
@@ -51,7 +51,7 @@ export async function sendLoginCode(input: SendLoginCodeInput) {
             status: isNewAdmin ? 'approved' : 'pending',
             role: isNewAdmin ? 'admin' : 'user'
         };
-        await addDoc(usersRef, newUser);
+        await usersRef.add(newUser);
         userStatus = newUser.status;
         userRole = newUser.role;
     }
@@ -61,8 +61,8 @@ export async function sendLoginCode(input: SendLoginCodeInput) {
       const validationCode = Math.floor(100000 + Math.random() * 900000).toString();
       const expiresAt = Timestamp.fromMillis(Date.now() + 10 * 60 * 1000); // 10 minutes from now
 
-      const otpsRef = collection(firestore, 'otps');
-      await addDoc(otpsRef, {
+      const otpsRef = firestore.collection('otps');
+      await otpsRef.add({
         email: lowerCaseEmail,
         code: validationCode,
         expiresAt,
