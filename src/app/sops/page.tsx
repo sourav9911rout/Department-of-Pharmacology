@@ -1,22 +1,25 @@
-
 'use client';
 import PageHeader from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useAdminAuth } from "@/hooks/use-admin-auth";
 import { BookOpen, PlusCircle, Link as LinkIcon, Trash2 } from "lucide-react";
 import { SopDialog } from "./components/sop-dialog";
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
-import { collection, doc, query, deleteDoc } from "firebase/firestore";
+import { collection, doc, query, writeBatch, Timestamp } from "firebase/firestore";
 import type { Sop } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
 import { useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { useAdminAuth } from "@/hooks/use-admin-auth";
+import { useCurrentUser } from "@/hooks/use-current-user";
 
 export default function SopsPage() {
-  const { isAdmin } = useAdminAuth();
+  const { user } = useAdminAuth();
+  const { currentUserData } = useCurrentUser(user?.email);
+  const isAdmin = currentUserData?.role === 'admin';
+  
   const firestore = useFirestore();
   const [selectedSops, setSelectedSops] = useState<string[]>([]);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -35,8 +38,27 @@ export default function SopsPage() {
   
   const handleDelete = async () => {
     if (!firestore) return;
-    const deletePromises = selectedSops.map(id => deleteDoc(doc(firestore, 'sops', id)));
-    await Promise.all(deletePromises);
+    
+    const batch = writeBatch(firestore);
+    const trashCollectionRef = collection(firestore, 'trash');
+
+    selectedSops.forEach(id => {
+        const sopDoc = sops?.find(s => s.id === id);
+        if(sopDoc) {
+            const originalDocRef = doc(firestore, 'sops', id);
+            const trashDocRef = doc(trashCollectionRef);
+
+            batch.set(trashDocRef, {
+                originalId: id,
+                originalCollection: 'sops',
+                deletedAt: Timestamp.now(),
+                data: sopDoc
+            });
+            batch.delete(originalDocRef);
+        }
+    });
+
+    await batch.commit();
     setSelectedSops([]);
     setIsDeleteDialogOpen(false);
   };
@@ -114,13 +136,13 @@ export default function SopsPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the selected SOP(s).
+              This action cannot be undone. This will move the selected SOP(s) to the Recycle Bin.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Delete
+              Move to Bin
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

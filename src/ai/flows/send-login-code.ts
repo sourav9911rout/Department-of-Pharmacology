@@ -1,7 +1,6 @@
-
 'use server';
 /**
- * @fileOverview A flow for generating and sending a one-time login code.
+ * @fileOverview A flow for generating and sending a one-time login code, and managing user access requests.
  */
 import { z } from 'zod';
 import { transporter } from '@/ai/nodemailer';
@@ -18,89 +17,96 @@ const SendLoginCodeSchema = z.object({
 export type SendLoginCodeInput = z.infer<typeof SendLoginCodeSchema>;
 
 export async function sendLoginCode(input: SendLoginCodeInput) {
-    // Note: The main check for credentials is now in nodemailer.ts for a hard fail on startup.
-    // This provides a cleaner, more reliable way to ensure the service is configured.
+  const email = process.env.GMAIL_EMAIL;
+  const pass = process.env.GMAIL_APP_PASSWORD;
+  
+  if (!email || !pass) {
+    console.error('FATAL: Gmail credentials are not set in environment variables.');
+    throw new Error(
+      'The email service is not configured correctly on the server. Please contact an administrator.'
+    );
+  }
 
-    const { email } = input;
-    const lowerCaseEmail = email.toLowerCase();
-    const firestore = getFirestoreServer();
-    const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL?.toLowerCase();
+  const { email: userEmail } = input;
+  const lowerCaseEmail = userEmail.toLowerCase();
+  const firestore = getFirestoreServer();
 
-    let userStatus: AppUser['status'] = 'pending';
-    let userRole: AppUser['role'] = 'user';
-    
-    const usersRef = firestore.collection('users');
-    const q = usersRef.where('email', '==', lowerCaseEmail);
-    const querySnapshot = await q.get();
-    
-    let userDoc;
-    if (!querySnapshot.empty) {
-        userDoc = querySnapshot.docs[0];
-        const userData = userDoc.data() as AppUser;
-        userStatus = userData.status;
-        userRole = userData.role;
+  const usersRef = firestore.collection('users');
+  const q = usersRef.where('email', '==', lowerCaseEmail);
+  const querySnapshot = await q.get();
+  
+  let userDoc;
+  if (!querySnapshot.empty) {
+    userDoc = querySnapshot.docs[0];
+  }
 
-        // Ensure admin email from env always has admin role in DB
-        if (lowerCaseEmail === adminEmail && userData.role !== 'admin') {
-            await userDoc.ref.update({ role: 'admin', status: 'approved' });
-            userRole = 'admin';
-            userStatus = 'approved';
-        }
+  const adminEmail = process.env.ADMIN_EMAIL || 'deptofpharmacologyaiimscapfims@gmail.com';
+
+  // Case 1: New user
+  if (!userDoc) {
+    const isFirstUserAdmin = lowerCaseEmail === adminEmail.toLowerCase();
+    const newUser: AppUser = {
+      id: '', // Firestore will generate
+      email: lowerCaseEmail,
+      role: isFirstUserAdmin ? 'admin' : 'user',
+      status: isFirstUserAdmin ? 'approved' : 'pending',
+    };
+    await usersRef.add(newUser);
+
+    if (isFirstUserAdmin) {
+       // Proceed to send code for the new admin
     } else {
-        // User does not exist, add them
-        const isNewAdmin = lowerCaseEmail === adminEmail;
-        const newUser: Omit<AppUser, 'id'> = { 
-            email: lowerCaseEmail, 
-            status: isNewAdmin ? 'approved' : 'pending',
-            role: isNewAdmin ? 'admin' : 'user'
-        };
-        await usersRef.add(newUser);
-        userStatus = newUser.status;
-        userRole = newUser.role;
+       return { 
+         success: true, 
+         codeSent: false,
+         message: 'Your request for access has been submitted. An admin will review it shortly.'
+       };
     }
-    
-    // Only send code if user is approved or is the admin
-    if (userStatus === 'approved' || userRole === 'admin') {
-      const validationCode = Math.floor(100000 + Math.random() * 900000).toString();
-      const expiresAt = Timestamp.fromMillis(Date.now() + 10 * 60 * 1000); // 10 minutes from now
-
-      const otpsRef = firestore.collection('otps');
-      await otpsRef.add({
-        email: lowerCaseEmail,
-        code: validationCode,
-        expiresAt,
-      });
-      
-      const emailHtml = render(LoginCodeEmail({ validationCode }));
-
-      const mailOptions = {
-        from: `"Department of Pharmacology" <${process.env.GMAIL_EMAIL}>`,
-        to: email,
-        subject: `Your Login Code: ${validationCode}`,
-        html: emailHtml,
-      };
-
-      try {
-        await transporter.sendMail(mailOptions);
-        return {
-          success: true,
-          message: 'A login code has been sent to your email.',
-        };
-      } catch (error) {
-        console.error("Fatal: Error sending login code email:", error);
-        // Provide a user-friendly message without exposing server details.
-        throw new Error("The email service is not configured correctly on the server. Please contact an administrator.");
-      }
-
-    } else if (userStatus === 'pending') {
-        return {
-            success: false,
-            message: 'Your access request is pending approval from the administrator.'
-        }
-    } else { // revoked or other status
-        return {
-            success: false,
-            message: 'Your access has been revoked. Please contact the administrator.'
-        }
+  } else {
+    // Case 2: Existing user
+    const userData = userDoc.data() as AppUser;
+    if (userData.status === 'pending') {
+      return { success: true, codeSent: false, message: 'Your access request is still pending approval.' };
     }
+    if (userData.status === 'revoked') {
+      return { success: false, codeSent: false, message: 'Your access has been revoked. Please contact an administrator.' };
+    }
+    // If approved, proceed to send code
+  }
+
+
+  // Logic to generate and send code
+  const validationCode = Math.floor(100000 + Math.random() * 900000).toString();
+  const expiresAt = Timestamp.fromMillis(Date.now() + 10 * 60 * 1000); // 10 minutes from now
+
+  const otpsRef = firestore.collection('otps');
+  await otpsRef.add({
+    email: lowerCaseEmail,
+    code: validationCode,
+    expiresAt,
+  });
+  
+  const emailHtml = render(LoginCodeEmail({ validationCode }));
+
+  const mailOptions = {
+    from: `"Department of Pharmacology" <${process.env.GMAIL_EMAIL}>`,
+    to: userEmail,
+    subject: `Your Login Code: ${validationCode}`,
+    html: emailHtml,
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    return {
+      success: true,
+      codeSent: true,
+      message: 'A login code has been sent to your email.',
+    };
+  } catch (error: any) {
+    console.error("Fatal: Error sending login code email with Nodemailer. The most likely cause is incorrect GMAIL_EMAIL or GMAIL_APP_PASSWORD environment variables. Please verify them. Full error:", error);
+    if (error.code === 'EAUTH') {
+        throw new Error("Failed to send email: Authentication error. Please double-check GMAIL_EMAIL and GMAIL_APP_PASSWORD in your Vercel environment variables.");
+    }
+    throw new Error("The email service is not configured correctly on the server. Please contact an administrator.");
+  }
 }

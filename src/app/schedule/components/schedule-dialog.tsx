@@ -1,4 +1,3 @@
-
 'use client';
 import { Button } from '@/components/ui/button';
 import {
@@ -12,7 +11,6 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useAdminAuth } from '@/hooks/use-admin-auth';
 import type { ClassMeeting } from '@/lib/types';
 import { useState, useEffect } from 'react';
 import { useFirestore } from '@/firebase';
@@ -21,6 +19,8 @@ import { collection, doc } from 'firebase/firestore';
 import { sendEventEmail } from '@/ai/flows/send-event-email';
 import { useToast } from '@/hooks/use-toast';
 import { PlusCircle, Trash2 } from 'lucide-react';
+import { useAdminAuth } from '@/hooks/use-admin-auth';
+import { useCurrentUser } from '@/hooks/use-current-user';
 
 export function ScheduleDialog({
   children,
@@ -29,7 +29,9 @@ export function ScheduleDialog({
   children: React.ReactNode;
   event?: ClassMeeting;
 }) {
-  const { isAdmin } = useAdminAuth();
+  const { user } = useAdminAuth();
+  const { currentUserData } = useCurrentUser(user?.email);
+  const isAdmin = currentUserData?.role === 'admin';
   const firestore = useFirestore();
   const [open, setOpen] = useState(false);
   const [invitees, setInvitees] = useState<string[]>(['']);
@@ -126,7 +128,7 @@ export function ScheduleDialog({
               {isEditing ? 'Update the details of the event.' : 'Fill in the details for the new event.'}
             </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
+          <div className="grid gap-4 py-4 max-h-[70vh] overflow-y-auto pr-4">
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="topic" className="text-right">
                 Topic

@@ -1,4 +1,3 @@
-
 'use client';
 import PageHeader from "@/components/page-header";
 import { Button } from "@/components/ui/button";
@@ -13,7 +12,7 @@ import {
 import { useAdminAuth } from "@/hooks/use-admin-auth";
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
 import type { TrashedItemDocument } from "@/lib/types";
-import { collection, doc, orderBy, query, deleteDoc, setDoc, writeBatch } from "firebase/firestore";
+import { collection, doc, orderBy, query, deleteDoc, writeBatch } from "firebase/firestore";
 import { useState } from "react";
 import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -32,9 +31,13 @@ import { cn } from "@/lib/utils";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RotateCcw, Trash2 } from "lucide-react";
 import { Timestamp } from "firebase/firestore";
+import { useCurrentUser } from "@/hooks/use-current-user";
 
 export default function RecycleBinPage() {
-  const { isAdmin } = useAdminAuth();
+  const { user } = useAdminAuth();
+  const { currentUserData } = useCurrentUser(user?.email);
+  const isAdmin = currentUserData?.role === 'admin';
+
   const firestore = useFirestore();
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [itemToPermanentlyDelete, setItemToPermanentlyDelete] = useState<string[]>([]);
@@ -112,7 +115,7 @@ export default function RecycleBinPage() {
 
   const getItemName = (item: TrashedItemDocument) => {
     const data = item.data as any;
-    return data.name || data.topic || data.email || 'Unknown';
+    return data.name || data.topic || data.email || 'Unknown Item';
   }
   
     const formatDeletedAt = (deletedAt: any): string => {
@@ -146,7 +149,7 @@ export default function RecycleBinPage() {
     <div className="flex flex-col gap-8">
       <PageHeader
         title="Recycle Bin"
-        description="View and manage deleted items."
+        description="Items deleted in the last 30 days. Items are permanently deleted after this period."
       >
         {selectedItems.length > 0 && (
             <div className="flex items-center gap-2">

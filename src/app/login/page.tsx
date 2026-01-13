@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -10,7 +9,6 @@ import { useToast } from '@/hooks/use-toast';
 import { sendLoginCode } from '@/ai/flows/send-login-code';
 import { verifyLoginCode } from '@/ai/flows/verify-login-code';
 import { useRouter } from 'next/navigation';
-import { useAdminAuth } from '@/hooks/use-admin-auth';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -18,7 +16,7 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [codeSent, setCodeSent] = useState(false);
   const { toast } = useToast();
-  const { login } = useAdminAuth();
+  const router = useRouter();
 
   const handleLoginRequest = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,15 +24,24 @@ export default function LoginPage() {
     try {
       const result = await sendLoginCode({ email });
       if (result.success) {
-        setCodeSent(true);
-        toast({
-          title: "Check your email",
-          description: result.message,
-        });
+        if (result.codeSent) {
+          setCodeSent(true);
+           toast({
+            title: "Check your email",
+            description: result.message,
+          });
+        } else {
+           toast({
+            title: "Access Request Submitted",
+            description: result.message,
+          });
+           // Don't proceed to code screen if it's just a request
+           setEmail('');
+        }
       } else {
         toast({
           variant: "destructive",
-          title: "Access Denied",
+          title: "Error",
           description: result.message,
         });
       }
@@ -43,7 +50,7 @@ export default function LoginPage() {
       toast({
         variant: "destructive",
         title: "Something went wrong",
-        description: error instanceof Error ? error.message : 'Could not send login code. Please try again.',
+        description: error instanceof Error ? error.message : 'Could not process your request. Please try again.',
       });
     }
     setIsLoading(false);
@@ -57,9 +64,10 @@ export default function LoginPage() {
       if (result.success) {
         toast({
           title: "Login Successful",
-          description: "Welcome back!",
+          description: "Welcome!",
         });
-        login(email);
+        // Redirect to auth handler page which will set the session
+        router.push(`/auth?email=${encodeURIComponent(email)}`);
       } else {
         toast({
           variant: "destructive",
@@ -94,7 +102,7 @@ export default function LoginPage() {
                 <Input
                   id="email"
                   type="email"
-                  placeholder="Enter your email"
+                  placeholder="Enter your email to login or request access"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -102,7 +110,7 @@ export default function LoginPage() {
                 />
               </div>
               <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? 'Sending...' : 'Send Login Code'}
+                {isLoading ? 'Processing...' : 'Continue with Email'}
               </Button>
             </form>
           ) : (

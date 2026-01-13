@@ -11,19 +11,22 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useAdminAuth } from '@/hooks/use-admin-auth';
 import type { Sop } from '@/lib/types';
 import { useState } from 'react';
 import { useFirestore } from '@/firebase';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { collection } from 'firebase/firestore';
+import { useAdminAuth } from '@/hooks/use-admin-auth';
+import { useCurrentUser } from '@/hooks/use-current-user';
 
 export function SopDialog({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { isAdmin } = useAdminAuth();
+  const { user } = useAdminAuth();
+  const { currentUserData } = useCurrentUser(user?.email);
+  const isAdmin = currentUserData?.role === 'admin';
   const firestore = useFirestore();
   const [open, setOpen] = useState(false);
 

@@ -1,4 +1,3 @@
-
 'use client';
 import PageHeader from "@/components/page-header";
 import { Button } from "@/components/ui/button";
@@ -32,11 +31,15 @@ import {
 } from "@/components/ui/alert-dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal } from "lucide-react";
+import { useCurrentUser } from "@/hooks/use-current-user";
 
 type Action = AppUser['status'] | 'make_admin' | 'demote_admin';
 
 export default function UserManagementPage() {
-  const { isAdmin, user } = useAdminAuth();
+  const { user } = useAdminAuth();
+  const { currentUserData } = useCurrentUser(user?.email);
+  const isAdmin = currentUserData?.role === 'admin';
+
   const firestore = useFirestore();
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -144,7 +147,7 @@ export default function UserManagementPage() {
         {selectedUsers.length > 0 && (
           <Button variant="destructive" onClick={() => setIsDeleteDialogOpen(true)}>
             <Trash2 className="mr-2 h-4 w-4" />
-            Delete ({selectedUsers.length})
+            Move to Bin ({selectedUsers.length})
           </Button>
         )}
       </PageHeader>
@@ -247,13 +250,13 @@ export default function UserManagementPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will move the selected user(s) to the Recycle Bin. They will need to request access again.
+              This action cannot be undone. This will move the selected user(s) to the Recycle Bin. They will lose access immediately.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Delete
+              Move to Bin
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

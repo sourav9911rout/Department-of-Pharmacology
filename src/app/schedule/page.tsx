@@ -1,4 +1,3 @@
-
 'use client';
 import PageHeader from "@/components/page-header";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,7 +6,6 @@ import { FileDown, PlusCircle, Trash2, Video } from "lucide-react";
 import { format } from "date-fns";
 import { useState } from "react";
 import type { ClassMeeting } from "@/lib/types";
-import { useAdminAuth } from "@/hooks/use-admin-auth";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   AlertDialog,
@@ -22,13 +20,18 @@ import {
 import { ScheduleDialog } from "./components/schedule-dialog";
 import { addHours, parse } from 'date-fns';
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
-import { collection, doc, query, deleteDoc } from "firebase/firestore";
+import { collection, doc, query, writeBatch, Timestamp } from "firebase/firestore";
 import { Skeleton } from "@/components/ui/skeleton";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
+import { useAdminAuth } from "@/hooks/use-admin-auth";
+import { useCurrentUser } from "@/hooks/use-current-user";
 
 export default function SchedulePage() {
-  const { isAdmin } = useAdminAuth();
+  const { user } = useAdminAuth();
+  const { currentUserData } = useCurrentUser(user?.email);
+  const isAdmin = currentUserData?.role === 'admin';
+
   const firestore = useFirestore();
   const scheduleCollection = useMemoFirebase(
     () => firestore ? query(collection(firestore, 'class_meetings')) : null,
@@ -63,8 +66,27 @@ export default function SchedulePage() {
 
   const handleDelete = async () => {
     if (!firestore) return;
-    const deletePromises = selectedEvents.map(id => deleteDoc(doc(firestore, 'class_meetings', id)));
-    await Promise.all(deletePromises);
+
+    const batch = writeBatch(firestore);
+    const trashCollectionRef = collection(firestore, 'trash');
+    
+    selectedEvents.forEach(id => {
+        const eventDoc = events?.find(e => e.id === id);
+        if (eventDoc) {
+            const originalDocRef = doc(firestore, 'class_meetings', id);
+            const trashDocRef = doc(trashCollectionRef);
+
+            batch.set(trashDocRef, {
+                originalId: id,
+                originalCollection: 'class_meetings',
+                deletedAt: Timestamp.now(),
+                data: eventDoc
+            });
+            batch.delete(originalDocRef);
+        }
+    });
+
+    await batch.commit();
     setSelectedEvents([]);
     setIsDeleteDialogOpen(false);
   };
@@ -128,12 +150,14 @@ export default function SchedulePage() {
                 Delete ({selectedEvents.length})
             </Button>
             )}
-            <ScheduleDialog>
-                <Button>
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    Add Event
-                </Button>
-            </ScheduleDialog>
+            {isAdmin && (
+              <ScheduleDialog>
+                  <Button>
+                      <PlusCircle className="mr-2 h-4 w-4" />
+                      Add Event
+                  </Button>
+              </ScheduleDialog>
+            )}
         </div>
       </PageHeader>
       <section>
@@ -242,13 +266,13 @@ export default function SchedulePage() {
                 <AlertDialogHeader>
                     <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                     <AlertDialogDescription>
-                        This action cannot be undone. This will permanently delete the selected event(s).
+                        This action cannot be undone. This will move the selected event(s) to the Recycle Bin.
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
                     <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                        Delete
+                        Move to Bin
                     </AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>

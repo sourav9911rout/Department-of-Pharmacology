@@ -1,4 +1,6 @@
 
+import type { Timestamp } from "firebase/firestore";
+
 export interface ProcuredItem {
   id: string;
   name: string;
@@ -35,4 +37,19 @@ export interface Sop {
   id: string;
   name: string;
   driveLink: string;
+}
+
+export interface AppUser {
+    id: string;
+    email: string;
+    role: 'admin' | 'user';
+    status: 'pending' | 'approved' | 'revoked';
+}
+
+export interface TrashedItemDocument {
+  id: string;
+  originalId: string;
+  originalCollection: string;
+  deletedAt: Timestamp;
+  data: Record<string, any>;
 }

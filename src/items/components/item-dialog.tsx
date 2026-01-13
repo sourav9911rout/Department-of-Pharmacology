@@ -12,22 +12,22 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import type { Requirement } from '@/lib/types';
+import { Textarea } from '@/components/ui/textarea';
+import type { ProcuredItem } from '@/lib/types';
 import { useState, useEffect } from 'react';
 import { useFirestore } from '@/firebase';
 import { addDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { collection, doc } from 'firebase/firestore';
-import { Textarea } from '@/components/ui/textarea';
 import { PlusCircle, Trash2 } from 'lucide-react';
 import { useAdminAuth } from '@/hooks/use-admin-auth';
 import { useCurrentUser } from '@/hooks/use-current-user';
 
-export function RequirementDialog({
+export function ItemDialog({
   children,
-  requirement,
+  item,
 }: {
   children: React.ReactNode;
-  requirement?: Requirement;
+  item?: ProcuredItem;
 }) {
   const { user } = useAdminAuth();
   const { currentUserData } = useCurrentUser(user?.email);
@@ -35,23 +35,25 @@ export function RequirementDialog({
   const firestore = useFirestore();
 
   const [open, setOpen] = useState(false);
-  const [type, setType] = useState(requirement?.type);
-  const [documents, setDocuments] = useState(requirement?.documents || [{ name: '', link: '' }]);
+  const [category, setCategory] = useState(item?.category);
+  const [installationStatus, setInstallationStatus] = useState(item?.installationStatus);
+  const [documents, setDocuments] = useState(item?.documents || [{ name: '', link: '' }]);
   
-  const isEditing = !!requirement;
-
+  const isEditing = !!item;
+  
   useEffect(() => {
     if (open) {
-      setType(requirement?.type);
-      setDocuments(requirement?.documents && requirement.documents.length > 0 ? requirement.documents : [{ name: '', link: '' }]);
+      setCategory(item?.category);
+      setInstallationStatus(item?.installationStatus);
+      setDocuments(item?.documents && item.documents.length > 0 ? item.documents : [{ name: '', link: '' }]);
     }
-  }, [open, requirement]);
+  }, [open, item]);
 
 
   if (!isAdmin) {
     return null;
   }
-  
+
   const handleDocChange = (index: number, field: 'name' | 'link', value: string) => {
     const newDocs = [...documents];
     newDocs[index][field] = value;
@@ -67,44 +69,39 @@ export function RequirementDialog({
       const newDocs = documents.filter((_, i) => i !== index);
       setDocuments(newDocs);
     } else {
+      // Clear the fields if it's the last one
       setDocuments([{ name: '', link: '' }]);
     }
   };
-
+  
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
-    const filteredDocuments = documents.filter(doc => doc.name.trim() !== '' && doc.link.trim() !== '');
 
-    const newRequirementData: Omit<Requirement, 'id'|'status'> = {
+    const filteredDocuments = documents.filter(doc => doc.name.trim() !== '' && doc.link.trim() !== '');
+    
+    const newItemData = {
       name: formData.get('name') as string,
-      requiredQuantity: Number(formData.get('requiredQuantity')),
-      type: type as Requirement['type'],
+      category: category as ProcuredItem['category'],
+      quantity: Number(formData.get('quantity')),
+      dateOfProcurement: formData.get('dateOfProcurement') as string,
+      installationStatus: installationStatus as ProcuredItem['installationStatus'],
       remarks: formData.get('remarks') as string,
+      dateOfInstallation: installationStatus === 'Installed' ? (formData.get('dateOfInstallation') as string) : '',
       documents: filteredDocuments,
     };
-    
-    if (isEditing && requirement) {
-      const docRef = doc(firestore, 'requirements', requirement.id);
-      const updatedData = { ...newRequirementData, status: requirement.status };
-      setDocumentNonBlocking(docRef, updatedData, { merge: true });
+
+    if (isEditing && item) {
+      const docRef = doc(firestore, 'procured_items', item.id);
+      setDocumentNonBlocking(docRef, newItemData, { merge: true });
     } else {
-      const finalData = {
-          ...newRequirementData,
-          status: 'Pending' as Requirement['status'],
-      }
-      const collectionRef = collection(firestore, 'requirements');
-      addDocumentNonBlocking(collectionRef, finalData);
+      const collectionRef = collection(firestore, 'procured_items');
+      addDocumentNonBlocking(collectionRef, newItemData);
     }
     
     setOpen(false);
-    if (!isEditing) {
-        // Reset form states only when adding
-        setType(undefined);
-        setDocuments([{ name: '', link: '' }]);
-        (e.target as HTMLFormElement).reset();
-    }
   };
+  
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -112,9 +109,9 @@ export function RequirementDialog({
       <DialogContent className="sm:max-w-md">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>{isEditing ? 'Edit Requirement' : 'Add New Requirement'}</DialogTitle>
+            <DialogTitle>{isEditing ? 'Edit Item' : 'Add New Item'}</DialogTitle>
             <DialogDescription>
-              {isEditing ? 'Update the details of the existing requirement.' : 'Fill in the details for the new requirement.'}
+              {isEditing ? "Update the details of the existing item." : "Fill in the details for the new item."}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4 max-h-[70vh] overflow-y-auto pr-4">
@@ -122,30 +119,60 @@ export function RequirementDialog({
               <Label htmlFor="name" className="text-right">
                 Name
               </Label>
-              <Input id="name" name="name" defaultValue={requirement?.name} className="col-span-3" required/>
+              <Input id="name" name="name" defaultValue={item?.name} className="col-span-3" required/>
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="requiredQuantity" className="text-right">
-                Quantity
+              <Label htmlFor="category" className="text-right">
+                Category
               </Label>
-              <Input id="requiredQuantity" name="requiredQuantity" type="number" defaultValue={requirement?.requiredQuantity} className="col-span-3" required/>
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="type" className="text-right">
-                Type
-              </Label>
-              <Select value={type} onValueChange={(v) => setType(v as Requirement['type'])} required>
+              <Select value={category} onValueChange={setCategory} required>
                 <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder="Select a type" />
+                  <SelectValue placeholder="Select a category" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Primary">Primary</SelectItem>
-                  <SelectItem value="Secondary">Secondary</SelectItem>
-                  <SelectItem value="Tertiary">Tertiary</SelectItem>
+                  <SelectItem value="Electronics">Electronics</SelectItem>
+                  <SelectItem value="Furniture">Furniture</SelectItem>
+                  <SelectItem value="Stationery">Stationery</SelectItem>
+                  <SelectItem value="Miscellaneous">Miscellaneous</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-             <div className="grid grid-cols-4 items-start gap-4">
+             <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="quantity" className="text-right">
+                Quantity
+              </Label>
+              <Input id="quantity" name="quantity" type="number" defaultValue={item?.quantity} className="col-span-3" required/>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="dateOfProcurement" className="text-right">
+                Date
+              </Label>
+              <Input id="dateOfProcurement" name="dateOfProcurement" type="date" defaultValue={item?.dateOfProcurement} className="col-span-3" required/>
+            </div>
+             <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="installationStatus" className="text-right">
+                Status
+              </Label>
+              <Select value={installationStatus} onValueChange={setInstallationStatus}>
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Pending">Pending</SelectItem>
+                  <SelectItem value="Installed">Installed</SelectItem>
+                  <SelectItem value="Not Applicable">Not Applicable</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {installationStatus === 'Installed' && (
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="dateOfInstallation" className="text-right">
+                  Installation Date
+                </Label>
+                <Input id="dateOfInstallation" name="dateOfInstallation" type="date" defaultValue={item?.dateOfInstallation} className="col-span-3" required/>
+              </div>
+            )}
+            <div className="grid grid-cols-4 items-start gap-4">
               <Label htmlFor="documents" className="text-right mt-2">
                 Documents
               </Label>
@@ -178,11 +205,11 @@ export function RequirementDialog({
               <Label htmlFor="remarks" className="text-right mt-2">
                 Remarks
               </Label>
-              <Textarea id="remarks" name="remarks" defaultValue={requirement?.remarks} className="col-span-3" />
+              <Textarea id="remarks" name="remarks" defaultValue={item?.remarks} className="col-span-3" />
             </div>
           </div>
           <DialogFooter>
-            <Button type="submit">{isEditing ? 'Save Changes' : 'Add Requirement'}</Button>
+            <Button type="submit">{isEditing ? 'Save Changes' : 'Add Item'}</Button>
           </DialogFooter>
         </form>
       </DialogContent>

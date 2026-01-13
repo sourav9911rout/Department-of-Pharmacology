@@ -1,5 +1,5 @@
 'use client';
-import type { Requirement } from "@/lib/types";
+import type { ProcuredItem } from "@/lib/types";
 import {
   Table,
   TableBody,
@@ -8,29 +8,24 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { ItemDialog } from "./item-dialog";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import { useFirestore } from "@/firebase";
-import { collection, deleteDoc, doc } from "firebase/firestore";
-import { addDocumentNonBlocking, updateDocumentNonBlocking } from "@/firebase/non-blocking-updates";
-import { Skeleton } from "@/components/ui/skeleton";
-import { TableCaption } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
 import { Link as LinkIcon } from "lucide-react";
-import { RequirementDialog } from "./requirement-dialog";
+import Link from "next/link";
 import { useAdminAuth } from "@/hooks/use-admin-auth";
 import { useCurrentUser } from "@/hooks/use-current-user";
 
-export default function RequirementTable({
+export default function ItemTable({
   data,
   selectedItems,
   onSelectionChange,
-  isLoading
+  isLoading,
 }: {
-  data: Requirement[];
+  data: ProcuredItem[];
   selectedItems: string[];
   onSelectionChange: (ids: string[]) => void;
   isLoading: boolean;
@@ -38,26 +33,6 @@ export default function RequirementTable({
     const { user } = useAdminAuth();
     const { currentUserData } = useCurrentUser(user?.email);
     const isAdmin = currentUserData?.role === 'admin';
-    const firestore = useFirestore();
-
-    const handleStatusChange = (req: Requirement, status: Requirement['status']) => {
-        const docRef = doc(firestore, 'requirements', req.id);
-        if (status === 'Procured') {
-            const procuredItemsCollectionRef = collection(firestore, 'procured_items');
-            addDocumentNonBlocking(procuredItemsCollectionRef, {
-                name: req.name,
-                quantity: req.requiredQuantity,
-                dateOfProcurement: new Date().toISOString().split('T')[0],
-                installationStatus: 'Pending',
-                category: 'Miscellaneous', // Default category
-                remarks: req.remarks || `Moved from requirement list.`,
-                documents: req.documents || [],
-            });
-            deleteDoc(docRef);
-        } else {
-            updateDocumentNonBlocking(docRef, { status });
-        }
-    }
 
     const handleSelectAll = (checked: boolean | 'indeterminate') => {
         if (checked === true) {
@@ -78,11 +53,11 @@ export default function RequirementTable({
     const isAllSelected = data.length > 0 && selectedItems.length === data.length;
     const isSomeSelected = selectedItems.length > 0 && selectedItems.length < data.length;
 
-    const getStatusBadgeClass = (status: Requirement['status']) => {
-         switch (status) {
-            case 'Procured': return 'bg-green-100 text-green-800 border-green-300 dark:bg-green-900/50 dark:text-green-300 dark:border-green-700';
+    const getStatusBadgeClass = (status: ProcuredItem['installationStatus']) => {
+        switch (status) {
+            case 'Installed': return 'bg-green-100 text-green-800 border-green-300 dark:bg-green-900/50 dark:text-green-300 dark:border-green-700';
             case 'Pending': return 'bg-orange-100 text-orange-800 border-orange-300 dark:bg-orange-900/50 dark:text-orange-300 dark:border-orange-700';
-            default: return 'bg-gray-100 text-gray-800 border-gray-300';
+            default: return 'bg-gray-100 text-gray-800 border-gray-300 dark:bg-gray-900/50 dark:text-gray-300 dark:border-gray-700';
         }
     }
 
@@ -101,45 +76,60 @@ export default function RequirementTable({
                     )}
                     <TableHead className="w-[50px]">S.No.</TableHead>
                     <TableHead>Item Name</TableHead>
-                    <TableHead>Required Quantity</TableHead>
+                    <TableHead>Category</TableHead>
+                    <TableHead>Quantity</TableHead>
+                    <TableHead>Procurement Date</TableHead>
+                    <TableHead>Installation Status</TableHead>
+                    <TableHead>Installation Date</TableHead>
                     <TableHead>Documents</TableHead>
                     <TableHead>Remarks</TableHead>
-                    <TableHead>Status</TableHead>
                     {isAdmin && <TableHead className="text-right">Actions</TableHead>}
                 </TableRow>
                 </TableHeader>
                 <TableBody>
                 {isLoading ? (
-                  Array.from({ length: 4 }).map((_, i) => (
+                  Array.from({ length: 5 }).map((_, i) => (
                     <TableRow key={i}>
                       {isAdmin && <TableCell><Skeleton className="h-4 w-4" /></TableCell>}
                       <TableCell><Skeleton className="h-4 w-8" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-48" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-20" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-32" /></TableCell>
-                      <TableCell><Skeleton className="h-8 w-28" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-12" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                      <TableCell><Skeleton className="h-6 w-24" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                       {isAdmin && <TableCell className="text-right"><Skeleton className="h-8 w-16" /></TableCell>}
                     </TableRow>
                   ))
                 ) : data.length > 0 ? (
-                  data.map((req, index) => (
-                    <TableRow key={req.id} data-state={selectedItems.includes(req.id) ? 'selected' : ''}>
+                  data.map((item, index) => {
+                    return (
+                        <TableRow key={item.id} data-state={selectedItems.includes(item.id) ? 'selected' : ''}>
                         {isAdmin && (
-                            <TableCell>
+                             <TableCell>
                                 <Checkbox
-                                    checked={selectedItems.includes(req.id)}
-                                    onCheckedChange={(checked) => handleSelect(req.id, !!checked)}
+                                    checked={selectedItems.includes(item.id)}
+                                    onCheckedChange={(checked) => handleSelect(item.id, !!checked)}
                                 />
                             </TableCell>
                         )}
                         <TableCell className="font-medium">{index + 1}</TableCell>
-                        <TableCell className="font-medium">{req.name}</TableCell>
-                        <TableCell>{req.requiredQuantity}</TableCell>
+                        <TableCell className="font-medium">{item.name}</TableCell>
+                        <TableCell>{item.category}</TableCell>
+                        <TableCell>{item.quantity}</TableCell>
+                        <TableCell>{item.dateOfProcurement}</TableCell>
                         <TableCell>
-                            {req.documents && req.documents.length > 0 ? (
+                            <Badge variant="outline" className={cn("font-normal", getStatusBadgeClass(item.installationStatus))}>
+                                {item.installationStatus || 'N/A'}
+                            </Badge>
+                        </TableCell>
+                        <TableCell>{item.dateOfInstallation || 'N/A'}</TableCell>
+                        <TableCell>
+                            {item.documents && item.documents.length > 0 ? (
                                 <div className="flex flex-col gap-1.5 items-start">
-                                    {req.documents.map((doc, i) => (
+                                    {item.documents.map((doc, i) => (
                                         doc.name && doc.link ? (
                                             <Button key={i} variant="link" size="sm" asChild className="h-auto p-0 text-xs">
                                                 <Link href={doc.link} target="_blank" rel="noopener noreferrer">
@@ -154,40 +144,25 @@ export default function RequirementTable({
                                 <span className="text-muted-foreground">N/A</span>
                             )}
                         </TableCell>
-                        <TableCell className="text-muted-foreground">{req.remarks || 'N/A'}</TableCell>
-                        <TableCell>
-                            {isAdmin ? (
-                                <Select defaultValue={req.status} onValueChange={(value) => handleStatusChange(req, value as Requirement['status'])}>
-                                    <SelectTrigger className="w-[120px] h-8 text-xs">
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="Pending">Pending</SelectItem>
-                                        <SelectItem value="Procured">Procured</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            ) : (
-                                <Badge variant="outline" className={cn("font-normal", getStatusBadgeClass(req.status))}>
-                                    {req.status}
-                                </Badge>
-                            )}
-                        </TableCell>
+                        <TableCell className="text-muted-foreground">{item.remarks || 'N/A'}</TableCell>
                         {isAdmin && (
                             <TableCell className="text-right">
-                               <RequirementDialog requirement={req}>
+                               <ItemDialog item={item}>
                                    <Button variant="ghost" size="sm">Edit</Button>
-                               </RequirementDialog>
+                               </ItemDialog>
                             </TableCell>
                         )}
-                    </TableRow>
-                  ))
+                        </TableRow>
+                    )
+                  })
                 ) : (
-                    null
+                    <TableRow>
+                        <TableCell colSpan={isAdmin ? 11 : 10} className="h-24 text-center">
+                            No procured items found.
+                        </TableCell>
+                    </TableRow>
                 )}
                 </TableBody>
-                 { !isLoading && data.length === 0 && (
-                    <TableCaption>No requirements found.</TableCaption>
-                )}
             </Table>
         </div>
     );
