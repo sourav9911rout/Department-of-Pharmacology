@@ -26,7 +26,7 @@ export type SendEventEmailInput = z.infer<typeof SendEventEmailSchema>;
 export async function sendEventEmail(input: SendEventEmailInput): Promise<void> {
     // 1. Pre-flight check for credentials
     if (!process.env.GMAIL_EMAIL || !process.env.GMAIL_APP_PASSWORD) {
-        console.error("GMAIL_EMAIL or GMAIL_APP_PASSWORD environment variables are not set.");
+        console.error("Email service is not configured. Missing GMAIL_EMAIL or GMAIL_APP_PASSWORD in environment variables.");
         throw new Error("Email service is not configured. Missing credentials in environment variables.");
     }
 
@@ -60,12 +60,12 @@ export async function sendEventEmail(input: SendEventEmailInput): Promise<void> 
         if (error instanceof Error) {
             // Check for common authentication errors
             if ('code' in error && (error as any).code === 'EAUTH') {
-                 throw new Error('Failed to send email: Authentication error. Please double-check GMAIL_EMAIL and GMAIL_APP_PASSWORD in your Vercel environment variables.');
+                 throw new Error('Failed to send email: Authentication error. Please double-check GMAIL_EMAIL and GMAIL_APP_PASSWORD in your environment variables.');
             }
             // For other errors, re-throw a more detailed message
             throw new Error(`Failed to send email: ${error.message}`);
         }
         // Fallback for unknown errors
-        throw new Error("Failed to send email due to an unknown error. Check the Vercel function logs for more details.");
+        throw new Error("Failed to send email due to an unknown error. Check the function logs for more details.");
     }
 }
